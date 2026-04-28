@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- App Sandbox: OFF.
+         Sandboxing would prevent us from launching arbitrary apps and from
+         shelling out to lsof, codesign, spctl. The product ships outside the
+         App Store with Developer ID + notarization. -->
+    <key>com.apple.security.app-sandbox</key>
+    <false/>
+
+    <!-- Outbound connectivity is used for two narrow purposes:
+            1. DNS reverse lookups for destinations the inspected app connects to
+               (so the Network tab can show "8.8.8.8 → dns.google" instead of
+               just an IP).
+            2. Fetching App Store privacy nutrition labels from
+               itunes.apple.com (Lookup API) and apps.apple.com (HTML scrape)
+               when the inspected bundle has a Mac App Store receipt. The
+               request is keyed by bundle ID — we never transmit any of the
+               inspected app's contents. -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+
+    <!-- Hardened Runtime is configured via the build settings, not via the
+         entitlements plist. We deliberately do NOT set:
+            com.apple.security.cs.allow-jit
+            com.apple.security.cs.allow-dyld-environment-variables
+            com.apple.security.cs.disable-library-validation
+         The auditor loads only its own and Apple's signed code. -->
+
+    <!-- Tier B will add (in a separate entitlements file used by the helper):
+            com.apple.developer.service-management.managed-by-main-app  -> Bool true
+         and the main app's Info.plist will list:
+            SMPrivilegedExecutables -> { com.<teamid>.privacycommand.HelperTool = <designated requirement> } -->
+
+    <!-- Tier C will require Apple-granted entitlements and CANNOT be added
+         locally. They are listed here purely as a comment for completeness:
+            com.apple.developer.endpoint-security.client (system extension)
+            com.apple.developer.networking.networkextension (system extension)
+            com.apple.developer.system-extension.install (this app) -->
+</dict>
+</plist>

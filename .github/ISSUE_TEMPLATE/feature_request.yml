@@ -1,0 +1,129 @@
+name: Feature request
+description: Suggest a new capability or improvement to privacycommand.
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an improvement. The clearer the problem
+        and intended use-case, the more likely we are to pick this up
+        quickly.
+
+        For open-ended ideas or "is this expected?" questions, consider
+        starting a Discussion first — see the contact links on the
+        previous page.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the pain point. A good framing is "As a user, I want X so that Y."
+      placeholder: |
+        When I'm auditing a build that ships dozens of frameworks I
+        can't tell at a glance which ones came from the developer vs.
+        which are vendored third-party SDKs. I want…
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: If you have an idea for how it could work, describe it here. Happy to iterate on the design together.
+      placeholder: |
+        Show a "first-party / third-party" badge on each Frameworks
+        row, derived from comparing the framework's Team ID against
+        the main app's.
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any workarounds you already use, or other shapes the feature could take?
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which area of the app?
+      description: Pick all that apply. Helps us scope the work.
+      multiple: true
+      options:
+        - Static analysis (Static tab)
+        - Dashboard (telemetry / privacy labels / live probes)
+        - Monitored run (file events / network / processes)
+        - Watch mode / menu-bar
+        - Privileged helper
+        - Network kill switch
+        - BTM audit
+        - VM mode / guest agent
+        - App Store privacy-label fetch
+        - Updates (Sparkle / Homebrew)
+        - Reports / export
+        - Onboarding wizard
+        - Settings / preferences
+        - Knowledge base / in-app explanations
+        - Accessibility
+        - CLI (`auditctl`)
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: How important is this to you?
+      description: Honest answers are most useful — they help us prioritise against other requests.
+      multiple: false
+      options:
+        - "Blocker — I can't use privacycommand for my workflow without it"
+        - "High — it would meaningfully improve my workflow"
+        - "Medium — nice-to-have, I'd use it"
+        - "Low — interesting idea, take or leave"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Audience
+      description: |
+        Who would benefit from this feature? Not all features make
+        sense for every audience, and tagging this up-front helps
+        decide whether it ships in the default build, behind a
+        Settings toggle, or only via the CLI.
+      multiple: true
+      options:
+        - Security researchers / red teams
+        - IT / endpoint-management admins
+        - Developers auditing their own apps
+        - Privacy-curious individuals
+        - Compliance / legal review teams
+        - Other
+    validations:
+      required: false
+
+  - type: textarea
+    id: example
+    attributes:
+      label: Example app or scenario
+      description: |
+        If there's a specific bundle or workflow that motivated this
+        request, describing it concretely makes the request much
+        easier to evaluate.
+      placeholder: |
+        While auditing Slack.app I wanted to see…
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you submit
+      options:
+        - label: I searched existing issues and Discussions and didn't find a duplicate.
+          required: true

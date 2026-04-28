@@ -1,0 +1,16 @@
+[
+    { "id": "R001-keychains",      "category": "userLibraryKeychains", "op": null,   "declaredCategoryRequired": null,            "risk": "surprising", "rationale": "Touches the keychain folder. Apps should use the Security framework, not the raw files." },
+    { "id": "R002-cookies",        "category": "userLibraryCookies",   "op": null,   "declaredCategoryRequired": null,            "risk": "surprising", "rationale": "Reads or writes browser cookie storage." },
+    { "id": "R003-ssh",            "category": "userLibrarySSH",       "op": null,   "declaredCategoryRequired": null,            "risk": "surprising", "rationale": "Touches ~/.ssh — high-value secrets." },
+    { "id": "R004-mail",           "category": "userLibraryMail",      "op": null,   "declaredCategoryRequired": null,            "risk": "sensitive",  "rationale": "Reads Apple Mail's data store." },
+    { "id": "R005-messages",       "category": "userLibraryMessages",  "op": null,   "declaredCategoryRequired": null,            "risk": "sensitive",  "rationale": "Reads Messages chat history." },
+    { "id": "R006-photos",         "category": "userLibraryPhotos",    "op": null,   "declaredCategoryRequired": "photoLibrary",  "risk": "sensitive",  "rationale": "Reads Photos library without declaring NSPhotoLibraryUsageDescription." },
+    { "id": "R007-contacts",       "category": "userLibraryContacts",  "op": null,   "declaredCategoryRequired": "contacts",      "risk": "sensitive",  "rationale": "Reads address book without declaring NSContactsUsageDescription." },
+    { "id": "R008-calendar",       "category": "userLibraryCalendar",  "op": null,   "declaredCategoryRequired": "calendar",      "risk": "sensitive",  "rationale": "Reads Calendar store without declaring NSCalendarsUsageDescription." },
+    { "id": "R009-docs-write",     "category": "userDocuments",        "op": "write","declaredCategoryRequired": null,            "risk": "expected",   "rationale": "Writes inside ~/Documents — typical for a document-based app." },
+    { "id": "R010-removable",      "category": "removableVolume",      "op": null,   "declaredCategoryRequired": null,            "risk": "sensitive",  "rationale": "Touches a removable volume." },
+    { "id": "R011-network-volume", "category": "networkVolume",        "op": null,   "declaredCategoryRequired": null,            "risk": "sensitive",  "rationale": "Touches a network share." },
+    { "id": "R012-tmp-write",      "category": "temporary",            "op": "write","declaredCategoryRequired": null,            "risk": "expected",   "rationale": "Temp files in /tmp or DARWIN_USER_TEMP_DIR — normal." },
+    { "id": "R013-system-write",   "category": "systemReadOnly",       "op": "write","declaredCategoryRequired": null,            "risk": "surprising", "rationale": "Tries to write into a system-read-only path." },
+    { "id": "R014-bundle-internal","category": "bundleInternal",       "op": null,   "declaredCategoryRequired": null,            "risk": "expected",   "rationale": "Reads/writes inside its own app bundle." }
+]

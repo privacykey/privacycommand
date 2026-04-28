@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Mach-service label that launchd, the helper, and the app's
+         SMAppService.daemon(plistName:) all agree on. Must match
+         HelperToolID.machServiceName in HelperToolProtocol.swift. -->
+    <key>Label</key>
+    <string>org.privacykey.privacycommand.HelperTool</string>
+
+    <!-- Path to the helper executable, relative to the bundled location.
+         When SMAppService loads the daemon, it resolves BundleProgram
+         relative to Contents/MacOS/ of the embedding app. -->
+    <key>BundleProgram</key>
+    <string>Contents/MacOS/privacycommandHelper</string>
+
+    <!-- Mach service the helper listens on. -->
+    <key>MachServices</key>
+    <dict>
+        <key>org.privacykey.privacycommand.HelperTool</key>
+        <true/>
+    </dict>
+
+    <!-- Don't auto-launch — only start when the app makes the first
+         XPC call. Saves cycles when the user only does static analysis. -->
+    <key>RunAtLoad</key>
+    <false/>
+
+    <!-- launchd will keep the helper alive for ~10 seconds of inactivity,
+         then shut it down. Subsequent connections re-spawn it. -->
+    <key>KeepAlive</key>
+    <false/>
+
+    <!-- We need to spawn /usr/bin/fs_usage which is not sandboxable, so we
+         don't sandbox the daemon itself. -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+</dict>
+</plist>

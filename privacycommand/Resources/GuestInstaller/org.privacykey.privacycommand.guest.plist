@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+    LaunchAgent that boots privacycommand-guest at user login inside a
+    macOS VM. Install.command copies this to
+    ~/Library/LaunchAgents/org.privacykey.privacycommand.guest.plist and runs
+    `launchctl bootstrap`.
+
+    The agent listens on TCP 49374 by default. Override the port by
+    appending a `--port N` to the ProgramArguments below before
+    installing.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>org.privacykey.privacycommand.guest</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/privacycommand-guest</string>
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+
+    <!-- Survive a re-attach of the install image. -->
+    <key>StandardErrorPath</key>
+    <string>/tmp/privacycommand-guest.err</string>
+    <key>StandardOutPath</key>
+    <string>/tmp/privacycommand-guest.log</string>
+</dict>
+</plist>

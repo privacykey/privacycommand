@@ -1,0 +1,1257 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 70;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0BBBBBBB000000000000A001 /* privacycommandApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A001 /* privacycommandApp.swift */; };
+		0BBBBBBB000000000000A002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A002 /* ContentView.swift */; };
+		0BBBBBBB000000000000A003 /* AnalysisCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A003 /* AnalysisCoordinator.swift */; };
+		0BBBBBBB000000000000A004 /* HelperInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A004 /* HelperInstaller.swift */; };
+		0BBBBBBB000000000000A005 /* AppIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A005 /* AppIconView.swift */; };
+		0BBBBBBB000000000000A006 /* UpdateFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A006 /* UpdateFetcher.swift */; };
+		0BBBBBBB000000000000A007 /* WatchModeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A007 /* WatchModeManager.swift */; };
+		0BBBBBBB000000000000A101 /* DropTargetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A101 /* DropTargetView.swift */; };
+		0BBBBBBB000000000000A102 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A102 /* DashboardView.swift */; };
+		0BBBBBBB000000000000A103 /* StaticAnalysisView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A103 /* StaticAnalysisView.swift */; };
+		0BBBBBBB000000000000A104 /* FileAccessView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A104 /* FileAccessView.swift */; };
+		0BBBBBBB000000000000A105 /* NetworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A105 /* NetworkView.swift */; };
+		0BBBBBBB000000000000A106 /* TimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A106 /* TimelineView.swift */; };
+		0BBBBBBB000000000000A107 /* FidelityBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A107 /* FidelityBadge.swift */; };
+		0BBBBBBB000000000000A108 /* RiskScoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A108 /* RiskScoreView.swift */; };
+		0BBBBBBB000000000000A109 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A109 /* HistoryView.swift */; };
+		0BBBBBBB000000000000A10A /* CompareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A10A /* CompareView.swift */; };
+		0BBBBBBB000000000000A10B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A10B /* SettingsView.swift */; };
+		0BBBBBBB000000000000A10C /* InfoButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A10C /* InfoButton.swift */; };
+		0BBBBBBB000000000000A10D /* PathCategoryGuide.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A10D /* PathCategoryGuide.swift */; };
+		0BBBBBBB000000000000A10E /* DomainCategoryBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A10E /* DomainCategoryBadge.swift */; };
+		0BBBBBBB000000000000A10F /* EmbeddedBundleRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A10F /* EmbeddedBundleRow.swift */; };
+		0BBBBBBB000000000000A110 /* ProvenanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A110 /* ProvenanceView.swift */; };
+		0BBBBBBB000000000000A111 /* UpdateComparisonSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A111 /* UpdateComparisonSheet.swift */; };
+		0BBBBBBB000000000000A112 /* ResourcesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A112 /* ResourcesView.swift */; };
+		0BBBBBBB000000000000A113 /* DisassemblerLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A113 /* DisassemblerLauncher.swift */; };
+		0BBBBBBB000000000000A114 /* ResourceKindGuide.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A114 /* ResourceKindGuide.swift */; };
+		0BBBBBBB000000000000A115 /* KnowledgeBaseBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A115 /* KnowledgeBaseBrowserView.swift */; };
+		0BBBBBBB000000000000A116 /* DisassemblySummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A116 /* DisassemblySummaryView.swift */; };
+		0BBBBBBB000000000000A117 /* SDKHitsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A117 /* SDKHitsView.swift */; };
+		0BBBBBBB000000000000A118 /* SecretsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A118 /* SecretsView.swift */; };
+		0BBBBBBB000000000000A119 /* BundleSigningAuditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A119 /* BundleSigningAuditView.swift */; };
+		0BBBBBBB000000000000A11A /* AntiAnalysisView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A11A /* AntiAnalysisView.swift */; };
+		0BBBBBBB000000000000A11B /* RPathAuditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A11B /* RPathAuditView.swift */; };
+		0BBBBBBB000000000000A11C /* EmbeddedAssetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A11C /* EmbeddedAssetsView.swift */; };
+		0BBBBBBB000000000000A11D /* PrivacyClaimsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A11D /* PrivacyClaimsView.swift */; };
+		0BBBBBBB000000000000A11E /* AnomaliesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A11E /* AnomaliesView.swift */; };
+		0BBBBBBB000000000000A11F /* PrivacyManifestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A11F /* PrivacyManifestView.swift */; };
+		0BBBBBBB000000000000A120 /* SandboxContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A120 /* SandboxContainerView.swift */; };
+		0BBBBBBB000000000000A121 /* BTMAuditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A121 /* BTMAuditView.swift */; };
+		0BBBBBBB000000000000A122 /* NotarizationDeepDiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A122 /* NotarizationDeepDiveView.swift */; };
+		0BBBBBBB000000000000A123 /* WatchModePopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A123 /* WatchModePopover.swift */; };
+		0BBBBBBB000000000000A124 /* LiveProbesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A124 /* LiveProbesView.swift */; };
+		0BBBBBBB000000000000A125 /* ExecutiveSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A125 /* ExecutiveSummaryView.swift */; };
+		0BBBBBBB000000000000A126 /* AnalyzingSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A126 /* AnalyzingSheet.swift */; };
+		0BBBBBBB000000000000A127 /* EmbeddedAssetPreviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A127 /* EmbeddedAssetPreviewSheet.swift */; };
+		0BBBBBBB000000000000A128 /* BundleInspectorLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A128 /* BundleInspectorLauncher.swift */; };
+		0BBBBBBB000000000000A129 /* ResourceUsageCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A129 /* ResourceUsageCard.swift */; };
+		0BBBBBBB000000000000A12A /* USBDevicesCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A12A /* USBDevicesCard.swift */; };
+		0BBBBBBB000000000000A12B /* TopRemoteHostsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A12B /* TopRemoteHostsView.swift */; };
+		0BBBBBBB000000000000A12C /* GuestAgentSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A12C /* GuestAgentSettingsView.swift */; };
+		0BBBBBBB000000000000A12D /* FlagsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A12D /* FlagsView.swift */; };
+		0BBBBBBB000000000000A12E /* TelemetrySummaryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A12E /* TelemetrySummaryCard.swift */; };
+		0BBBBBBB000000000000A12F /* PrivacyLabelsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A12F /* PrivacyLabelsCard.swift */; };
+		0BBBBBBB000000000000A130 /* UpdatesSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A130 /* UpdatesSettingsView.swift */; };
+		0BBBBBBB000000000000A008 /* UpdateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A008 /* UpdateController.swift */; };
+		0BBBBBBB000000000000C902 /* UpdateChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C902 /* UpdateChannel.swift */; };
+		0BBBBBBB000000000000C903 /* HomebrewDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C903 /* HomebrewDetector.swift */; };
+		0BBBBBBB000000000000C904 /* UpdatePreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C904 /* UpdatePreferences.swift */; };
+		0BBBBBBB000000000000C008 /* AppStoreInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C008 /* AppStoreInfo.swift */; };
+		0BBBBBBB000000000000C11B /* MASReceiptDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C11B /* MASReceiptDetector.swift */; };
+		0BBBBBBB000000000000C11C /* AppStoreLookup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C11C /* AppStoreLookup.swift */; };
+		0BBBBBBB000000000000C11D /* AppStorePrivacyLabelFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C11D /* AppStorePrivacyLabelFetcher.swift */; };
+		0BBBBBBB000000000000C20B /* VMHostDetection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C20B /* VMHostDetection.swift */; };
+		0BBBBBBB000000000000C11A /* FlagsScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C11A /* FlagsScanner.swift */; };
+		0BBBBBBB000000000000C901 /* GuestProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C901 /* GuestProtocol.swift */; };
+		0BBBBBBB000000000000A201 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A201 /* OnboardingView.swift */; };
+		0BBBBBBB000000000000A202 /* OnboardingSteps.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A202 /* OnboardingSteps.swift */; };
+		0BBBBBBB000000000000A301 /* PDFExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A301 /* PDFExporter.swift */; };
+		0BBBBBBB000000000000C001 /* AppBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C001 /* AppBundle.swift */; };
+		0BBBBBBB000000000000C002 /* PrivacyKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C002 /* PrivacyKey.swift */; };
+		0BBBBBBB000000000000C003 /* StaticReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C003 /* StaticReport.swift */; };
+		0BBBBBBB000000000000C004 /* DynamicEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C004 /* DynamicEvent.swift */; };
+		0BBBBBBB000000000000C005 /* RunReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C005 /* RunReport.swift */; };
+		0BBBBBBB000000000000C006 /* OpenResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C006 /* OpenResource.swift */; };
+		0BBBBBBB000000000000C007 /* LiveProbeEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C007 /* LiveProbeEvent.swift */; };
+		0BBBBBBB000000000000C101 /* MachOInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C101 /* MachOInspector.swift */; };
+		0BBBBBBB000000000000C102 /* CodesignWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C102 /* CodesignWrapper.swift */; };
+		0BBBBBBB000000000000C103 /* EntitlementsReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C103 /* EntitlementsReader.swift */; };
+		0BBBBBBB000000000000C104 /* InfoPlistReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C104 /* InfoPlistReader.swift */; };
+		0BBBBBBB000000000000C105 /* PrivacyKeyDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C105 /* PrivacyKeyDatabase.swift */; };
+		0BBBBBBB000000000000C106 /* BinaryStringScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C106 /* BinaryStringScanner.swift */; };
+		0BBBBBBB000000000000C107 /* FrameworkScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C107 /* FrameworkScanner.swift */; };
+		0BBBBBBB000000000000C108 /* StaticAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C108 /* StaticAnalyzer.swift */; };
+		0BBBBBBB000000000000C109 /* ProvenanceReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C109 /* ProvenanceReader.swift */; };
+		0BBBBBBB000000000000C10A /* UpdateMechanismDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C10A /* UpdateMechanismDetector.swift */; };
+		0BBBBBBB000000000000C10B /* AppcastParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C10B /* AppcastParser.swift */; };
+		0BBBBBBB000000000000C10C /* DisassemblyAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C10C /* DisassemblyAnalyzer.swift */; };
+		0BBBBBBB000000000000C10D /* SDKFingerprintDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C10D /* SDKFingerprintDatabase.swift */; };
+		0BBBBBBB000000000000C10E /* SDKFingerprintDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C10E /* SDKFingerprintDetector.swift */; };
+		0BBBBBBB000000000000C10F /* SecretsScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C10F /* SecretsScanner.swift */; };
+		0BBBBBBB000000000000C110 /* BundleSigningAuditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C110 /* BundleSigningAuditor.swift */; };
+		0BBBBBBB000000000000C111 /* AntiAnalysisDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C111 /* AntiAnalysisDetector.swift */; };
+		0BBBBBBB000000000000C112 /* RPathAuditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C112 /* RPathAuditor.swift */; };
+		0BBBBBBB000000000000C113 /* EmbeddedAssetScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C113 /* EmbeddedAssetScanner.swift */; };
+		0BBBBBBB000000000000C114 /* BehaviorAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C114 /* BehaviorAnalyzer.swift */; };
+		0BBBBBBB000000000000C115 /* PrivacyManifestReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C115 /* PrivacyManifestReader.swift */; };
+		0BBBBBBB000000000000C116 /* SandboxContainerInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C116 /* SandboxContainerInspector.swift */; };
+		0BBBBBBB000000000000C117 /* BTMAuditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C117 /* BTMAuditor.swift */; };
+		0BBBBBBB000000000000C118 /* NotarizationDeepDive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C118 /* NotarizationDeepDive.swift */; };
+		0BBBBBBB000000000000C201 /* ProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C201 /* ProcessRunner.swift */; };
+		0BBBBBBB000000000000C202 /* ProcessTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C202 /* ProcessTracker.swift */; };
+		0BBBBBBB000000000000C203 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C203 /* NetworkMonitor.swift */; };
+		0BBBBBBB000000000000C204 /* DynamicMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C204 /* DynamicMonitor.swift */; };
+		0BBBBBBB000000000000C205 /* ResourceMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C205 /* ResourceMonitor.swift */; };
+		0BBBBBBB000000000000C206 /* LiveProbeMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C206 /* LiveProbeMonitor.swift */; };
+		0BBBBBBB000000000000C207 /* DeviceUsageProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C207 /* DeviceUsageProbe.swift */; };
+		0BBBBBBB000000000000C208 /* SystemResourceMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C208 /* SystemResourceMonitor.swift */; };
+		0BBBBBBB000000000000C209 /* USBDeviceMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C209 /* USBDeviceMonitor.swift */; };
+		0BBBBBBB000000000000C119 /* DMGMounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C119 /* DMGMounter.swift */; };
+		0BBBBBBB000000000000C20A /* GuestObservationStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C20A /* GuestObservationStream.swift */; };
+		0BBBBBBB000000000000C301 /* PathClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C301 /* PathClassifier.swift */; };
+		0BBBBBBB000000000000C302 /* RiskClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C302 /* RiskClassifier.swift */; };
+		0BBBBBBB000000000000C303 /* RiskScorer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C303 /* RiskScorer.swift */; };
+		0BBBBBBB000000000000C304 /* DomainClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C304 /* DomainClassifier.swift */; };
+		0BBBBBBB000000000000C305 /* ContributorSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C305 /* ContributorSource.swift */; };
+		0BBBBBBB000000000000C401 /* JSONExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C401 /* JSONExporter.swift */; };
+		0BBBBBBB000000000000C402 /* HTMLExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C402 /* HTMLExporter.swift */; };
+		0BBBBBBB000000000000C403 /* ReportDiffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C403 /* ReportDiffer.swift */; };
+		0BBBBBBB000000000000C501 /* HelperToolProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C501 /* HelperToolProtocol.swift */; };
+		0BBBBBBB000000000000C502 /* HelperToolProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C501 /* HelperToolProtocol.swift */; };
+		0BBBBBBB000000000000C601 /* RunStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C601 /* RunStore.swift */; };
+		0BBBBBBB000000000000C701 /* KnowledgeBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C701 /* KnowledgeBase.swift */; };
+		0BBBBBBB000000000000C801 /* RunSearcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C801 /* RunSearcher.swift */; };
+		0BBBBBBB000000000000D001 /* PathClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000D001 /* PathClassifierTests.swift */; };
+		0BBBBBBB000000000000D002 /* BinaryStringScannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000D002 /* BinaryStringScannerTests.swift */; };
+		0BBBBBBB000000000000D003 /* StaticAnalyzerSmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000D003 /* StaticAnalyzerSmokeTests.swift */; };
+		0DDDDDDD000000000000B003 /* PrivacyKeyDatabase.json in Resources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B003 /* PrivacyKeyDatabase.json */; };
+		0DDDDDDD000000000000B004 /* PathClassifier.json in Resources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B004 /* PathClassifier.json */; };
+		0DDDDDDD000000000000B005 /* RiskRules.json in Resources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B005 /* RiskRules.json */; };
+		0DDDDDDD000000000000B100 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B100 /* Assets.xcassets */; };
+		0EEEEEEE000000000000F101 /* privacycommandHelper in Embed Helper */ = {isa = PBXBuildFile; fileRef = A954CFEA2F9E0506005AC054 /* privacycommandHelper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		0EEEEEEE000000000000F102 /* org.privacykey.privacycommand.HelperTool.plist in Embed LaunchDaemons */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B006 /* org.privacykey.privacycommand.HelperTool.plist */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		5500000000000000000000B1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0AAAAAAA000000000000ABCD /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1100000000000000000000A0;
+			remoteInfo = privacycommand;
+		};
+		5500000000000000000000A1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0AAAAAAA000000000000ABCD /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A954CFE92F9E0506005AC054;
+			remoteInfo = privacycommandHelper;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A954CFE82F9E0506005AC054 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		0EEEEEEE000000000000F201 /* Embed Privileged Helper */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 6;
+			files = (
+				0EEEEEEE000000000000F101 /* privacycommandHelper in Embed Helper */,
+			);
+			name = "Embed Privileged Helper";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0EEEEEEE000000000000F202 /* Embed LaunchDaemon plist */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "Contents/Library/LaunchDaemons";
+			dstSubfolderSpec = 1;
+			files = (
+				0EEEEEEE000000000000F102 /* org.privacykey.privacycommand.HelperTool.plist in Embed LaunchDaemons */,
+			);
+			name = "Embed LaunchDaemon plist";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0FFFFFFF000000000000A001 /* privacycommandApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = privacycommandApp.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A003 /* AnalysisCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisCoordinator.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A004 /* HelperInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelperInstaller.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A005 /* AppIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIconView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A006 /* UpdateFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateFetcher.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A007 /* WatchModeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchModeManager.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A101 /* DropTargetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropTargetView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A102 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A103 /* StaticAnalysisView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticAnalysisView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A104 /* FileAccessView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileAccessView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A105 /* NetworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A106 /* TimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A107 /* FidelityBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FidelityBadge.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A108 /* RiskScoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiskScoreView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A109 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A10A /* CompareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompareView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A10B /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A10C /* InfoButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoButton.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A10D /* PathCategoryGuide.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathCategoryGuide.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A10E /* DomainCategoryBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainCategoryBadge.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A10F /* EmbeddedBundleRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbeddedBundleRow.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A110 /* ProvenanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvenanceView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A111 /* UpdateComparisonSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateComparisonSheet.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A112 /* ResourcesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourcesView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A113 /* DisassemblerLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisassemblerLauncher.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A114 /* ResourceKindGuide.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceKindGuide.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A115 /* KnowledgeBaseBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnowledgeBaseBrowserView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A116 /* DisassemblySummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisassemblySummaryView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A117 /* SDKHitsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDKHitsView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A118 /* SecretsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecretsView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A119 /* BundleSigningAuditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundleSigningAuditView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A11A /* AntiAnalysisView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AntiAnalysisView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A11B /* RPathAuditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RPathAuditView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A11C /* EmbeddedAssetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbeddedAssetsView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A11D /* PrivacyClaimsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyClaimsView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A11E /* AnomaliesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnomaliesView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A11F /* PrivacyManifestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyManifestView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A120 /* SandboxContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SandboxContainerView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A121 /* BTMAuditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BTMAuditView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A122 /* NotarizationDeepDiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotarizationDeepDiveView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A123 /* WatchModePopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchModePopover.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A124 /* LiveProbesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveProbesView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A125 /* ExecutiveSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExecutiveSummaryView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A126 /* AnalyzingSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyzingSheet.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A127 /* EmbeddedAssetPreviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbeddedAssetPreviewSheet.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A128 /* BundleInspectorLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundleInspectorLauncher.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A129 /* ResourceUsageCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceUsageCard.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A12A /* USBDevicesCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USBDevicesCard.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A12B /* TopRemoteHostsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopRemoteHostsView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A12C /* GuestAgentSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestAgentSettingsView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A12D /* FlagsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlagsView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A12E /* TelemetrySummaryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetrySummaryCard.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A12F /* PrivacyLabelsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyLabelsCard.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A130 /* UpdatesSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdatesSettingsView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A008 /* UpdateController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateController.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C902 /* UpdateChannel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChannel.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C903 /* HomebrewDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomebrewDetector.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C904 /* UpdatePreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdatePreferences.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C008 /* AppStoreInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreInfo.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C11B /* MASReceiptDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MASReceiptDetector.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C11C /* AppStoreLookup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreLookup.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C11D /* AppStorePrivacyLabelFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStorePrivacyLabelFetcher.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C20B /* VMHostDetection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMHostDetection.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C11A /* FlagsScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlagsScanner.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C901 /* GuestProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestProtocol.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A201 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A202 /* OnboardingSteps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSteps.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A301 /* PDFExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFExporter.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000B001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		0FFFFFFF000000000000B002 /* privacycommand.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = privacycommand.entitlements; sourceTree = "<group>"; };
+		0FFFFFFF000000000000B003 /* PrivacyKeyDatabase.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = PrivacyKeyDatabase.json; sourceTree = "<group>"; };
+		0FFFFFFF000000000000B004 /* PathClassifier.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = PathClassifier.json; sourceTree = "<group>"; };
+		0FFFFFFF000000000000B005 /* RiskRules.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = RiskRules.json; sourceTree = "<group>"; };
+		0FFFFFFF000000000000B006 /* org.privacykey.privacycommand.HelperTool.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = org.privacykey.privacycommand.HelperTool.plist; sourceTree = "<group>"; };
+		0FFFFFFF000000000000B007 /* privacycommandHelper.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = privacycommandHelper.entitlements; sourceTree = "<group>"; };
+		0FFFFFFF000000000000B100 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C001 /* AppBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBundle.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C002 /* PrivacyKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyKey.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C003 /* StaticReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticReport.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C004 /* DynamicEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicEvent.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C005 /* RunReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunReport.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C006 /* OpenResource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenResource.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C007 /* LiveProbeEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveProbeEvent.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C101 /* MachOInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MachOInspector.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C102 /* CodesignWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodesignWrapper.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C103 /* EntitlementsReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntitlementsReader.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C104 /* InfoPlistReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoPlistReader.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C105 /* PrivacyKeyDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyKeyDatabase.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C106 /* BinaryStringScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BinaryStringScanner.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C107 /* FrameworkScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameworkScanner.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C108 /* StaticAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticAnalyzer.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C109 /* ProvenanceReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProvenanceReader.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C10A /* UpdateMechanismDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateMechanismDetector.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C10B /* AppcastParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppcastParser.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C10C /* DisassemblyAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisassemblyAnalyzer.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C10D /* SDKFingerprintDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDKFingerprintDatabase.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C10E /* SDKFingerprintDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDKFingerprintDetector.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C10F /* SecretsScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecretsScanner.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C110 /* BundleSigningAuditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundleSigningAuditor.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C111 /* AntiAnalysisDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AntiAnalysisDetector.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C112 /* RPathAuditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RPathAuditor.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C113 /* EmbeddedAssetScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbeddedAssetScanner.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C114 /* BehaviorAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BehaviorAnalyzer.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C115 /* PrivacyManifestReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyManifestReader.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C116 /* SandboxContainerInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SandboxContainerInspector.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C117 /* BTMAuditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BTMAuditor.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C118 /* NotarizationDeepDive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotarizationDeepDive.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C119 /* DMGMounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DMGMounter.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C20A /* GuestObservationStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestObservationStream.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C201 /* ProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessRunner.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C202 /* ProcessTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessTracker.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C203 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C204 /* DynamicMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicMonitor.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C205 /* ResourceMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceMonitor.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C206 /* LiveProbeMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveProbeMonitor.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C207 /* DeviceUsageProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceUsageProbe.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C208 /* SystemResourceMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemResourceMonitor.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C209 /* USBDeviceMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USBDeviceMonitor.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C301 /* PathClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathClassifier.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C302 /* RiskClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiskClassifier.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C303 /* RiskScorer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiskScorer.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C304 /* DomainClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainClassifier.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C305 /* ContributorSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContributorSource.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C401 /* JSONExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONExporter.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C402 /* HTMLExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTMLExporter.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C403 /* ReportDiffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportDiffer.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C501 /* HelperToolProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelperToolProtocol.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C601 /* RunStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunStore.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C701 /* KnowledgeBase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnowledgeBase.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C801 /* RunSearcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunSearcher.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000D001 /* PathClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathClassifierTests.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000D002 /* BinaryStringScannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BinaryStringScannerTests.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000D003 /* StaticAnalyzerSmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticAnalyzerSmokeTests.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000E001 /* privacycommand.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = privacycommand.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0FFFFFFF000000000000E002 /* privacycommandTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = privacycommandTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A954CFEA2F9E0506005AC054 /* privacycommandHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = privacycommandHelper; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		A954CFEB2F9E0506005AC054 /* privacycommandHelper */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = privacycommandHelper; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0202020200000000000000A1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0202020200000000000000B1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A954CFE72F9E0506005AC054 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0CCCCCCC0000000000000000 = {
+			isa = PBXGroup;
+			children = (
+				0CCCCCCC0000000000000A00 /* privacycommand */,
+				0CCCCCCC0000000000000C00 /* privacycommandCore */,
+				0CCCCCCC0000000000000C20 /* privacycommandGuestProtocol */,
+				0CCCCCCC0000000000000B00 /* Resources */,
+				0CCCCCCC0000000000000D00 /* Tests */,
+				A954CFEB2F9E0506005AC054 /* privacycommandHelper */,
+				0CCCCCCC0000000000000E00 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000A00 /* privacycommand */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000A001 /* privacycommandApp.swift */,
+				0FFFFFFF000000000000A002 /* ContentView.swift */,
+				0FFFFFFF000000000000A005 /* AppIconView.swift */,
+				0CCCCCCC0000000000000A01 /* ViewModels */,
+				0CCCCCCC0000000000000A02 /* Views */,
+				0CCCCCCC0000000000000A04 /* Reporting */,
+			);
+			name = privacycommand;
+			path = Sources/privacycommand;
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000A01 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000A003 /* AnalysisCoordinator.swift */,
+				0FFFFFFF000000000000A004 /* HelperInstaller.swift */,
+				0FFFFFFF000000000000A006 /* UpdateFetcher.swift */,
+				0FFFFFFF000000000000A007 /* WatchModeManager.swift */,
+				0FFFFFFF000000000000A008 /* UpdateController.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000A02 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000A101 /* DropTargetView.swift */,
+				0FFFFFFF000000000000A102 /* DashboardView.swift */,
+				0FFFFFFF000000000000A103 /* StaticAnalysisView.swift */,
+				0FFFFFFF000000000000A104 /* FileAccessView.swift */,
+				0FFFFFFF000000000000A105 /* NetworkView.swift */,
+				0FFFFFFF000000000000A106 /* TimelineView.swift */,
+				0FFFFFFF000000000000A107 /* FidelityBadge.swift */,
+				0FFFFFFF000000000000A108 /* RiskScoreView.swift */,
+				0FFFFFFF000000000000A109 /* HistoryView.swift */,
+				0FFFFFFF000000000000A10A /* CompareView.swift */,
+				0FFFFFFF000000000000A10B /* SettingsView.swift */,
+				0FFFFFFF000000000000A10C /* InfoButton.swift */,
+				0FFFFFFF000000000000A10D /* PathCategoryGuide.swift */,
+				0FFFFFFF000000000000A10E /* DomainCategoryBadge.swift */,
+				0FFFFFFF000000000000A10F /* EmbeddedBundleRow.swift */,
+				0FFFFFFF000000000000A110 /* ProvenanceView.swift */,
+				0FFFFFFF000000000000A111 /* UpdateComparisonSheet.swift */,
+				0FFFFFFF000000000000A112 /* ResourcesView.swift */,
+				0FFFFFFF000000000000A113 /* DisassemblerLauncher.swift */,
+				0FFFFFFF000000000000A114 /* ResourceKindGuide.swift */,
+				0FFFFFFF000000000000A115 /* KnowledgeBaseBrowserView.swift */,
+				0FFFFFFF000000000000A116 /* DisassemblySummaryView.swift */,
+				0FFFFFFF000000000000A117 /* SDKHitsView.swift */,
+				0FFFFFFF000000000000A118 /* SecretsView.swift */,
+				0FFFFFFF000000000000A119 /* BundleSigningAuditView.swift */,
+				0FFFFFFF000000000000A11A /* AntiAnalysisView.swift */,
+				0FFFFFFF000000000000A11B /* RPathAuditView.swift */,
+				0FFFFFFF000000000000A11C /* EmbeddedAssetsView.swift */,
+				0FFFFFFF000000000000A11D /* PrivacyClaimsView.swift */,
+				0FFFFFFF000000000000A11E /* AnomaliesView.swift */,
+				0FFFFFFF000000000000A11F /* PrivacyManifestView.swift */,
+				0FFFFFFF000000000000A120 /* SandboxContainerView.swift */,
+				0FFFFFFF000000000000A121 /* BTMAuditView.swift */,
+				0FFFFFFF000000000000A122 /* NotarizationDeepDiveView.swift */,
+				0FFFFFFF000000000000A123 /* WatchModePopover.swift */,
+				0FFFFFFF000000000000A124 /* LiveProbesView.swift */,
+				0FFFFFFF000000000000A125 /* ExecutiveSummaryView.swift */,
+				0FFFFFFF000000000000A126 /* AnalyzingSheet.swift */,
+				0FFFFFFF000000000000A127 /* EmbeddedAssetPreviewSheet.swift */,
+				0FFFFFFF000000000000A128 /* BundleInspectorLauncher.swift */,
+				0FFFFFFF000000000000A129 /* ResourceUsageCard.swift */,
+				0FFFFFFF000000000000A12A /* USBDevicesCard.swift */,
+				0FFFFFFF000000000000A12B /* TopRemoteHostsView.swift */,
+				0FFFFFFF000000000000A12C /* GuestAgentSettingsView.swift */,
+				0FFFFFFF000000000000A12D /* FlagsView.swift */,
+				0FFFFFFF000000000000A12E /* TelemetrySummaryCard.swift */,
+				0FFFFFFF000000000000A12F /* PrivacyLabelsCard.swift */,
+				0FFFFFFF000000000000A130 /* UpdatesSettingsView.swift */,
+				0CCCCCCC0000000000000A03 /* Onboarding */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000A03 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000A201 /* OnboardingView.swift */,
+				0FFFFFFF000000000000A202 /* OnboardingSteps.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000A04 /* Reporting */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000A301 /* PDFExporter.swift */,
+			);
+			path = Reporting;
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000B00 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000B001 /* Info.plist */,
+				0FFFFFFF000000000000B002 /* privacycommand.entitlements */,
+				0FFFFFFF000000000000B003 /* PrivacyKeyDatabase.json */,
+				0FFFFFFF000000000000B004 /* PathClassifier.json */,
+				0FFFFFFF000000000000B005 /* RiskRules.json */,
+				0FFFFFFF000000000000B006 /* org.privacykey.privacycommand.HelperTool.plist */,
+				0FFFFFFF000000000000B007 /* privacycommandHelper.entitlements */,
+				0FFFFFFF000000000000B100 /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000C00 /* privacycommandCore */ = {
+			isa = PBXGroup;
+			children = (
+				0CCCCCCC0000000000000C0A /* Models */,
+				0CCCCCCC0000000000000C0B /* Analysis */,
+				0CCCCCCC0000000000000C0C /* Monitoring */,
+				0CCCCCCC0000000000000C0D /* Classification */,
+				0CCCCCCC0000000000000C0E /* Reporting */,
+				0CCCCCCC0000000000000C0F /* IPC */,
+				0CCCCCCC0000000000000C10 /* Persistence */,
+				0CCCCCCC0000000000000C11 /* KnowledgeBase */,
+				0CCCCCCC0000000000000C12 /* Search */,
+				0CCCCCCC0000000000000C13 /* Updates */,
+			);
+			name = privacycommandCore;
+			path = Sources/privacycommandCore;
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000C13 /* Updates */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000C902 /* UpdateChannel.swift */,
+				0FFFFFFF000000000000C903 /* HomebrewDetector.swift */,
+				0FFFFFFF000000000000C904 /* UpdatePreferences.swift */,
+			);
+			path = Updates;
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000C20 /* privacycommandGuestProtocol */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000C901 /* GuestProtocol.swift */,
+			);
+			name = privacycommandGuestProtocol;
+			path = Sources/privacycommandGuestProtocol;
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000C0A /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000C001 /* AppBundle.swift */,
+				0FFFFFFF000000000000C002 /* PrivacyKey.swift */,
+				0FFFFFFF000000000000C003 /* StaticReport.swift */,
+				0FFFFFFF000000000000C004 /* DynamicEvent.swift */,
+				0FFFFFFF000000000000C005 /* RunReport.swift */,
+				0FFFFFFF000000000000C006 /* OpenResource.swift */,
+				0FFFFFFF000000000000C007 /* LiveProbeEvent.swift */,
+				0FFFFFFF000000000000C008 /* AppStoreInfo.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000C0B /* Analysis */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000C101 /* MachOInspector.swift */,
+				0FFFFFFF000000000000C102 /* CodesignWrapper.swift */,
+				0FFFFFFF000000000000C103 /* EntitlementsReader.swift */,
+				0FFFFFFF000000000000C104 /* InfoPlistReader.swift */,
+				0FFFFFFF000000000000C105 /* PrivacyKeyDatabase.swift */,
+				0FFFFFFF000000000000C106 /* BinaryStringScanner.swift */,
+				0FFFFFFF000000000000C107 /* FrameworkScanner.swift */,
+				0FFFFFFF000000000000C108 /* StaticAnalyzer.swift */,
+				0FFFFFFF000000000000C109 /* ProvenanceReader.swift */,
+				0FFFFFFF000000000000C10A /* UpdateMechanismDetector.swift */,
+				0FFFFFFF000000000000C10B /* AppcastParser.swift */,
+				0FFFFFFF000000000000C10C /* DisassemblyAnalyzer.swift */,
+				0FFFFFFF000000000000C10D /* SDKFingerprintDatabase.swift */,
+				0FFFFFFF000000000000C10E /* SDKFingerprintDetector.swift */,
+				0FFFFFFF000000000000C10F /* SecretsScanner.swift */,
+				0FFFFFFF000000000000C110 /* BundleSigningAuditor.swift */,
+				0FFFFFFF000000000000C111 /* AntiAnalysisDetector.swift */,
+				0FFFFFFF000000000000C112 /* RPathAuditor.swift */,
+				0FFFFFFF000000000000C113 /* EmbeddedAssetScanner.swift */,
+				0FFFFFFF000000000000C114 /* BehaviorAnalyzer.swift */,
+				0FFFFFFF000000000000C115 /* PrivacyManifestReader.swift */,
+				0FFFFFFF000000000000C116 /* SandboxContainerInspector.swift */,
+				0FFFFFFF000000000000C117 /* BTMAuditor.swift */,
+				0FFFFFFF000000000000C118 /* NotarizationDeepDive.swift */,
+				0FFFFFFF000000000000C119 /* DMGMounter.swift */,
+				0FFFFFFF000000000000C11A /* FlagsScanner.swift */,
+				0FFFFFFF000000000000C11B /* MASReceiptDetector.swift */,
+				0FFFFFFF000000000000C11C /* AppStoreLookup.swift */,
+				0FFFFFFF000000000000C11D /* AppStorePrivacyLabelFetcher.swift */,
+			);
+			path = Analysis;
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000C0C /* Monitoring */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000C201 /* ProcessRunner.swift */,
+				0FFFFFFF000000000000C202 /* ProcessTracker.swift */,
+				0FFFFFFF000000000000C203 /* NetworkMonitor.swift */,
+				0FFFFFFF000000000000C204 /* DynamicMonitor.swift */,
+				0FFFFFFF000000000000C205 /* ResourceMonitor.swift */,
+				0FFFFFFF000000000000C206 /* LiveProbeMonitor.swift */,
+				0FFFFFFF000000000000C207 /* DeviceUsageProbe.swift */,
+				0FFFFFFF000000000000C208 /* SystemResourceMonitor.swift */,
+				0FFFFFFF000000000000C209 /* USBDeviceMonitor.swift */,
+				0FFFFFFF000000000000C20A /* GuestObservationStream.swift */,
+				0FFFFFFF000000000000C20B /* VMHostDetection.swift */,
+			);
+			path = Monitoring;
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000C0D /* Classification */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000C301 /* PathClassifier.swift */,
+				0FFFFFFF000000000000C302 /* RiskClassifier.swift */,
+				0FFFFFFF000000000000C303 /* RiskScorer.swift */,
+				0FFFFFFF000000000000C304 /* DomainClassifier.swift */,
+				0FFFFFFF000000000000C305 /* ContributorSource.swift */,
+			);
+			path = Classification;
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000C0E /* Reporting */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000C401 /* JSONExporter.swift */,
+				0FFFFFFF000000000000C402 /* HTMLExporter.swift */,
+				0FFFFFFF000000000000C403 /* ReportDiffer.swift */,
+			);
+			path = Reporting;
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000C0F /* IPC */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000C501 /* HelperToolProtocol.swift */,
+			);
+			path = IPC;
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000C10 /* Persistence */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000C601 /* RunStore.swift */,
+			);
+			path = Persistence;
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000C11 /* KnowledgeBase */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000C701 /* KnowledgeBase.swift */,
+			);
+			path = KnowledgeBase;
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000C12 /* Search */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000C801 /* RunSearcher.swift */,
+			);
+			path = Search;
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000D00 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000D001 /* PathClassifierTests.swift */,
+				0FFFFFFF000000000000D002 /* BinaryStringScannerTests.swift */,
+				0FFFFFFF000000000000D003 /* StaticAnalyzerSmokeTests.swift */,
+			);
+			name = Tests;
+			path = Tests/privacycommandCoreTests;
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000E00 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000E001 /* privacycommand.app */,
+				0FFFFFFF000000000000E002 /* privacycommandTests.xctest */,
+				A954CFEA2F9E0506005AC054 /* privacycommandHelper */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1100000000000000000000A0 /* privacycommand */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4400000000000000000000A0 /* Build configuration list for PBXNativeTarget "privacycommand" */;
+			buildPhases = (
+				0202020200000000000000A0 /* Sources */,
+				0202020200000000000000A1 /* Frameworks */,
+				0202020200000000000000A2 /* Resources */,
+				0EEEEEEE000000000000F201 /* Embed Privileged Helper */,
+				0EEEEEEE000000000000F202 /* Embed LaunchDaemon plist */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				6600000000000000000000A1 /* PBXTargetDependency */,
+			);
+			name = privacycommand;
+			productName = privacycommand;
+			productReference = 0FFFFFFF000000000000E001 /* privacycommand.app */;
+			productType = "com.apple.product-type.application";
+		};
+		1100000000000000000000B0 /* privacycommandTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4400000000000000000000B0 /* Build configuration list for PBXNativeTarget "privacycommandTests" */;
+			buildPhases = (
+				0202020200000000000000B0 /* Sources */,
+				0202020200000000000000B1 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				6600000000000000000000B1 /* PBXTargetDependency */,
+			);
+			name = privacycommandTests;
+			productName = privacycommandTests;
+			productReference = 0FFFFFFF000000000000E002 /* privacycommandTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		A954CFE92F9E0506005AC054 /* privacycommandHelper */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A954CFF02F9E0506005AC054 /* Build configuration list for PBXNativeTarget "privacycommandHelper" */;
+			buildPhases = (
+				A954CFE62F9E0506005AC054 /* Sources */,
+				A954CFE72F9E0506005AC054 /* Frameworks */,
+				A954CFE82F9E0506005AC054 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				A954CFEB2F9E0506005AC054 /* privacycommandHelper */,
+			);
+			name = privacycommandHelper;
+			packageProductDependencies = (
+			);
+			productName = privacycommandHelper;
+			productReference = A954CFEA2F9E0506005AC054 /* privacycommandHelper */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0AAAAAAA000000000000ABCD /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastSwiftUpdateCheck = 2640;
+				LastUpgradeCheck = 2640;
+				TargetAttributes = {
+					1100000000000000000000A0 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+					1100000000000000000000B0 = {
+						CreatedOnToolsVersion = 15.0;
+						TestTargetID = 1100000000000000000000A0;
+					};
+					A954CFE92F9E0506005AC054 = {
+						CreatedOnToolsVersion = 26.4.1;
+					};
+				};
+			};
+			buildConfigurationList = 4400000000000000000000F0 /* Build configuration list for PBXProject "privacycommand" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 0CCCCCCC0000000000000000;
+			productRefGroup = 0CCCCCCC0000000000000E00 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1100000000000000000000A0 /* privacycommand */,
+				1100000000000000000000B0 /* privacycommandTests */,
+				A954CFE92F9E0506005AC054 /* privacycommandHelper */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		0202020200000000000000A2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0DDDDDDD000000000000B003 /* PrivacyKeyDatabase.json in Resources */,
+				0DDDDDDD000000000000B004 /* PathClassifier.json in Resources */,
+				0DDDDDDD000000000000B005 /* RiskRules.json in Resources */,
+				0DDDDDDD000000000000B100 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0202020200000000000000A0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0BBBBBBB000000000000A001 /* privacycommandApp.swift in Sources */,
+				0BBBBBBB000000000000A002 /* ContentView.swift in Sources */,
+				0BBBBBBB000000000000A003 /* AnalysisCoordinator.swift in Sources */,
+				0BBBBBBB000000000000A004 /* HelperInstaller.swift in Sources */,
+				0BBBBBBB000000000000A201 /* OnboardingView.swift in Sources */,
+				0BBBBBBB000000000000A202 /* OnboardingSteps.swift in Sources */,
+				0BBBBBBB000000000000C501 /* HelperToolProtocol.swift in Sources */,
+				0BBBBBBB000000000000C601 /* RunStore.swift in Sources */,
+				0BBBBBBB000000000000A109 /* HistoryView.swift in Sources */,
+				0BBBBBBB000000000000A101 /* DropTargetView.swift in Sources */,
+				0BBBBBBB000000000000A102 /* DashboardView.swift in Sources */,
+				0BBBBBBB000000000000A103 /* StaticAnalysisView.swift in Sources */,
+				0BBBBBBB000000000000A104 /* FileAccessView.swift in Sources */,
+				0BBBBBBB000000000000A105 /* NetworkView.swift in Sources */,
+				0BBBBBBB000000000000A106 /* TimelineView.swift in Sources */,
+				0BBBBBBB000000000000A107 /* FidelityBadge.swift in Sources */,
+				0BBBBBBB000000000000A108 /* RiskScoreView.swift in Sources */,
+				0BBBBBBB000000000000C001 /* AppBundle.swift in Sources */,
+				0BBBBBBB000000000000C002 /* PrivacyKey.swift in Sources */,
+				0BBBBBBB000000000000C003 /* StaticReport.swift in Sources */,
+				0BBBBBBB000000000000C004 /* DynamicEvent.swift in Sources */,
+				0BBBBBBB000000000000C005 /* RunReport.swift in Sources */,
+				0BBBBBBB000000000000C101 /* MachOInspector.swift in Sources */,
+				0BBBBBBB000000000000C102 /* CodesignWrapper.swift in Sources */,
+				0BBBBBBB000000000000C103 /* EntitlementsReader.swift in Sources */,
+				0BBBBBBB000000000000C104 /* InfoPlistReader.swift in Sources */,
+				0BBBBBBB000000000000C105 /* PrivacyKeyDatabase.swift in Sources */,
+				0BBBBBBB000000000000C106 /* BinaryStringScanner.swift in Sources */,
+				0BBBBBBB000000000000C107 /* FrameworkScanner.swift in Sources */,
+				0BBBBBBB000000000000C108 /* StaticAnalyzer.swift in Sources */,
+				0BBBBBBB000000000000C109 /* ProvenanceReader.swift in Sources */,
+				0BBBBBBB000000000000C10A /* UpdateMechanismDetector.swift in Sources */,
+				0BBBBBBB000000000000C10B /* AppcastParser.swift in Sources */,
+				0BBBBBBB000000000000C10C /* DisassemblyAnalyzer.swift in Sources */,
+				0BBBBBBB000000000000A116 /* DisassemblySummaryView.swift in Sources */,
+				0BBBBBBB000000000000C10D /* SDKFingerprintDatabase.swift in Sources */,
+				0BBBBBBB000000000000C10E /* SDKFingerprintDetector.swift in Sources */,
+				0BBBBBBB000000000000A117 /* SDKHitsView.swift in Sources */,
+				0BBBBBBB000000000000C10F /* SecretsScanner.swift in Sources */,
+				0BBBBBBB000000000000C110 /* BundleSigningAuditor.swift in Sources */,
+				0BBBBBBB000000000000C111 /* AntiAnalysisDetector.swift in Sources */,
+				0BBBBBBB000000000000C112 /* RPathAuditor.swift in Sources */,
+				0BBBBBBB000000000000C113 /* EmbeddedAssetScanner.swift in Sources */,
+				0BBBBBBB000000000000C114 /* BehaviorAnalyzer.swift in Sources */,
+				0BBBBBBB000000000000A118 /* SecretsView.swift in Sources */,
+				0BBBBBBB000000000000A119 /* BundleSigningAuditView.swift in Sources */,
+				0BBBBBBB000000000000A11A /* AntiAnalysisView.swift in Sources */,
+				0BBBBBBB000000000000A11B /* RPathAuditView.swift in Sources */,
+				0BBBBBBB000000000000A11C /* EmbeddedAssetsView.swift in Sources */,
+				0BBBBBBB000000000000A11D /* PrivacyClaimsView.swift in Sources */,
+				0BBBBBBB000000000000A11E /* AnomaliesView.swift in Sources */,
+				0BBBBBBB000000000000C115 /* PrivacyManifestReader.swift in Sources */,
+				0BBBBBBB000000000000C116 /* SandboxContainerInspector.swift in Sources */,
+				0BBBBBBB000000000000C117 /* BTMAuditor.swift in Sources */,
+				0BBBBBBB000000000000C118 /* NotarizationDeepDive.swift in Sources */,
+				0BBBBBBB000000000000A11F /* PrivacyManifestView.swift in Sources */,
+				0BBBBBBB000000000000A120 /* SandboxContainerView.swift in Sources */,
+				0BBBBBBB000000000000A121 /* BTMAuditView.swift in Sources */,
+				0BBBBBBB000000000000A122 /* NotarizationDeepDiveView.swift in Sources */,
+				0BBBBBBB000000000000A007 /* WatchModeManager.swift in Sources */,
+				0BBBBBBB000000000000A123 /* WatchModePopover.swift in Sources */,
+				0BBBBBBB000000000000C007 /* LiveProbeEvent.swift in Sources */,
+				0BBBBBBB000000000000C206 /* LiveProbeMonitor.swift in Sources */,
+				0BBBBBBB000000000000A124 /* LiveProbesView.swift in Sources */,
+				0BBBBBBB000000000000A125 /* ExecutiveSummaryView.swift in Sources */,
+				0BBBBBBB000000000000A126 /* AnalyzingSheet.swift in Sources */,
+				0BBBBBBB000000000000A127 /* EmbeddedAssetPreviewSheet.swift in Sources */,
+				0BBBBBBB000000000000A128 /* BundleInspectorLauncher.swift in Sources */,
+				0BBBBBBB000000000000C207 /* DeviceUsageProbe.swift in Sources */,
+				0BBBBBBB000000000000C208 /* SystemResourceMonitor.swift in Sources */,
+				0BBBBBBB000000000000A129 /* ResourceUsageCard.swift in Sources */,
+				0BBBBBBB000000000000C209 /* USBDeviceMonitor.swift in Sources */,
+				0BBBBBBB000000000000C20A /* GuestObservationStream.swift in Sources */,
+				0BBBBBBB000000000000C119 /* DMGMounter.swift in Sources */,
+				0BBBBBBB000000000000A12A /* USBDevicesCard.swift in Sources */,
+				0BBBBBBB000000000000A12B /* TopRemoteHostsView.swift in Sources */,
+				0BBBBBBB000000000000A12C /* GuestAgentSettingsView.swift in Sources */,
+				0BBBBBBB000000000000A12D /* FlagsView.swift in Sources */,
+				0BBBBBBB000000000000A12E /* TelemetrySummaryCard.swift in Sources */,
+				0BBBBBBB000000000000A12F /* PrivacyLabelsCard.swift in Sources */,
+				0BBBBBBB000000000000A130 /* UpdatesSettingsView.swift in Sources */,
+				0BBBBBBB000000000000A008 /* UpdateController.swift in Sources */,
+				0BBBBBBB000000000000C902 /* UpdateChannel.swift in Sources */,
+				0BBBBBBB000000000000C903 /* HomebrewDetector.swift in Sources */,
+				0BBBBBBB000000000000C904 /* UpdatePreferences.swift in Sources */,
+				0BBBBBBB000000000000C008 /* AppStoreInfo.swift in Sources */,
+				0BBBBBBB000000000000C11B /* MASReceiptDetector.swift in Sources */,
+				0BBBBBBB000000000000C11C /* AppStoreLookup.swift in Sources */,
+				0BBBBBBB000000000000C11D /* AppStorePrivacyLabelFetcher.swift in Sources */,
+				0BBBBBBB000000000000C20B /* VMHostDetection.swift in Sources */,
+				0BBBBBBB000000000000C11A /* FlagsScanner.swift in Sources */,
+				0BBBBBBB000000000000C901 /* GuestProtocol.swift in Sources */,
+				0BBBBBBB000000000000A006 /* UpdateFetcher.swift in Sources */,
+				0BBBBBBB000000000000A110 /* ProvenanceView.swift in Sources */,
+				0BBBBBBB000000000000A111 /* UpdateComparisonSheet.swift in Sources */,
+				0BBBBBBB000000000000C201 /* ProcessRunner.swift in Sources */,
+				0BBBBBBB000000000000C202 /* ProcessTracker.swift in Sources */,
+				0BBBBBBB000000000000C203 /* NetworkMonitor.swift in Sources */,
+				0BBBBBBB000000000000C204 /* DynamicMonitor.swift in Sources */,
+				0BBBBBBB000000000000C205 /* ResourceMonitor.swift in Sources */,
+				0BBBBBBB000000000000C006 /* OpenResource.swift in Sources */,
+				0BBBBBBB000000000000A112 /* ResourcesView.swift in Sources */,
+				0BBBBBBB000000000000A113 /* DisassemblerLauncher.swift in Sources */,
+				0BBBBBBB000000000000A114 /* ResourceKindGuide.swift in Sources */,
+				0BBBBBBB000000000000A115 /* KnowledgeBaseBrowserView.swift in Sources */,
+				0BBBBBBB000000000000C301 /* PathClassifier.swift in Sources */,
+				0BBBBBBB000000000000C302 /* RiskClassifier.swift in Sources */,
+				0BBBBBBB000000000000C303 /* RiskScorer.swift in Sources */,
+				0BBBBBBB000000000000C304 /* DomainClassifier.swift in Sources */,
+				0BBBBBBB000000000000C305 /* ContributorSource.swift in Sources */,
+				0BBBBBBB000000000000A10E /* DomainCategoryBadge.swift in Sources */,
+				0BBBBBBB000000000000A10F /* EmbeddedBundleRow.swift in Sources */,
+				0BBBBBBB000000000000C401 /* JSONExporter.swift in Sources */,
+				0BBBBBBB000000000000C402 /* HTMLExporter.swift in Sources */,
+				0BBBBBBB000000000000C403 /* ReportDiffer.swift in Sources */,
+				0BBBBBBB000000000000A10A /* CompareView.swift in Sources */,
+				0BBBBBBB000000000000A301 /* PDFExporter.swift in Sources */,
+				0BBBBBBB000000000000A005 /* AppIconView.swift in Sources */,
+				0BBBBBBB000000000000A10B /* SettingsView.swift in Sources */,
+				0BBBBBBB000000000000A10C /* InfoButton.swift in Sources */,
+				0BBBBBBB000000000000A10D /* PathCategoryGuide.swift in Sources */,
+				0BBBBBBB000000000000C701 /* KnowledgeBase.swift in Sources */,
+				0BBBBBBB000000000000C801 /* RunSearcher.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0202020200000000000000B0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0BBBBBBB000000000000D001 /* PathClassifierTests.swift in Sources */,
+				0BBBBBBB000000000000D002 /* BinaryStringScannerTests.swift in Sources */,
+				0BBBBBBB000000000000D003 /* StaticAnalyzerSmokeTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A954CFE62F9E0506005AC054 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0BBBBBBB000000000000C502 /* HelperToolProtocol.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		6600000000000000000000B1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1100000000000000000000A0 /* privacycommand */;
+			targetProxy = 5500000000000000000000B1 /* PBXContainerItemProxy */;
+		};
+		6600000000000000000000A1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A954CFE92F9E0506005AC054 /* privacycommandHelper */;
+			targetProxy = 5500000000000000000000A1 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		3300000000000000000000A1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Resources/privacycommand.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Resources/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.privacykey.privacycommand;
+				PRODUCT_NAME = privacycommand;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		3300000000000000000000A2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Resources/privacycommand.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Resources/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.privacykey.privacycommand;
+				PRODUCT_NAME = privacycommand;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		3300000000000000000000B1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.privacykey.privacycommand.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/privacycommand.app/Contents/MacOS/privacycommand";
+			};
+			name = Debug;
+		};
+		3300000000000000000000B2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.privacykey.privacycommand.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/privacycommand.app/Contents/MacOS/privacycommand";
+			};
+			name = Release;
+		};
+		3300000000000000000000F1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		3300000000000000000000F2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		A954CFEE2F9E0506005AC054 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_ENTITLEMENTS = Resources/privacycommandHelper.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "privacycommand Helper";
+				INFOPLIST_KEY_LSBackgroundOnly = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "privacycommand Helper — privileged helper for privacycommand. A privacykey product.";
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.privacykey.privacycommand.HelperTool";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		A954CFEF2F9E0506005AC054 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_ENTITLEMENTS = Resources/privacycommandHelper.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "privacycommand Helper";
+				INFOPLIST_KEY_LSBackgroundOnly = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "privacycommand Helper — privileged helper for privacycommand. A privacykey product.";
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.privacykey.privacycommand.HelperTool";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4400000000000000000000A0 /* Build configuration list for PBXNativeTarget "privacycommand" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3300000000000000000000A1 /* Debug */,
+				3300000000000000000000A2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4400000000000000000000B0 /* Build configuration list for PBXNativeTarget "privacycommandTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3300000000000000000000B1 /* Debug */,
+				3300000000000000000000B2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4400000000000000000000F0 /* Build configuration list for PBXProject "privacycommand" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3300000000000000000000F1 /* Debug */,
+				3300000000000000000000F2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A954CFF02F9E0506005AC054 /* Build configuration list for PBXNativeTarget "privacycommandHelper" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A954CFEE2F9E0506005AC054 /* Debug */,
+				A954CFEF2F9E0506005AC054 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0AAAAAAA000000000000ABCD /* Project object */;
+}

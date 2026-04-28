@@ -1,0 +1,112 @@
+name: Release
+
+# Triggered by pushing a tag matching `v<semver>` (e.g. v0.2.0). The
+# tag name becomes the release version; CFBundleShortVersionString in
+# Info.plist must match before the workflow will publish.
+#
+# Outputs:
+#   • Signed + notarized DMG attached to the GitHub Release.
+#   • Updated appcast.xml committed to the gh-pages branch so Sparkle
+#     clients pick up the new version on their next check.
+#
+# Required GitHub Actions secrets:
+#   APPLE_DEVELOPER_ID_CERT     — base64 .p12 of the Developer ID
+#                                 Application cert + private key.
+#   APPLE_DEVELOPER_ID_PASSWORD — passphrase for the .p12 above.
+#   APPLE_NOTARY_USER           — Apple ID for `notarytool`.
+#   APPLE_NOTARY_PASSWORD       — app-specific password for that ID.
+#   APPLE_NOTARY_TEAM_ID        — Apple Developer team ID.
+#   SPARKLE_PRIVATE_KEY         — base64 EdDSA private key from
+#                                 Sparkle's generate_keys.
+#   GH_PAGES_DEPLOY_TOKEN       — fine-grained PAT with content:write
+#                                 on the privacycommand repo's
+#                                 gh-pages branch (or use the default
+#                                 GITHUB_TOKEN with
+#                                 `permissions: contents: write`).
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag matches Info.plist version
+        run: |
+          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+          PLIST_VERSION=$(/usr/libexec/PlistBuddy \
+            -c "Print :CFBundleShortVersionString" \
+            "privacycommand/Resources/Info.plist")
+          if [[ "$TAG_VERSION" != "$PLIST_VERSION" ]]; then
+            echo "error: tag $TAG_VERSION does not match Info.plist $PLIST_VERSION" >&2
+            exit 1
+          fi
+
+      - name: Set up keychain + Developer ID cert
+        env:
+          CERT_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_CERT }}
+          CERT_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_PASSWORD }}
+        run: |
+          KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain"
+          KEYCHAIN_PASSWORD="$(uuidgen)"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          echo -n "$CERT_BASE64" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" \
+            -P "$CERT_PASSWORD" \
+            -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security list-keychain -d user -s \
+            "$KEYCHAIN_PATH" \
+            $(security list-keychains -d user | tr -d '"')
+
+      - name: Build, sign, and notarize DMG
+        env:
+          APPLE_NOTARY_USER:    ${{ secrets.APPLE_NOTARY_USER }}
+          APPLE_NOTARY_PASSWORD: ${{ secrets.APPLE_NOTARY_PASSWORD }}
+          APPLE_NOTARY_TEAM_ID: ${{ secrets.APPLE_NOTARY_TEAM_ID }}
+        run: |
+          # The actual xcodebuild + create-dmg + notarytool sequence is
+          # in scripts/release.sh so it can also be run locally for
+          # dry-runs. Outputs ./dist/<name>-<version>.dmg.
+          ./scripts/release.sh
+
+      - name: Generate appcast
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: ./scripts/generate-appcast.sh ./dist
+
+      - name: Attach DMG to GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: dist/*.dmg
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+
+      - name: Publish appcast to gh-pages
+        run: |
+          # Publish appcast.xml to the gh-pages branch so Sparkle
+          # clients can fetch it without a release-page round-trip.
+          # We use a worktree so the existing checkout is undisturbed.
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin gh-pages || true
+          git worktree add ../gh-pages-checkout gh-pages 2>/dev/null \
+            || git worktree add -b gh-pages ../gh-pages-checkout origin/gh-pages \
+            || git worktree add -b gh-pages ../gh-pages-checkout
+          cp dist/appcast.xml ../gh-pages-checkout/appcast.xml
+          (cd ../gh-pages-checkout && \
+            git add appcast.xml && \
+            git commit -m "Release ${GITHUB_REF#refs/tags/}" && \
+            git push origin gh-pages)

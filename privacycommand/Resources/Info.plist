@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>           <string>en</string>
+    <key>CFBundleDisplayName</key>                 <string>privacycommand</string>
+    <key>CFBundleExecutable</key>                  <string>privacycommand</string>
+    <key>CFBundleIconName</key>                    <string>AppIcon</string>
+    <key>CFBundleIconFile</key>                    <string>AppIcon</string>
+    <key>CFBundleIdentifier</key>                  <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleInfoDictionaryVersion</key>       <string>6.0</string>
+    <key>CFBundleName</key>                        <string>privacycommand</string>
+    <key>CFBundlePackageType</key>                 <string>APPL</string>
+    <key>CFBundleShortVersionString</key>          <string>0.1.0</string>
+    <key>CFBundleVersion</key>                     <string>1</string>
+    <key>LSMinimumSystemVersion</key>              <string>13.0</string>
+    <key>LSApplicationCategoryType</key>           <string>public.app-category.developer-tools</string>
+    <key>NSHumanReadableCopyright</key>            <string>privacycommand — inspects macOS apps. All analysis runs locally. A privacykey product.</string>
+
+    <!-- This is a single-window utility. -->
+    <key>NSPrincipalClass</key>                    <string>NSApplication</string>
+    <key>LSUIElement</key>                         <false/>
+
+    <!-- The auditor itself does not request any privacy permissions. The
+         purpose strings below exist as a courtesy for users who later run
+         their own auditor binary against itself (sample-app coverage). -->
+    <key>NSAppleEventsUsageDescription</key>
+    <string>privacycommand uses Apple Events only to launch the application you selected for analysis.</string>
+
+    <!-- Camera + microphone usage descriptions are required by macOS so
+         that AVCaptureDevice device-state introspection
+         (isInUseByAnotherApplication) returns accurate values. We never
+         instantiate a capture session, so no permission prompt is shown
+         to the user — these strings exist purely so the OS will let us
+         read the device-in-use flag for the inspected app. -->
+    <key>NSCameraUsageDescription</key>
+    <string>privacycommand reads the camera-in-use indicator while a monitored run is active. It never captures or records video.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>privacycommand reads the microphone-in-use indicator while a monitored run is active. It never captures or records audio.</string>
+
+    <!-- ─── Sparkle auto-update configuration ──────────────────────────────
+         The appcast feed is hosted on GitHub Pages (gh-pages branch); see
+         Sources/privacycommandCore/Updates/UpdateChannel.swift for the
+         single source of truth on the URL. The DMG artefacts are uploaded
+         as GitHub Release assets and referenced by the appcast.
+
+         SUPublicEDKey carries the EdDSA public half of the release-signing
+         keypair. The private key lives outside the repo (in 1Password / a
+         CI secret); see docs/RELEASES.md for the generation flow. The
+         placeholder below MUST be replaced before shipping a release —
+         Sparkle refuses to apply an update if SUPublicEDKey is missing
+         or doesn't match the appcast's signature.
+
+         Auto-checks default to OFF — the user opts in via Settings → Updates.
+         SUEnableAutomaticChecks=false here is the *initial* default; the
+         UpdateController toggles Sparkle's `automaticallyChecksForUpdates`
+         live based on UserDefaults so flipping the toggle takes effect
+         without a relaunch. -->
+    <key>SUFeedURL</key>
+    <string>https://privacykey.github.io/privacycommand/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string>REPLACE_WITH_RELEASE_PUBLIC_KEY_BEFORE_SHIPPING</string>
+    <key>SUEnableAutomaticChecks</key>
+    <false/>
+    <!-- Sparkle's installer talks to the user via a sandboxed XPC
+         service. We're not sandboxed, so the standard Sparkle config
+         works without temporary-exception entitlements. -->
+    <key>SUEnableInstallerLauncherService</key>
+    <true/>
+</dict>
+</plist>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- The helper is NOT sandboxed — it spawns /usr/bin/fs_usage.
+         (Sandboxed daemons cannot exec arbitrary binaries.) -->
+
+    <!-- For SMAppService daemons, the helper must be signed with the
+         hardened runtime. Library validation must NOT be disabled. -->
+
+    <!-- This entitlement tells the OS that the daemon's lifecycle is
+         managed by the main app via SMAppService. Required for
+         the modern (macOS 13+) install flow. -->
+    <key>com.apple.developer.service-management.managed-by-main-app</key>
+    <true/>
+</dict>
+</plist>
