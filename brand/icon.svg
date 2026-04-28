@@ -1,0 +1,34 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>privacycommand app icon</title>
+  <desc>Macos app icon for privacycommand. A deep indigo squircle with a binary 'command' rain falling behind a soft-square gradient shield. Inside the shield, a white inner panel holds a dark stroked command glyph drawn from the proper ⌘ path. A yellow magnifier badge sits in the lower-right corner with a white lens ring and handle fully contained within the disc. Sub-product of privacykey, sibling to privacytracker.</desc>
+  <defs>
+    <clipPath id="iconSquircleClip">
+      <rect x="0" y="0" width="1024" height="1024" rx="230" ry="230"/>
+    </clipPath>
+    <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#A5B4FC"/>
+      <stop offset="100%" stop-color="#4338CA"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="1024" height="1024" rx="230" ry="230" fill="#1E1B4B"/>
+  <g clip-path="url(#iconSquircleClip)" font-family="monospace" font-size="47" fill="#A5B4FC">
+    <text x="43 43 43 43 43 43 43 43 43 43 43 43" y="60 111 162 213 264 315 366 417 468 519 570 621" opacity="0.45">011000110110</text>
+    <text x="137 137 137 137 137 137 137 137 137 137 137 137" y="94 145 196 247 298 349 400 451 502 553 604 655" opacity="0.3">111101101101</text>
+    <text x="231 231 231 231 231 231 231 231 231 231 231 231" y="43 94 145 196 247 298 349 400 451 502 553 604" opacity="0.5">011011010110</text>
+    <text x="324 324 324 324 324 324 324 324 324 324 324 324" y="77 128 179 230 281 332 383 434 485 536 587 638" opacity="0.35">000101101110</text>
+    <text x="418 418 418 418 418 418 418 418 418 418 418 418" y="51 102 153 204 255 306 357 408 459 510 561 612" opacity="0.4">011001000110</text>
+    <text x="512 512 512 512 512 512 512 512 512 512 512 512" y="102 153 204 255 306 357 408 459 510 561 612 663" opacity="0.3">001101101111</text>
+    <text x="606 606 606 606 606 606 606 606 606 606 606 606" y="34 85 136 187 238 289 340 391 442 493 544 595" opacity="0.45">011011010110</text>
+    <text x="700 700 700 700 700 700 700 700 700 700 700 700" y="85 136 187 238 289 340 391 442 493 544 595 646" opacity="0.5">110101100001</text>
+    <text x="794 794 794 794 794 794 794 794 794 794 794 794" y="60 111 162 213 264 315 366 417 468 519 570 621" opacity="0.35">011011100110</text>
+    <text x="887 887 887 887 887 887 887 887 887 887 887 887" y="94 145 196 247 298 349 400 451 502 553 604 655" opacity="0.4">010001100011</text>
+  </g>
+  <path d="M 259 150 L 765 150 Q 874 150 874 259 L 874 683 Q 874 792 778 833 L 512 901 L 246 833 Q 150 792 150 683 L 150 259 Q 150 150 259 150 Z" fill="url(#shieldGradient)"/>
+  <path d="M 315 232 L 709 232 Q 794 232 794 318 L 794 648 Q 794 733 719 765 L 512 818 L 304 765 Q 230 733 230 648 L 230 318 Q 230 232 315 232 Z" fill="#FFFFFF"/>
+  <g transform="translate(341, 354) scale(10.667)" fill="#1E1B4B">
+    <path d="M24,13a4,4,0,0,0,4-4V8a4,4,0,0,0-4-4H23a4,4,0,0,0-4,4v3H13V8A4,4,0,0,0,9,4H8A4,4,0,0,0,4,8V9a4,4,0,0,0,4,4h3v6H8a4,4,0,0,0-4,4v1a4,4,0,0,0,4,4H9a4,4,0,0,0,4-4V21h6v3a4,4,0,0,0,4,4h1a4,4,0,0,0,4-4V23a4,4,0,0,0-4-4H21V13ZM21,8a2,2,0,0,1,2-2h1a2,2,0,0,1,2,2V9a2,2,0,0,1-2,2H21ZM8,11A2,2,0,0,1,6,9V8A2,2,0,0,1,8,6H9a2,2,0,0,1,2,2v3H8Zm3,13a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2V23a2,2,0,0,1,2-2h3Zm8-5H13V13h6Zm2,2h3a2,2,0,0,1,2,2v1a2,2,0,0,1-2,2H23a2,2,0,0,1-2-2Z"/>
+  </g>
+  <circle cx="832" cy="832" r="137" fill="#FBBF24"/>
+  <circle cx="815" cy="815" r="60" fill="none" stroke="#FFFFFF" stroke-width="21"/>
+  <line x1="866" y1="866" x2="917" y2="917" stroke="#FFFFFF" stroke-width="21" stroke-linecap="round"/>
+</svg>
