@@ -41,6 +41,15 @@ EXPORT_PATH="$REPO_ROOT/dist/export"
 DIST_DIR="$REPO_ROOT/dist"
 mkdir -p "$DIST_DIR"
 
+# Single staging area for transient build artefacts (the notarize-zip
+# upload payload, the DMG staging tree). Nothing here should ever end
+# up in dist/ — Sparkle's `generate_appcast` scans dist/ for archives
+# and refuses to publish if it sees more than one with the same bundle
+# version, so leaving notarize.zip next to the DMG breaks the appcast
+# step. Cleaned up unconditionally on script exit (success or failure).
+TMP_DIR="$(mktemp -d -t privacycommand-release)"
+trap 'rm -rf "$TMP_DIR"' EXIT
+
 # ── 1. Resolve the version from Info.plist ─────────────────────────
 PLIST="$REPO_ROOT/privacycommand/Resources/Info.plist"
 VERSION="$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$PLIST")"
@@ -147,7 +156,11 @@ if [[ ! -d "$APP_PATH" ]]; then
 fi
 
 # ── 5. Notarize ────────────────────────────────────────────────────
-ZIP_PATH="$DIST_DIR/${SCHEME}-notarize.zip"
+# Stage the upload zip in TMP_DIR (not DIST_DIR) so Sparkle's appcast
+# generator doesn't pick it up as a release artefact. The zip exists
+# only to ship the .app to Apple's notary service; once stapling is
+# done it has no further purpose.
+ZIP_PATH="$TMP_DIR/${SCHEME}-notarize.zip"
 ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$ZIP_PATH"
 
 # notarytool with App Store Connect API key auth. `--wait` blocks until
@@ -166,8 +179,11 @@ xcrun stapler validate "$APP_PATH"
 # ── 6. Build the DMG ───────────────────────────────────────────────
 DMG_PATH="$DIST_DIR/privacycommand-$VERSION.dmg"
 rm -f "$DMG_PATH"
-DMG_STAGING="$(mktemp -d)"
-trap 'rm -rf "$DMG_STAGING"' EXIT
+# Staging dir lives in TMP_DIR (cleaned up by the trap at the top of
+# the script) — overriding the EXIT trap with a second one here would
+# leak TMP_DIR.
+DMG_STAGING="$TMP_DIR/dmg-staging"
+mkdir -p "$DMG_STAGING"
 cp -R "$APP_PATH" "$DMG_STAGING/"
 ln -s /Applications "$DMG_STAGING/Applications"
 
