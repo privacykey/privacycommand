@@ -88,8 +88,22 @@ printf '%s' "$SPARKLE_PRIVATE_KEY" > "$KEY_FILE"
 # with the supplied private key. `-o` writes the appcast to the
 # requested location instead of the default DIST_DIR/appcast.xml so
 # CI can stage it next to the release notes.
+#
+# `--download-url-prefix` overrides the enclosure URL prefix in the
+# generated appcast. By default Sparkle assumes the DMG lives at the
+# same web origin as the appcast itself (gh-pages, in our setup), but
+# the actual DMG lives on the GitHub Releases CDN. CI sets
+# DOWNLOAD_URL_PREFIX to e.g.
+#   https://github.com/<owner>/<repo>/releases/download/v0.1.2/
+# so the enclosure URL resolves to the real download.
+PREFIX_ARGS=()
+if [[ -n "${DOWNLOAD_URL_PREFIX:-}" ]]; then
+  PREFIX_ARGS=(--download-url-prefix "$DOWNLOAD_URL_PREFIX")
+fi
+
 "$GENERATE_APPCAST" \
   --ed-key-file "$KEY_FILE" \
+  "${PREFIX_ARGS[@]}" \
   -o "$APPCAST_DIR/appcast.xml" \
   "$DIST_DIR"
 

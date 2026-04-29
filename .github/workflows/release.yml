@@ -179,6 +179,13 @@ jobs:
       - name: Generate appcast
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+          # Point the appcast's enclosure URLs at the GitHub Releases
+          # CDN for *this specific tag* — that's where the DMG actually
+          # lives. Without this, generate_appcast defaults to the
+          # appcast's own location (gh-pages), which 404s for the DMG.
+          # Per-tag rather than /latest/download/ so old appcast items
+          # keep resolving once newer releases ship.
+          DOWNLOAD_URL_PREFIX: "https://github.com/${{ github.repository }}/releases/download/${{ steps.resolve.outputs.tag }}/"
         run: ./scripts/generate-appcast.sh ./dist
 
       - name: Attach DMG to GitHub Release
