@@ -151,6 +151,31 @@ jobs:
           # dry-runs. Outputs ./dist/<name>-<version>.dmg.
           ./scripts/release.sh
 
+      - name: Install Sparkle CLI tools
+        # Sparkle's `generate_appcast` ships precompiled inside the
+        # release tarball at https://github.com/sparkle-project/Sparkle/releases.
+        # The SPM checkout we link against at runtime only contains the
+        # framework — not the signing CLI — so we pull the tarball
+        # explicitly here and prepend its bin/ to PATH.
+        #
+        # SPARKLE_VERSION should track the runtime Sparkle version
+        # checked out by SwiftPM (look at privacycommand/.build/checkouts/
+        # Sparkle/CHANGELOG, the top entry is the version you're on).
+        # Minor mismatches between CLI and framework are fine within the
+        # 2.x line — the appcast / signature formats are stable — but
+        # bumping the runtime warrants bumping this too so you don't
+        # drift indefinitely.
+        env:
+          SPARKLE_VERSION: '2.9.1'
+        run: |
+          set -euo pipefail
+          curl -fsSL "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz" \
+            | tar -xJ -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+          # Sanity-check the binary is where we expect.
+          test -x "$RUNNER_TEMP/bin/generate_appcast" \
+            || { echo "::error::generate_appcast missing after extracting Sparkle ${SPARKLE_VERSION}"; exit 1; }
+
       - name: Generate appcast
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
