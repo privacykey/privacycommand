@@ -1,2 +1,5 @@
 .DS_Store
 /privacycommand/.swiftpm
+/privacycommand/.build
+/privacycommand/privacycommand.xcodeproj/project.xcworkspace/xcuserdata
+/privacycommand/privacycommand.xcodeproj/project.xcworkspace/xcuserdata

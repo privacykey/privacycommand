@@ -14,19 +14,16 @@ let package = Package(
         .executable(name: "privacycommand-guest",
                     targets: ["privacycommandGuestAgent"])
     ],
-    dependencies: [
-        // Sparkle 2.x — auto-update framework. Used only by the
-        // app target (the Xcode target wires it in directly via the
-        // .xcodeproj's PBXSwiftPackageProductDependency block).
-        // Pinned to the 2.x major; 2.x has been stable for years
-        // and 1.x is end-of-life. Bump the floor when a new release
-        // ships — the Swift Package Index dashboard at
-        // https://swiftpackageindex.com/sparkle-project/Sparkle is
-        // the source of truth. See docs/RELEASES.md for the appcast
-        // generation flow.
-        .package(url: "https://github.com/sparkle-project/Sparkle",
-                 from: "2.9.0")
-    ],
+    // No SwiftPM-level dependencies — every target in this manifest
+    // is headless (Core, the guest agent, the CLI smoke test). The
+    // SwiftUI app target lives only in privacycommand.xcodeproj and
+    // pulls in Sparkle through Xcode's "Add Package Dependencies"
+    // UI, which writes to the project's XCRemoteSwiftPackageReference
+    // blocks rather than this manifest.
+    //
+    // Declaring Sparkle here would just emit a "dependency not used
+    // by any target" warning on every `swift build` — see
+    // docs/RELEASES.md for how the Xcode side wires it in.
     targets: [
         // Wire format the host and the in-VM agent share. Kept in its
         // own target with no dependencies so the guest agent can be

@@ -138,6 +138,10 @@
 		0DDDDDDD000000000000B004 /* PathClassifier.json in Resources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B004 /* PathClassifier.json */; };
 		0DDDDDDD000000000000B005 /* RiskRules.json in Resources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B005 /* RiskRules.json */; };
 		0DDDDDDD000000000000B100 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B100 /* Assets.xcassets */; };
+		0DDDDDDD000000000000B200 /* build-guest-installer.sh in Resources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B200 /* build-guest-installer.sh */; };
+		0DDDDDDD000000000000B201 /* org.privacykey.privacycommand.guest.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B201 /* org.privacykey.privacycommand.guest.plist */; };
+		0DDDDDDD000000000000B202 /* Install.command in Resources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B202 /* Install.command */; };
+		0DDDDDDD000000000000B203 /* README.txt in Resources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B203 /* README.txt */; };
 		0EEEEEEE000000000000F101 /* privacycommandHelper in Embed Helper */ = {isa = PBXBuildFile; fileRef = A954CFEA2F9E0506005AC054 /* privacycommandHelper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		0EEEEEEE000000000000F102 /* org.privacykey.privacycommand.HelperTool.plist in Embed LaunchDaemons */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B006 /* org.privacykey.privacycommand.HelperTool.plist */; };
 /* End PBXBuildFile section */
@@ -271,6 +275,10 @@
 		0FFFFFFF000000000000B006 /* org.privacykey.privacycommand.HelperTool.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = org.privacykey.privacycommand.HelperTool.plist; sourceTree = "<group>"; };
 		0FFFFFFF000000000000B007 /* privacycommandHelper.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = privacycommandHelper.entitlements; sourceTree = "<group>"; };
 		0FFFFFFF000000000000B100 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		0FFFFFFF000000000000B200 /* build-guest-installer.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = build-guest-installer.sh; path = Scripts/build-guest-installer.sh; sourceTree = SOURCE_ROOT; };
+		0FFFFFFF000000000000B201 /* org.privacykey.privacycommand.guest.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = org.privacykey.privacycommand.guest.plist; path = Resources/GuestInstaller/org.privacykey.privacycommand.guest.plist; sourceTree = SOURCE_ROOT; };
+		0FFFFFFF000000000000B202 /* Install.command */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = Install.command; path = Resources/GuestInstaller/Install.command; sourceTree = SOURCE_ROOT; };
+		0FFFFFFF000000000000B203 /* README.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = README.txt; path = Resources/GuestInstaller/README.txt; sourceTree = SOURCE_ROOT; };
 		0FFFFFFF000000000000C001 /* AppBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBundle.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C002 /* PrivacyKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyKey.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C003 /* StaticReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticReport.swift; sourceTree = "<group>"; };
@@ -369,10 +377,30 @@
 				0CCCCCCC0000000000000C00 /* privacycommandCore */,
 				0CCCCCCC0000000000000C20 /* privacycommandGuestProtocol */,
 				0CCCCCCC0000000000000B00 /* Resources */,
+				0CCCCCCC0000000000000F00 /* Scripts */,
+				0CCCCCCC0000000000000F01 /* GuestInstaller */,
 				0CCCCCCC0000000000000D00 /* Tests */,
 				A954CFEB2F9E0506005AC054 /* privacycommandHelper */,
 				0CCCCCCC0000000000000E00 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000F00 /* Scripts */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000B200 /* build-guest-installer.sh */,
+			);
+			name = Scripts;
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000F01 /* GuestInstaller */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000B201 /* org.privacykey.privacycommand.guest.plist */,
+				0FFFFFFF000000000000B202 /* Install.command */,
+				0FFFFFFF000000000000B203 /* README.txt */,
+			);
+			name = GuestInstaller;
 			sourceTree = "<group>";
 		};
 		0CCCCCCC0000000000000A00 /* privacycommand */ = {
@@ -680,6 +708,7 @@
 				0202020200000000000000A0 /* Sources */,
 				0202020200000000000000A1 /* Frameworks */,
 				0202020200000000000000A2 /* Resources */,
+				0EEEEEEE000000000000F301 /* Build & stage privacycommand-guest */,
 				0EEEEEEE000000000000F201 /* Embed Privileged Helper */,
 				0EEEEEEE000000000000F202 /* Embed LaunchDaemon plist */,
 			);
@@ -783,10 +812,36 @@
 				0DDDDDDD000000000000B004 /* PathClassifier.json in Resources */,
 				0DDDDDDD000000000000B005 /* RiskRules.json in Resources */,
 				0DDDDDDD000000000000B100 /* Assets.xcassets in Resources */,
+				0DDDDDDD000000000000B200 /* build-guest-installer.sh in Resources */,
+				0DDDDDDD000000000000B201 /* org.privacykey.privacycommand.guest.plist in Resources */,
+				0DDDDDDD000000000000B202 /* Install.command in Resources */,
+				0DDDDDDD000000000000B203 /* README.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		0EEEEEEE000000000000F301 /* Build & stage privacycommand-guest */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build & stage privacycommand-guest";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "# Build the privacycommand-guest executable via SwiftPM and copy\n# the resulting binary into the app's Resources folder. The shipped\n# build-guest-installer.sh consumes the staged binary at runtime;\n# without this step it would have nothing to package.\n#\n# SwiftPM caches its build outputs, so this is fast on subsequent\n# runs when no guest sources changed (a few hundred ms).\n\nset -euo pipefail\n\nTARGET=privacycommand-guest\necho \"Building ${TARGET} via SwiftPM…\"\ncd \"${SRCROOT}\"\nswift build -c release --product \"${TARGET}\"\n\nGUEST_BIN=\"${SRCROOT}/.build/release/${TARGET}\"\nif [[ ! -f \"${GUEST_BIN}\" ]]; then\n    echo \"error: SwiftPM didn't produce ${GUEST_BIN}\" >&2\n    exit 1\nfi\n\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\nmkdir -p \"${DEST}\"\ncp -f \"${GUEST_BIN}\" \"${DEST}/${TARGET}\"\nchmod +x \"${DEST}/${TARGET}\"\necho \"Staged ${TARGET} into ${DEST}/\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		0202020200000000000000A0 /* Sources */ = {

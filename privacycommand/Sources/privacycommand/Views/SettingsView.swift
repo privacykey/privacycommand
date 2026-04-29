@@ -160,8 +160,32 @@ private struct HelperSettingsView: View {
     private var actionRow: some View {
         switch helperInstaller.status {
         case .notFound:
-            LabeledContent("Bundle the helper") {
-                Text("See HELPER.md").font(.caption).foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 6) {
+                LabeledContent("Bundle the helper") {
+                    Text("See HELPER.md").font(.caption).foregroundStyle(.secondary)
+                }
+                // Surface the path we tried so the user can verify
+                // whether the .app actually has the plist where we
+                // expect it. If this points at a file that exists,
+                // the lookup itself is broken; if it points at a
+                // missing file, the build's Copy Files phase didn't
+                // run.
+                let plistURL = Bundle.main.bundleURL
+                    .appendingPathComponent("Contents/Library/LaunchDaemons")
+                    .appendingPathComponent(HelperToolID.daemonPlistName)
+                Text("Looking for: \(plistURL.path)")
+                    .font(.caption.monospaced())
+                    .foregroundStyle(.secondary)
+                    .textSelection(.enabled)
+                    .lineLimit(3)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button("Reveal app contents in Finder") {
+                    NSWorkspace.shared.activateFileViewerSelecting([
+                        Bundle.main.bundleURL.appendingPathComponent("Contents")
+                    ])
+                }
+                .buttonStyle(.borderless)
+                .controlSize(.small)
             }
         case .notRegistered, .unknown:
             LabeledContent("Install") {

@@ -255,17 +255,36 @@ final class HelperInstaller: ObservableObject {
     // MARK: - Probes
 
     private var bundledPlistExists: Bool {
-        guard let resource = Bundle.main.url(
-            forResource: "Contents/Library/LaunchDaemons/\(plistName)",
-            withExtension: nil
-        ) else {
-            // Try Contents/Library/LaunchDaemons relative to bundleURL.
-            let direct = Bundle.main.bundleURL
-                .appendingPathComponent("Contents/Library/LaunchDaemons")
-                .appendingPathComponent(plistName)
-            return FileManager.default.fileExists(atPath: direct.path)
+        // Direct path check — `Bundle.main.bundleURL` is the running
+        // .app's wrapper. SMAppService daemons live under
+        // `Contents/Library/LaunchDaemons/`, which is *not* the
+        // Resources subtree, so `Bundle.main.url(forResource:)` is
+        // the wrong API to look this up with — passing a path with
+        // slashes returns garbage on some macOS versions and the
+        // subsequent `fileExists` returns false even when the plist
+        // is sitting right there.
+        let url = Bundle.main.bundleURL
+            .appendingPathComponent("Contents/Library/LaunchDaemons")
+            .appendingPathComponent(plistName)
+        let exists = FileManager.default.fileExists(atPath: url.path)
+        // One-shot diagnostic so we can see in Console.app whether
+        // the lookup is being run, where it's looking, and what it
+        // found. Filter Console for `process == "privacycommand"`.
+        // Cheap to leave in — runs once per Settings refresh.
+        NSLog("[privacycommand] bundledPlistExists check: %@ exists=%@",
+              url.path, String(exists))
+        if !exists {
+            // Extra context when the lookup fails: list the
+            // surrounding directory so we can see whether the file
+            // is just under a different name or the directory is
+            // missing entirely.
+            let parent = url.deletingLastPathComponent().path
+            let contents = (try? FileManager.default.contentsOfDirectory(
+                atPath: parent)) ?? []
+            NSLog("[privacycommand] LaunchDaemons dir listing (%@): %@",
+                  parent, contents.joined(separator: ", "))
         }
-        return FileManager.default.fileExists(atPath: resource.path)
+        return exists
     }
 
     // MARK: - Bridge: receive events from helper, forward into a stream

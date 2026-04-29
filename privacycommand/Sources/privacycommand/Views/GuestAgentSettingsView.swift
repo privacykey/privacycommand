@@ -287,7 +287,13 @@ struct GuestAgentSettingsView: View {
 
         let scriptPath = Self.scriptURL()
         guard FileManager.default.fileExists(atPath: scriptPath.path) else {
-            buildError = "Couldn't find build-guest-installer.sh — expected at \(scriptPath.path)."
+            buildError = """
+                Couldn't find build-guest-installer.sh.
+                The script should ship inside the app bundle at \
+                Contents/Resources/build-guest-installer.sh — if it's missing, \
+                this build is broken; please reinstall privacycommand. Last \
+                lookup path: \(scriptPath.path)
+                """
             isBuilding = false
             return
         }
@@ -344,15 +350,39 @@ struct GuestAgentSettingsView: View {
         return FileManager.default.fileExists(atPath: url.path) ? url : nil
     }
 
-    /// The build script lives in the source tree under `Scripts/`.
-    /// In a packaged build the user can also copy it manually; this
-    /// just finds the most likely location relative to the running
-    /// binary.
+    /// Locate `build-guest-installer.sh`. Three lookup paths, in
+    /// order of preference:
+    ///
+    ///   1. **Inside the running .app bundle.** The Xcode app target
+    ///      ships `Scripts/build-guest-installer.sh` as a resource,
+    ///      so a notarised release build finds it at
+    ///      `<App>/Contents/Resources/build-guest-installer.sh`.
+    ///      This is the path users actually hit.
+    ///   2. **Source-tree walk.** `swift run` and unsealed Xcode
+    ///      builds run out of DerivedData, where the executable's
+    ///      ancestors include the repo root with `Scripts/` next to
+    ///      `Sources/`. Walking up six levels covers both layouts.
+    ///   3. **Application Support fallback.** If the user has
+    ///      manually dropped the script into
+    ///      `~/Library/Application Support/privacycommand/`, use it.
+    ///      Kept as an escape hatch for users who want to patch the
+    ///      script without rebuilding the app.
+    ///
+    /// We invoke the result via `/bin/bash <script> <outdir>` (see
+    /// `build()`), so the script doesn't need its `+x` bit set — the
+    /// shell reads it regardless.
     private static func scriptURL() -> URL {
-        // Walk up from the executable looking for a `Scripts/`
-        // directory containing build-guest-installer.sh. Works for
-        // both `swift run` and Xcode builds in DerivedData.
         let fm = FileManager.default
+
+        // 1. Inside the .app bundle (the shipping case).
+        if let bundled = Bundle.main.url(
+            forResource: "build-guest-installer",
+            withExtension: "sh"
+        ), fm.fileExists(atPath: bundled.path) {
+            return bundled
+        }
+
+        // 2. Source-tree walk — covers dev builds.
         var candidate = Bundle.main.bundleURL
             .deletingLastPathComponent()
         for _ in 0..<6 {
@@ -362,8 +392,8 @@ struct GuestAgentSettingsView: View {
             if fm.fileExists(atPath: try1.path) { return try1 }
             candidate.deleteLastPathComponent()
         }
-        // Last-resort: assume it's been installed into Application
-        // Support so the user can replace it without rebuilding.
+
+        // 3. Application Support fallback (manual user copy).
         return installerDirectory()
             .appendingPathComponent("build-guest-installer.sh")
     }
