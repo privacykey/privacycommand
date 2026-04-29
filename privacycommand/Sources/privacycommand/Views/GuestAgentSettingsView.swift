@@ -338,10 +338,15 @@ struct GuestAgentSettingsView: View {
     // MARK: - Path helpers
 
     private static func installerDirectory() -> URL {
-        FileManager.default
+        // Match RunStore.init's defensive lookup — see the comment
+        // there for why `.first!` is unsafe on TCC-restricted Macs.
+        let root = FileManager.default
             .urls(for: .applicationSupportDirectory, in: .userDomainMask)
-            .first!
-            .appendingPathComponent("privacycommand", isDirectory: true)
+            .first
+            ?? URL(fileURLWithPath: NSHomeDirectory())
+                .appendingPathComponent("Library/Application Support",
+                                        isDirectory: true)
+        return root.appendingPathComponent("privacycommand", isDirectory: true)
     }
 
     private static func existingInstallerURL() -> URL? {

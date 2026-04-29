@@ -206,13 +206,44 @@ jobs:
           DOWNLOAD_URL_PREFIX: "https://github.com/${{ github.repository }}/releases/download/${{ steps.resolve.outputs.tag }}/"
         run: ./scripts/generate-appcast.sh ./dist
 
-      - name: Attach DMG to GitHub Release
+      - name: Stage dSYM for upload
+        # release.sh wrote the dSYM zip to ./symbols/ (kept out of dist/
+        # so generate-appcast above didn't pick it up as a release
+        # archive). Now that the appcast is generated, move it into
+        # dist/ for the Release asset upload below.
+        run: |
+          set -euo pipefail
+          if compgen -G "symbols/*.dSYM.zip" > /dev/null; then
+            mv symbols/*.dSYM.zip dist/
+          else
+            echo "::warning::no dSYM zip in symbols/; field crashes for this release won't be symbolicatable"
+          fi
+
+      - name: Attach DMG + dSYM to GitHub Release
         uses: softprops/action-gh-release@v3
         with:
-          files: dist/*.dmg
+          # Multiple globs: DMG (the actual download) + dSYM zip
+          # (debug-symbol bundle, useful for symbolicating user crash
+          # reports — anyone with a stack trace can download this and
+          # run `atos`).
+          files: |
+            dist/*.dmg
+            dist/*.dSYM.zip
           tag_name: ${{ steps.resolve.outputs.tag }}
           generate_release_notes: true
           fail_on_unmatched_files: true
+
+      - name: Archive dSYM as long-retention workflow artefact
+        # Belt-and-braces: keep a copy of the dSYM in the workflow run's
+        # artefacts even if the Release is later deleted or the asset
+        # gets removed. 365-day retention is the GitHub maximum.
+        if: hashFiles('dist/*.dSYM.zip') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: dSYM-${{ steps.resolve.outputs.tag }}
+          path: dist/*.dSYM.zip
+          retention-days: 365
+          if-no-files-found: warn
 
       - name: Publish appcast to gh-pages
         run: |

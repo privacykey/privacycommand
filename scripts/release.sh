@@ -224,7 +224,38 @@ xcrun notarytool submit "$DMG_PATH" \
   --wait
 xcrun stapler staple "$DMG_PATH"
 
+# ── 7. Package the dSYM for crash symbolication ────────────────────
+# xcodebuild emits the .dSYM into the .xcarchive's dSYMs/ folder.
+# Zip it into a sibling `symbols/` directory (NOT into dist/ — Sparkle's
+# generate_appcast scans dist/ for .zip and would treat the dSYM bundle
+# as another release archive). The workflow copies this into dist/
+# *after* generate-appcast has run, so it lands as a release asset
+# without confusing the appcast generator.
+#
+# Field crashes on a 0.1.2+ build can then be symbolicated by:
+#   1. Downloading privacycommand-<version>.app.dSYM.zip from the Release.
+#   2. Unzipping it.
+#   3. atos -arch arm64 \
+#        -o privacycommand.app.dSYM/Contents/Resources/DWARF/privacycommand \
+#        -l <load-address-from-crash-report> <crashing-frame-addresses>
+DSYM_SRC="$ARCHIVE_PATH/dSYMs/${SCHEME}.app.dSYM"
+DSYM_OUT_DIR="$REPO_ROOT/symbols"
+DSYM_ZIP="$DSYM_OUT_DIR/privacycommand-$VERSION.app.dSYM.zip"
+if [[ -d "$DSYM_SRC" ]]; then
+  mkdir -p "$DSYM_OUT_DIR"
+  rm -f "$DSYM_ZIP"
+  ( cd "$ARCHIVE_PATH/dSYMs" && \
+    zip -qry "$DSYM_ZIP" "${SCHEME}.app.dSYM" )
+  echo "dSYM packaged: $DSYM_ZIP"
+else
+  echo "warning: no dSYM at $DSYM_SRC" >&2
+  echo "         The build may have DEBUG_INFORMATION_FORMAT=dwarf" >&2
+  echo "         instead of dwarf-with-dsym. Field crashes for this" >&2
+  echo "         release won't be symbolicatable." >&2
+fi
+
 echo
 echo "──────────────────────────────────────────────"
 echo "DMG ready: $DMG_PATH"
+[[ -f "$DSYM_ZIP" ]] && echo "dSYM ready: $DSYM_ZIP"
 echo "──────────────────────────────────────────────"

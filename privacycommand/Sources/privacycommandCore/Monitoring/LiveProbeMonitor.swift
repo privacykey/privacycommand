@@ -53,9 +53,16 @@ public actor LiveProbeMonitor {
 
     public init(pollInterval: TimeInterval = 0.5) {
         self.pollInterval = pollInterval
-        var cont: AsyncStream<LiveProbeEvent>.Continuation!
-        self.stream = AsyncStream { c in cont = c }
-        self.continuation = cont
+        // `AsyncStream.makeStream()` (Swift 5.9+) hands back the stream
+        // and its continuation atomically and without the implicitly-
+        // unwrapped optional dance. The previous pattern relied on the
+        // `AsyncStream { c in cont = c }` closure running synchronously
+        // before the next line — true today, but a documented
+        // implementation detail rather than a guarantee, and one Swift
+        // runtime quirk away from a `_assertionFailure` on the IUO read.
+        let (stream, continuation) = AsyncStream<LiveProbeEvent>.makeStream()
+        self.stream = stream
+        self.continuation = continuation
     }
 
     public func updatePIDs(_ pids: Set<Int32>) {

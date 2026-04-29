@@ -52,9 +52,22 @@ public final class RunStore: @unchecked Sendable {
     public let baseURL: URL
 
     public init() {
-        let dir = FileManager.default
+        // FileManager.urls(for:in:) returns [URL]. In the overwhelmingly
+        // common case it has one element, but on certain sandbox
+        // configurations / MDM-managed Macs / TCC-restricted setups it
+        // can come back empty. The original `.first!` here was a
+        // dormant trap waiting on those edge cases — a 0.1.1 user hit
+        // it in the wild. Fall back to ~/Library/Application Support
+        // composed from NSHomeDirectory(); same path the system would
+        // have returned, but produced via a different API that doesn't
+        // give up on us.
+        let appSupportRoot = FileManager.default
             .urls(for: .applicationSupportDirectory, in: .userDomainMask)
-            .first!
+            .first
+            ?? URL(fileURLWithPath: NSHomeDirectory())
+                .appendingPathComponent("Library/Application Support",
+                                        isDirectory: true)
+        let dir = appSupportRoot
             .appendingPathComponent("privacycommand", isDirectory: true)
             .appendingPathComponent("runs", isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
