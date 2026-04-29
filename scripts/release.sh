@@ -66,6 +66,29 @@ if [[ -z "$DEVELOPER_ID" ]]; then
 fi
 echo "Signing as: $DEVELOPER_ID"
 
+# Extract the 10-character team ID from the trailing "(TEAMID)" of the
+# identity string. The Developer ID format is fixed by Apple:
+#
+#   "Developer ID Application: <Common Name> (TEAMID)"
+#
+# We pass this as DEVELOPMENT_TEAM= to xcodebuild so the team that
+# xcodebuild expects always agrees with the team baked into the cert.
+# Without this override, xcodebuild falls back to the project's
+# hardcoded DEVELOPMENT_TEAM in project.pbxproj — which is fine as
+# long as nobody ever changes Apple Developer teams or imports a cert
+# from a different team, but breaks confusingly the first time those
+# go out of sync ("No certificate for team X matching Y found").
+TEAM_ID="$(printf '%s' "$DEVELOPER_ID" | sed -nE 's/.*\(([A-Z0-9]{10})\)$/\1/p')"
+if [[ -z "$TEAM_ID" ]]; then
+  echo "error: could not extract team ID from APPLE_SIGNING_IDENTITY=$DEVELOPER_ID" >&2
+  echo "       Expected suffix '(TEAMID)' where TEAMID is a 10-char alphanumeric." >&2
+  echo "       If your Apple Developer team ID has a non-standard format, override" >&2
+  echo "       this by exporting TEAM_ID before invoking the script." >&2
+  exit 2
+fi
+TEAM_ID="${TEAM_ID_OVERRIDE:-$TEAM_ID}"
+echo "Using DEVELOPMENT_TEAM: $TEAM_ID"
+
 # ── 2b. Validate notarytool credentials ────────────────────────────
 # All three are required; checking up front means we fail in seconds
 # rather than after the 5-minute archive build.
@@ -78,6 +101,11 @@ if [[ ! -f "$APPLE_API_KEY_PATH" ]]; then
 fi
 
 # ── 3. Archive the app target ──────────────────────────────────────
+# Build settings overridden on the CLI win against anything in
+# project.pbxproj. We force Manual signing (so xcodebuild doesn't try
+# to talk to Apple's automatic-provisioning service from CI), pin the
+# identity, and pin the team explicitly so the project's hardcoded
+# DEVELOPMENT_TEAM doesn't have to match the cert.
 xcodebuild \
   -scheme "$SCHEME" \
   -configuration "$CONFIG" \
@@ -85,6 +113,7 @@ xcodebuild \
   -destination 'generic/platform=macOS' \
   CODE_SIGN_IDENTITY="$DEVELOPER_ID" \
   CODE_SIGN_STYLE=Manual \
+  DEVELOPMENT_TEAM="$TEAM_ID" \
   archive
 
 # ── 4. Export the .app from the archive ────────────────────────────
@@ -98,6 +127,11 @@ cat > "$EXPORT_OPTIONS_PLIST" <<EOF
   <key>method</key>            <string>developer-id</string>
   <key>signingStyle</key>      <string>manual</string>
   <key>signingCertificate</key><string>Developer ID Application</string>
+  <!-- teamID is required when method=developer-id and signingStyle=manual.
+       Some Xcode versions accept omission and infer from the cert; later
+       ones (16+) reject the export with a confusing "could not find
+       distribution code signing identity". Always include it. -->
+  <key>teamID</key>            <string>${TEAM_ID}</string>
 </dict>
 </plist>
 EOF
