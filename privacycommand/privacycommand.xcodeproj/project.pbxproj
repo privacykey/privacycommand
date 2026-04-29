@@ -14,6 +14,7 @@
 		0BBBBBBB000000000000A005 /* AppIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A005 /* AppIconView.swift */; };
 		0BBBBBBB000000000000A006 /* UpdateFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A006 /* UpdateFetcher.swift */; };
 		0BBBBBBB000000000000A007 /* WatchModeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A007 /* WatchModeManager.swift */; };
+		0BBBBBBB000000000000A008 /* UpdateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A008 /* UpdateController.swift */; };
 		0BBBBBBB000000000000A101 /* DropTargetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A101 /* DropTargetView.swift */; };
 		0BBBBBBB000000000000A102 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A102 /* DashboardView.swift */; };
 		0BBBBBBB000000000000A103 /* StaticAnalysisView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A103 /* StaticAnalysisView.swift */; };
@@ -62,17 +63,6 @@
 		0BBBBBBB000000000000A12E /* TelemetrySummaryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A12E /* TelemetrySummaryCard.swift */; };
 		0BBBBBBB000000000000A12F /* PrivacyLabelsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A12F /* PrivacyLabelsCard.swift */; };
 		0BBBBBBB000000000000A130 /* UpdatesSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A130 /* UpdatesSettingsView.swift */; };
-		0BBBBBBB000000000000A008 /* UpdateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A008 /* UpdateController.swift */; };
-		0BBBBBBB000000000000C902 /* UpdateChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C902 /* UpdateChannel.swift */; };
-		0BBBBBBB000000000000C903 /* HomebrewDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C903 /* HomebrewDetector.swift */; };
-		0BBBBBBB000000000000C904 /* UpdatePreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C904 /* UpdatePreferences.swift */; };
-		0BBBBBBB000000000000C008 /* AppStoreInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C008 /* AppStoreInfo.swift */; };
-		0BBBBBBB000000000000C11B /* MASReceiptDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C11B /* MASReceiptDetector.swift */; };
-		0BBBBBBB000000000000C11C /* AppStoreLookup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C11C /* AppStoreLookup.swift */; };
-		0BBBBBBB000000000000C11D /* AppStorePrivacyLabelFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C11D /* AppStorePrivacyLabelFetcher.swift */; };
-		0BBBBBBB000000000000C20B /* VMHostDetection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C20B /* VMHostDetection.swift */; };
-		0BBBBBBB000000000000C11A /* FlagsScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C11A /* FlagsScanner.swift */; };
-		0BBBBBBB000000000000C901 /* GuestProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C901 /* GuestProtocol.swift */; };
 		0BBBBBBB000000000000A201 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A201 /* OnboardingView.swift */; };
 		0BBBBBBB000000000000A202 /* OnboardingSteps.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A202 /* OnboardingSteps.swift */; };
 		0BBBBBBB000000000000A301 /* PDFExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A301 /* PDFExporter.swift */; };
@@ -83,6 +73,7 @@
 		0BBBBBBB000000000000C005 /* RunReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C005 /* RunReport.swift */; };
 		0BBBBBBB000000000000C006 /* OpenResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C006 /* OpenResource.swift */; };
 		0BBBBBBB000000000000C007 /* LiveProbeEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C007 /* LiveProbeEvent.swift */; };
+		0BBBBBBB000000000000C008 /* AppStoreInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C008 /* AppStoreInfo.swift */; };
 		0BBBBBBB000000000000C101 /* MachOInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C101 /* MachOInspector.swift */; };
 		0BBBBBBB000000000000C102 /* CodesignWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C102 /* CodesignWrapper.swift */; };
 		0BBBBBBB000000000000C103 /* EntitlementsReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C103 /* EntitlementsReader.swift */; };
@@ -107,6 +98,11 @@
 		0BBBBBBB000000000000C116 /* SandboxContainerInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C116 /* SandboxContainerInspector.swift */; };
 		0BBBBBBB000000000000C117 /* BTMAuditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C117 /* BTMAuditor.swift */; };
 		0BBBBBBB000000000000C118 /* NotarizationDeepDive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C118 /* NotarizationDeepDive.swift */; };
+		0BBBBBBB000000000000C119 /* DMGMounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C119 /* DMGMounter.swift */; };
+		0BBBBBBB000000000000C11A /* FlagsScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C11A /* FlagsScanner.swift */; };
+		0BBBBBBB000000000000C11B /* MASReceiptDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C11B /* MASReceiptDetector.swift */; };
+		0BBBBBBB000000000000C11C /* AppStoreLookup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C11C /* AppStoreLookup.swift */; };
+		0BBBBBBB000000000000C11D /* AppStorePrivacyLabelFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C11D /* AppStorePrivacyLabelFetcher.swift */; };
 		0BBBBBBB000000000000C201 /* ProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C201 /* ProcessRunner.swift */; };
 		0BBBBBBB000000000000C202 /* ProcessTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C202 /* ProcessTracker.swift */; };
 		0BBBBBBB000000000000C203 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C203 /* NetworkMonitor.swift */; };
@@ -116,8 +112,8 @@
 		0BBBBBBB000000000000C207 /* DeviceUsageProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C207 /* DeviceUsageProbe.swift */; };
 		0BBBBBBB000000000000C208 /* SystemResourceMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C208 /* SystemResourceMonitor.swift */; };
 		0BBBBBBB000000000000C209 /* USBDeviceMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C209 /* USBDeviceMonitor.swift */; };
-		0BBBBBBB000000000000C119 /* DMGMounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C119 /* DMGMounter.swift */; };
 		0BBBBBBB000000000000C20A /* GuestObservationStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C20A /* GuestObservationStream.swift */; };
+		0BBBBBBB000000000000C20B /* VMHostDetection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C20B /* VMHostDetection.swift */; };
 		0BBBBBBB000000000000C301 /* PathClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C301 /* PathClassifier.swift */; };
 		0BBBBBBB000000000000C302 /* RiskClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C302 /* RiskClassifier.swift */; };
 		0BBBBBBB000000000000C303 /* RiskScorer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C303 /* RiskScorer.swift */; };
@@ -131,6 +127,10 @@
 		0BBBBBBB000000000000C601 /* RunStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C601 /* RunStore.swift */; };
 		0BBBBBBB000000000000C701 /* KnowledgeBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C701 /* KnowledgeBase.swift */; };
 		0BBBBBBB000000000000C801 /* RunSearcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C801 /* RunSearcher.swift */; };
+		0BBBBBBB000000000000C901 /* GuestProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C901 /* GuestProtocol.swift */; };
+		0BBBBBBB000000000000C902 /* UpdateChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C902 /* UpdateChannel.swift */; };
+		0BBBBBBB000000000000C903 /* HomebrewDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C903 /* HomebrewDetector.swift */; };
+		0BBBBBBB000000000000C904 /* UpdatePreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C904 /* UpdatePreferences.swift */; };
 		0BBBBBBB000000000000D001 /* PathClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000D001 /* PathClassifierTests.swift */; };
 		0BBBBBBB000000000000D002 /* BinaryStringScannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000D002 /* BinaryStringScannerTests.swift */; };
 		0BBBBBBB000000000000D003 /* StaticAnalyzerSmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000D003 /* StaticAnalyzerSmokeTests.swift */; };
@@ -142,18 +142,11 @@
 		0DDDDDDD000000000000B201 /* org.privacykey.privacycommand.guest.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B201 /* org.privacykey.privacycommand.guest.plist */; };
 		0DDDDDDD000000000000B202 /* Install.command in Resources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B202 /* Install.command */; };
 		0DDDDDDD000000000000B203 /* README.txt in Resources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B203 /* README.txt */; };
-		0EEEEEEE000000000000F101 /* privacycommandHelper in Embed Helper */ = {isa = PBXBuildFile; fileRef = A954CFEA2F9E0506005AC054 /* privacycommandHelper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		0EEEEEEE000000000000F102 /* org.privacykey.privacycommand.HelperTool.plist in Embed LaunchDaemons */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B006 /* org.privacykey.privacycommand.HelperTool.plist */; };
+		0EEEEEEE000000000000F101 /* privacycommandHelper in Embed Privileged Helper */ = {isa = PBXBuildFile; fileRef = A954CFEA2F9E0506005AC054 /* privacycommandHelper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		0EEEEEEE000000000000F102 /* org.privacykey.privacycommand.HelperTool.plist in Embed LaunchDaemon plist */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B006 /* org.privacykey.privacycommand.HelperTool.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		5500000000000000000000B1 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0AAAAAAA000000000000ABCD /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 1100000000000000000000A0;
-			remoteInfo = privacycommand;
-		};
 		5500000000000000000000A1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 0AAAAAAA000000000000ABCD /* Project object */;
@@ -161,9 +154,38 @@
 			remoteGlobalIDString = A954CFE92F9E0506005AC054;
 			remoteInfo = privacycommandHelper;
 		};
+		5500000000000000000000B1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0AAAAAAA000000000000ABCD /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1100000000000000000000A0;
+			remoteInfo = privacycommand;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		0EEEEEEE000000000000F201 /* Embed Privileged Helper */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 6;
+			files = (
+				0EEEEEEE000000000000F101 /* privacycommandHelper in Embed Privileged Helper */,
+			);
+			name = "Embed Privileged Helper";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0EEEEEEE000000000000F202 /* Embed LaunchDaemon plist */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/Library/LaunchDaemons;
+			dstSubfolderSpec = 1;
+			files = (
+				0EEEEEEE000000000000F102 /* org.privacykey.privacycommand.HelperTool.plist in Embed LaunchDaemon plist */,
+			);
+			name = "Embed LaunchDaemon plist";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A954CFE82F9E0506005AC054 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -172,28 +194,6 @@
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 1;
-		};
-		0EEEEEEE000000000000F201 /* Embed Privileged Helper */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 6;
-			files = (
-				0EEEEEEE000000000000F101 /* privacycommandHelper in Embed Helper */,
-			);
-			name = "Embed Privileged Helper";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		0EEEEEEE000000000000F202 /* Embed LaunchDaemon plist */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "Contents/Library/LaunchDaemons";
-			dstSubfolderSpec = 1;
-			files = (
-				0EEEEEEE000000000000F102 /* org.privacykey.privacycommand.HelperTool.plist in Embed LaunchDaemons */,
-			);
-			name = "Embed LaunchDaemon plist";
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
@@ -205,6 +205,7 @@
 		0FFFFFFF000000000000A005 /* AppIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIconView.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A006 /* UpdateFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateFetcher.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A007 /* WatchModeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchModeManager.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A008 /* UpdateController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateController.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A101 /* DropTargetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropTargetView.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A102 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A103 /* StaticAnalysisView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticAnalysisView.swift; sourceTree = "<group>"; };
@@ -253,17 +254,6 @@
 		0FFFFFFF000000000000A12E /* TelemetrySummaryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetrySummaryCard.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A12F /* PrivacyLabelsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyLabelsCard.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A130 /* UpdatesSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdatesSettingsView.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000A008 /* UpdateController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateController.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C902 /* UpdateChannel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChannel.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C903 /* HomebrewDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomebrewDetector.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C904 /* UpdatePreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdatePreferences.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C008 /* AppStoreInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreInfo.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C11B /* MASReceiptDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MASReceiptDetector.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C11C /* AppStoreLookup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreLookup.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C11D /* AppStorePrivacyLabelFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStorePrivacyLabelFetcher.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C20B /* VMHostDetection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMHostDetection.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C11A /* FlagsScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlagsScanner.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C901 /* GuestProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestProtocol.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A201 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A202 /* OnboardingSteps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSteps.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A301 /* PDFExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFExporter.swift; sourceTree = "<group>"; };
@@ -275,7 +265,7 @@
 		0FFFFFFF000000000000B006 /* org.privacykey.privacycommand.HelperTool.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = org.privacykey.privacycommand.HelperTool.plist; sourceTree = "<group>"; };
 		0FFFFFFF000000000000B007 /* privacycommandHelper.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = privacycommandHelper.entitlements; sourceTree = "<group>"; };
 		0FFFFFFF000000000000B100 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		0FFFFFFF000000000000B200 /* build-guest-installer.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = build-guest-installer.sh; path = Scripts/build-guest-installer.sh; sourceTree = SOURCE_ROOT; };
+		0FFFFFFF000000000000B200 /* build-guest-installer.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = "build-guest-installer.sh"; path = "Scripts/build-guest-installer.sh"; sourceTree = SOURCE_ROOT; };
 		0FFFFFFF000000000000B201 /* org.privacykey.privacycommand.guest.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = org.privacykey.privacycommand.guest.plist; path = Resources/GuestInstaller/org.privacykey.privacycommand.guest.plist; sourceTree = SOURCE_ROOT; };
 		0FFFFFFF000000000000B202 /* Install.command */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = Install.command; path = Resources/GuestInstaller/Install.command; sourceTree = SOURCE_ROOT; };
 		0FFFFFFF000000000000B203 /* README.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = README.txt; path = Resources/GuestInstaller/README.txt; sourceTree = SOURCE_ROOT; };
@@ -286,6 +276,7 @@
 		0FFFFFFF000000000000C005 /* RunReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunReport.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C006 /* OpenResource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenResource.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C007 /* LiveProbeEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveProbeEvent.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C008 /* AppStoreInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreInfo.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C101 /* MachOInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MachOInspector.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C102 /* CodesignWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodesignWrapper.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C103 /* EntitlementsReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntitlementsReader.swift; sourceTree = "<group>"; };
@@ -311,7 +302,10 @@
 		0FFFFFFF000000000000C117 /* BTMAuditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BTMAuditor.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C118 /* NotarizationDeepDive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotarizationDeepDive.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C119 /* DMGMounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DMGMounter.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C20A /* GuestObservationStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestObservationStream.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C11A /* FlagsScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlagsScanner.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C11B /* MASReceiptDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MASReceiptDetector.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C11C /* AppStoreLookup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreLookup.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C11D /* AppStorePrivacyLabelFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStorePrivacyLabelFetcher.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C201 /* ProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessRunner.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C202 /* ProcessTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessTracker.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C203 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
@@ -321,6 +315,8 @@
 		0FFFFFFF000000000000C207 /* DeviceUsageProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceUsageProbe.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C208 /* SystemResourceMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemResourceMonitor.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C209 /* USBDeviceMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USBDeviceMonitor.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C20A /* GuestObservationStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestObservationStream.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C20B /* VMHostDetection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMHostDetection.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C301 /* PathClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathClassifier.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C302 /* RiskClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiskClassifier.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C303 /* RiskScorer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiskScorer.swift; sourceTree = "<group>"; };
@@ -333,6 +329,10 @@
 		0FFFFFFF000000000000C601 /* RunStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunStore.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C701 /* KnowledgeBase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnowledgeBase.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C801 /* RunSearcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunSearcher.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C901 /* GuestProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestProtocol.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C902 /* UpdateChannel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChannel.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C903 /* HomebrewDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomebrewDetector.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C904 /* UpdatePreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdatePreferences.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000D001 /* PathClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathClassifierTests.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000D002 /* BinaryStringScannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BinaryStringScannerTests.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000D003 /* StaticAnalyzerSmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticAnalyzerSmokeTests.swift; sourceTree = "<group>"; };
@@ -383,24 +383,6 @@
 				A954CFEB2F9E0506005AC054 /* privacycommandHelper */,
 				0CCCCCCC0000000000000E00 /* Products */,
 			);
-			sourceTree = "<group>";
-		};
-		0CCCCCCC0000000000000F00 /* Scripts */ = {
-			isa = PBXGroup;
-			children = (
-				0FFFFFFF000000000000B200 /* build-guest-installer.sh */,
-			);
-			name = Scripts;
-			sourceTree = "<group>";
-		};
-		0CCCCCCC0000000000000F01 /* GuestInstaller */ = {
-			isa = PBXGroup;
-			children = (
-				0FFFFFFF000000000000B201 /* org.privacykey.privacycommand.guest.plist */,
-				0FFFFFFF000000000000B202 /* Install.command */,
-				0FFFFFFF000000000000B203 /* README.txt */,
-			);
-			name = GuestInstaller;
 			sourceTree = "<group>";
 		};
 		0CCCCCCC0000000000000A00 /* privacycommand */ = {
@@ -535,25 +517,6 @@
 			path = Sources/privacycommandCore;
 			sourceTree = "<group>";
 		};
-		0CCCCCCC0000000000000C13 /* Updates */ = {
-			isa = PBXGroup;
-			children = (
-				0FFFFFFF000000000000C902 /* UpdateChannel.swift */,
-				0FFFFFFF000000000000C903 /* HomebrewDetector.swift */,
-				0FFFFFFF000000000000C904 /* UpdatePreferences.swift */,
-			);
-			path = Updates;
-			sourceTree = "<group>";
-		};
-		0CCCCCCC0000000000000C20 /* privacycommandGuestProtocol */ = {
-			isa = PBXGroup;
-			children = (
-				0FFFFFFF000000000000C901 /* GuestProtocol.swift */,
-			);
-			name = privacycommandGuestProtocol;
-			path = Sources/privacycommandGuestProtocol;
-			sourceTree = "<group>";
-		};
 		0CCCCCCC0000000000000C0A /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -677,6 +640,25 @@
 			path = Search;
 			sourceTree = "<group>";
 		};
+		0CCCCCCC0000000000000C13 /* Updates */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000C902 /* UpdateChannel.swift */,
+				0FFFFFFF000000000000C903 /* HomebrewDetector.swift */,
+				0FFFFFFF000000000000C904 /* UpdatePreferences.swift */,
+			);
+			path = Updates;
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000C20 /* privacycommandGuestProtocol */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000C901 /* GuestProtocol.swift */,
+			);
+			name = privacycommandGuestProtocol;
+			path = Sources/privacycommandGuestProtocol;
+			sourceTree = "<group>";
+		};
 		0CCCCCCC0000000000000D00 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
@@ -696,6 +678,24 @@
 				A954CFEA2F9E0506005AC054 /* privacycommandHelper */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000F00 /* Scripts */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000B200 /* build-guest-installer.sh */,
+			);
+			name = Scripts;
+			sourceTree = "<group>";
+		};
+		0CCCCCCC0000000000000F01 /* GuestInstaller */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000B201 /* org.privacykey.privacycommand.guest.plist */,
+				0FFFFFFF000000000000B202 /* Install.command */,
+				0FFFFFFF000000000000B203 /* README.txt */,
+			);
+			name = GuestInstaller;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -995,15 +995,15 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		6600000000000000000000B1 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 1100000000000000000000A0 /* privacycommand */;
-			targetProxy = 5500000000000000000000B1 /* PBXContainerItemProxy */;
-		};
 		6600000000000000000000A1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = A954CFE92F9E0506005AC054 /* privacycommandHelper */;
 			targetProxy = 5500000000000000000000A1 /* PBXContainerItemProxy */;
+		};
+		6600000000000000000000B1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1100000000000000000000A0 /* privacycommand */;
+			targetProxy = 5500000000000000000000B1 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1018,6 +1018,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = 6S9Q286XS9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1046,6 +1047,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = 6S9Q286XS9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1071,6 +1073,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = 6S9Q286XS9;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.0;
@@ -1089,6 +1092,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = 6S9Q286XS9;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.0;
@@ -1224,6 +1228,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = 6S9Q286XS9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1232,7 +1237,7 @@
 				INFOPLIST_KEY_NSHumanReadableCopyright = "privacycommand Helper — privileged helper for privacycommand. A privacykey product.";
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.privacykey.privacycommand.HelperTool";
+				PRODUCT_BUNDLE_IDENTIFIER = org.privacykey.privacycommand.HelperTool;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
@@ -1250,6 +1255,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = 6S9Q286XS9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1258,7 +1264,7 @@
 				INFOPLIST_KEY_NSHumanReadableCopyright = "privacycommand Helper — privileged helper for privacycommand. A privacykey product.";
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.privacykey.privacycommand.HelperTool";
+				PRODUCT_BUNDLE_IDENTIFIER = org.privacykey.privacycommand.HelperTool;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
