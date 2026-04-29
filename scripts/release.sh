@@ -60,7 +60,7 @@ VERSION=$(xcodebuild \
     -project "$REPO_ROOT/privacycommand/privacycommand.xcodeproj" \
     -target "$SCHEME" \
     -configuration "$CONFIG" \
-    -showBuildSettings -showOnlyBuildSettings 2>/dev/null \
+    -showBuildSettings \
   | awk '$1 == "MARKETING_VERSION" { print $3; exit }')
 if [[ -z "$VERSION" ]]; then
   echo "error: could not read MARKETING_VERSION from privacycommand target" >&2

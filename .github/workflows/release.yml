@@ -107,7 +107,7 @@ jobs:
               -project privacycommand/privacycommand.xcodeproj \
               -target privacycommand \
               -configuration Release \
-              -showBuildSettings -showOnlyBuildSettings 2>/dev/null \
+              -showBuildSettings \
             | awk '$1 == "MARKETING_VERSION" { print $3; exit }')
           if [[ -z "$PROJECT_VERSION" ]]; then
             echo "error: could not read MARKETING_VERSION from privacycommand target" >&2
