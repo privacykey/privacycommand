@@ -49,7 +49,13 @@ on:
 
 jobs:
   build:
-    runs-on: macos-14
+    # macos-15 ships with Xcode 16 by default — required because the
+    # project file uses objectVersion 70 (Xcode 16+ format). macos-14
+    # has Xcode 16 installed but defaults to 15.x, which can't open
+    # the project. The setup-xcode step below makes the version
+    # selection explicit and reproducible regardless of any future
+    # changes Apple makes to the runner image's defaults.
+    runs-on: macos-15
     # Apple identity is org-level; Sparkle updater key is env-level.
     # Opting into the environment also enforces the required-reviewer
     # rule — the workflow pauses in the Actions UI until a human
@@ -65,6 +71,18 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
+
+      - name: Select Xcode
+        # Pin to whatever the runner image considers the latest stable
+        # Xcode. Acceptable here because the project format is forward-
+        # compatible (a newer Xcode can always open an older project),
+        # so we benefit from picking up Xcode security fixes without
+        # workflow edits. If you ever need a *specific* version (e.g.
+        # to reproduce a bug, or to gate on an SDK feature), pin it
+        # explicitly here, e.g. `xcode-version: '16.4'`.
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
 
       - name: Resolve release tag
         id: resolve
