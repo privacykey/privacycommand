@@ -9,29 +9,53 @@ name: Release
 #   • Updated appcast.xml committed to the gh-pages branch so Sparkle
 #     clients pick up the new version on their next check.
 #
-# Required GitHub Actions secrets:
-#   APPLE_DEVELOPER_ID_CERT     — base64 .p12 of the Developer ID
-#                                 Application cert + private key.
-#   APPLE_DEVELOPER_ID_PASSWORD — passphrase for the .p12 above.
-#   APPLE_NOTARY_USER           — Apple ID for `notarytool`.
-#   APPLE_NOTARY_PASSWORD       — app-specific password for that ID.
-#   APPLE_NOTARY_TEAM_ID        — Apple Developer team ID.
-#   SPARKLE_PRIVATE_KEY         — base64 EdDSA private key from
-#                                 Sparkle's generate_keys.
-#   GH_PAGES_DEPLOY_TOKEN       — fine-grained PAT with content:write
-#                                 on the privacycommand repo's
-#                                 gh-pages branch (or use the default
-#                                 GITHUB_TOKEN with
-#                                 `permissions: contents: write`).
+# Required secrets — split across organisation and environment scopes
+# (see docs/RELEASES.md for the rationale):
+#
+#   Organisation secrets (set once on the privacykey org, available to
+#   every repo that needs Apple signing — privacycommand, privacytracker,
+#   any future macOS app):
+#     APPLE_CERTIFICATE             — base64 .p12 of the Developer ID
+#                                     Application cert + private key.
+#     APPLE_CERTIFICATE_PASSWORD    — passphrase for the .p12 above.
+#     APPLE_SIGNING_IDENTITY        — common-name string, e.g.
+#                                     "Developer ID Application: PrivacyKey (TEAMID)".
+#     APPLE_API_KEY                 — full PEM contents of the App Store
+#                                     Connect API .p8 file.
+#     APPLE_API_KEY_ID              — 10-char Key ID from App Store Connect.
+#     APPLE_API_ISSUER              — Issuer UUID from App Store Connect.
+#
+#   Environment secrets (this repo's `macos-signing` environment, gated
+#   by required-reviewer rule — per-app, never share across repos):
+#     SPARKLE_PRIVATE_KEY           — base64 EdDSA private key from
+#                                     Sparkle's `generate_keys`. Public
+#                                     half is in Info.plist's
+#                                     SUPublicEDKey.
+#
+# The `environment: macos-signing` line below wires both scopes in: org
+# secrets are visible automatically, environment secrets are visible
+# because the job opted into that environment, and the required-reviewer
+# rule pauses the run for human approval before any of them are read.
 
 on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Tag to release as (e.g. v0.2.0). Must match Info.plist CFBundleShortVersionString.'
+        required: true
 
 jobs:
   build:
     runs-on: macos-14
+    # Apple identity is org-level; Sparkle updater key is env-level.
+    # Opting into the environment also enforces the required-reviewer
+    # rule — the workflow pauses in the Actions UI until a human
+    # approves it. Even a stolen PAT can't ship a release without
+    # explicit approval.
+    environment: macos-signing
 
     permissions:
       contents: write
@@ -42,9 +66,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Resolve release tag
+        id: resolve
+        run: |
+          TAG="${{ github.event.inputs.release_tag || github.ref_name }}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Releasing as $TAG"
+
       - name: Verify tag matches Info.plist version
         run: |
-          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+          TAG_VERSION="${{ steps.resolve.outputs.tag }}"
+          TAG_VERSION="${TAG_VERSION#v}"
           PLIST_VERSION=$(/usr/libexec/PlistBuddy \
             -c "Print :CFBundleShortVersionString" \
             "privacycommand/Resources/Info.plist")
@@ -55,8 +87,8 @@ jobs:
 
       - name: Set up keychain + Developer ID cert
         env:
-          CERT_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_CERT }}
-          CERT_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_PASSWORD }}
+          CERT_BASE64:    ${{ secrets.APPLE_CERTIFICATE }}
+          CERT_PASSWORD:  ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
         run: |
           KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain"
           KEYCHAIN_PASSWORD="$(uuidgen)"
@@ -71,11 +103,30 @@ jobs:
             "$KEYCHAIN_PATH" \
             $(security list-keychains -d user | tr -d '"')
 
+      - name: Write App Store Connect API key
+        # notarytool's --key flag wants a file path, but the secret
+        # stores the .p8 contents. Stage it under $RUNNER_TEMP with
+        # mode 600. The runner VM is destroyed at job end, but the
+        # `Clean up signing material` step below also removes it
+        # explicitly so a future edit that uploads $RUNNER_TEMP
+        # doesn't leak it.
+        id: write-api-key
+        env:
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+        run: |
+          set -euo pipefail
+          p8_path="${RUNNER_TEMP}/appstoreconnect.p8"
+          umask 077
+          printf '%s' "${APPLE_API_KEY}" > "${p8_path}"
+          echo "p8_path=${p8_path}" >> "$GITHUB_OUTPUT"
+
       - name: Build, sign, and notarize DMG
         env:
-          APPLE_NOTARY_USER:    ${{ secrets.APPLE_NOTARY_USER }}
-          APPLE_NOTARY_PASSWORD: ${{ secrets.APPLE_NOTARY_PASSWORD }}
-          APPLE_NOTARY_TEAM_ID: ${{ secrets.APPLE_NOTARY_TEAM_ID }}
+          # release.sh consumes these — see header comments there.
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_API_KEY_ID:       ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER:       ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_API_KEY_PATH:     ${{ steps.write-api-key.outputs.p8_path }}
         run: |
           # The actual xcodebuild + create-dmg + notarytool sequence is
           # in scripts/release.sh so it can also be run locally for
@@ -91,6 +142,7 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           files: dist/*.dmg
+          tag_name: ${{ steps.resolve.outputs.tag }}
           generate_release_notes: true
           fail_on_unmatched_files: true
 
@@ -108,5 +160,14 @@ jobs:
           cp dist/appcast.xml ../gh-pages-checkout/appcast.xml
           (cd ../gh-pages-checkout && \
             git add appcast.xml && \
-            git commit -m "Release ${GITHUB_REF#refs/tags/}" && \
+            git commit -m "Release ${{ steps.resolve.outputs.tag }}" && \
             git push origin gh-pages)
+
+      - name: Clean up signing material
+        # Always runs — even if signing failed — so the .p8 doesn't
+        # survive one second longer than it has to.
+        if: always()
+        run: |
+          rm -f "${{ steps.write-api-key.outputs.p8_path }}" 2>/dev/null || true
+          rm -f "$RUNNER_TEMP/cert.p12" 2>/dev/null || true
+          security delete-keychain "$RUNNER_TEMP/build.keychain" 2>/dev/null || true

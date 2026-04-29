@@ -10,14 +10,23 @@
 #   dist/privacycommand-<version>.dmg — signed + notarized + stapled
 #
 # Required environment:
-#   APPLE_NOTARY_USER           Apple ID for notarytool.
-#   APPLE_NOTARY_PASSWORD       App-specific password.
-#   APPLE_NOTARY_TEAM_ID        Apple Developer team ID.
+#   APPLE_SIGNING_IDENTITY      Common-name string of the Developer ID
+#                               Application cert, e.g.
+#                               "Developer ID Application: PrivacyKey (TEAMID)".
+#                               Optional locally — falls back to picking the
+#                               first matching identity in the keychain.
+#
+#   APPLE_API_KEY_PATH          Path to the App Store Connect API key (.p8).
+#   APPLE_API_KEY_ID            10-character Key ID associated with the .p8.
+#   APPLE_API_ISSUER            Issuer UUID from App Store Connect → Keys.
+#
+#   notarytool's API-key auth is preferred over the legacy
+#   --apple-id/--password/--team-id triple because it's revocable per-key
+#   in one click and immune to Apple ID 2FA prompts. The legacy path is
+#   no longer wired up here — if you need it for an emergency local run,
+#   call notarytool directly.
 #
 # Optional:
-#   DEVELOPER_ID                Override the Developer ID common name
-#                               (defaults to the first matching cert
-#                               in the keychain).
 #   SCHEME                      xcodebuild scheme (default: privacycommand).
 
 set -euo pipefail
@@ -42,13 +51,31 @@ fi
 echo "Building privacycommand v$VERSION"
 
 # ── 2. Resolve the signing identity ────────────────────────────────
-DEVELOPER_ID="${DEVELOPER_ID:-$(security find-identity -v -p codesigning \
-  | awk -F'"' '/Developer ID Application/ {print $2; exit}')}"
+# CI sets APPLE_SIGNING_IDENTITY explicitly so we sign with the exact
+# cert we expect (rather than whichever Developer ID cert happens to
+# come back first from the keychain). Fall back to the keychain probe
+# for local dev — convenient when a developer has only one identity
+# imported.
+DEVELOPER_ID="${APPLE_SIGNING_IDENTITY:-${DEVELOPER_ID:-$(security find-identity -v -p codesigning \
+  | awk -F'"' '/Developer ID Application/ {print $2; exit}')}}"
 if [[ -z "$DEVELOPER_ID" ]]; then
-  echo "error: no Developer ID Application identity found in keychain" >&2
+  echo "error: no Developer ID Application identity available" >&2
+  echo "       Set APPLE_SIGNING_IDENTITY explicitly, or import a Developer ID" >&2
+  echo "       Application cert into your login keychain." >&2
   exit 2
 fi
 echo "Signing as: $DEVELOPER_ID"
+
+# ── 2b. Validate notarytool credentials ────────────────────────────
+# All three are required; checking up front means we fail in seconds
+# rather than after the 5-minute archive build.
+: "${APPLE_API_KEY_PATH:?APPLE_API_KEY_PATH must point to the App Store Connect .p8 file}"
+: "${APPLE_API_KEY_ID:?APPLE_API_KEY_ID must be the 10-char Key ID}"
+: "${APPLE_API_ISSUER:?APPLE_API_ISSUER must be the App Store Connect issuer UUID}"
+if [[ ! -f "$APPLE_API_KEY_PATH" ]]; then
+  echo "error: APPLE_API_KEY_PATH=$APPLE_API_KEY_PATH does not exist" >&2
+  exit 2
+fi
 
 # ── 3. Archive the app target ──────────────────────────────────────
 xcodebuild \
@@ -89,10 +116,13 @@ fi
 ZIP_PATH="$DIST_DIR/${SCHEME}-notarize.zip"
 ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$ZIP_PATH"
 
+# notarytool with App Store Connect API key auth. `--wait` blocks until
+# Apple's notarisation service returns Accepted / Invalid; on Invalid
+# the command exits non-zero and `set -e` aborts the rest of the run.
 xcrun notarytool submit "$ZIP_PATH" \
-  --apple-id    "$APPLE_NOTARY_USER" \
-  --password    "$APPLE_NOTARY_PASSWORD" \
-  --team-id     "$APPLE_NOTARY_TEAM_ID" \
+  --key         "$APPLE_API_KEY_PATH" \
+  --key-id      "$APPLE_API_KEY_ID" \
+  --issuer      "$APPLE_API_ISSUER" \
   --wait
 
 # Staple so Gatekeeper can verify offline.
@@ -117,9 +147,9 @@ hdiutil create \
 # first open.
 codesign --force --sign "$DEVELOPER_ID" "$DMG_PATH"
 xcrun notarytool submit "$DMG_PATH" \
-  --apple-id    "$APPLE_NOTARY_USER" \
-  --password    "$APPLE_NOTARY_PASSWORD" \
-  --team-id     "$APPLE_NOTARY_TEAM_ID" \
+  --key         "$APPLE_API_KEY_PATH" \
+  --key-id      "$APPLE_API_KEY_ID" \
+  --issuer      "$APPLE_API_ISSUER" \
   --wait
 xcrun stapler staple "$DMG_PATH"
 
