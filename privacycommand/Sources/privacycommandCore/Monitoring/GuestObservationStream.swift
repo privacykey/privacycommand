@@ -77,9 +77,10 @@ public actor GuestObservationStream {
     }()
 
     public init() {
-        var c: AsyncStream<GuestObservation>.Continuation!
-        self.observations = AsyncStream { c = $0 }
-        self.continuation = c
+        // makeStream() avoids the IUO trick — see LiveProbeMonitor.init.
+        let (stream, continuation) = AsyncStream<GuestObservation>.makeStream()
+        self.observations = stream
+        self.continuation = continuation
     }
 
     // MARK: - Connect / disconnect

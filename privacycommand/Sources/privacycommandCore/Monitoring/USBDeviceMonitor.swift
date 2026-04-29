@@ -59,9 +59,12 @@ public actor USBDeviceMonitor {
 
     public init(pollInterval: TimeInterval = 5.0) {
         self.pollInterval = pollInterval
-        var cont: AsyncStream<Change>.Continuation!
-        self.stream = AsyncStream { c in cont = c }
-        self.continuation = cont
+        // See LiveProbeMonitor.init for why we use makeStream() instead
+        // of the IUO trick — this initialiser is the same shape and
+        // the same fix applies.
+        let (stream, continuation) = AsyncStream<Change>.makeStream()
+        self.stream = stream
+        self.continuation = continuation
     }
 
     public func start() {
@@ -93,7 +96,20 @@ public actor USBDeviceMonitor {
     private func poll() async {
         guard !stopped else { return }
         let devices = await Self.runSystemProfiler()
-        let nowMap = Dictionary(uniqueKeysWithValues: devices.map { ($0.uniqueKey, $0) })
+        // Dictionary(uniqueKeysWithValues:) traps on duplicate keys.
+        // `uniqueKey` collapses to just `name` when the device has no
+        // serial / vendor / product (typical for unnamed USB hubs and
+        // bus root nodes), and on real-world hardware with a hub-of-
+        // hubs setup — e.g. the CalDigit TS5 Plus, which exposes three
+        // USB-3 hub children with similar metadata — that collision
+        // path is reachable. Use `uniquingKeysWith:` instead and keep
+        // the first occurrence so a colliding sibling can't crash the
+        // monitor. Diff semantics are slightly degraded (the second
+        // device with the same key won't get its own connect event),
+        // but USB monitoring is already documented as best-effort and
+        // not crashing is strictly more important than perfect diffs.
+        let nowMap = Dictionary(devices.map { ($0.uniqueKey, $0) },
+                                uniquingKeysWith: { first, _ in first })
 
         if seeded {
             // Connect events.

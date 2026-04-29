@@ -36,9 +36,10 @@ public actor NetworkMonitor {
     ) {
         self.pids = initialPIDs
         self.pollInterval = pollInterval
-        var continuationLocal: AsyncStream<NetworkEvent>.Continuation!
-        self.stream = AsyncStream { c in continuationLocal = c }
-        self.continuation = continuationLocal
+        // makeStream() avoids the IUO trick — see LiveProbeMonitor.init.
+        let (stream, continuation) = AsyncStream<NetworkEvent>.makeStream()
+        self.stream = stream
+        self.continuation = continuation
     }
 
     public func updatePIDs(_ pids: Set<Int32>) {

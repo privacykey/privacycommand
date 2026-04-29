@@ -36,9 +36,10 @@ public actor ProcessTracker {
         self.rootPID = rootPID
         self.bundlePathPrefix = bundlePathPrefix
         self.pollInterval = pollInterval
-        var continuationLocal: AsyncStream<ProcessEvent>.Continuation!
-        self.stream = AsyncStream { c in continuationLocal = c }
-        self.continuation = continuationLocal
+        // makeStream() avoids the IUO trick — see LiveProbeMonitor.init.
+        let (stream, continuation) = AsyncStream<ProcessEvent>.makeStream()
+        self.stream = stream
+        self.continuation = continuation
         self.trackedPIDs.insert(rootPID)
     }
 

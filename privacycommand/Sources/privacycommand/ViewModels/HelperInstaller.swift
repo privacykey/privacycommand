@@ -300,11 +300,13 @@ final class HelperEventReceiver: NSObject, HelperToolEventReceiver {
     private let continuation: AsyncStream<FileEvent>.Continuation
 
     override init() {
-        var c: AsyncStream<FileEvent>.Continuation!
         // Bounded buffer so events between runs (when nobody's iterating)
         // don't accumulate. Drops oldest under sustained pressure.
-        self.stream = AsyncStream(bufferingPolicy: .bufferingNewest(2048)) { c = $0 }
-        self.continuation = c
+        // makeStream() avoids the IUO trick — see LiveProbeMonitor.init.
+        let (stream, continuation) = AsyncStream<FileEvent>.makeStream(
+            bufferingPolicy: .bufferingNewest(2048))
+        self.stream = stream
+        self.continuation = continuation
         super.init()
     }
 

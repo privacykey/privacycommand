@@ -58,9 +58,10 @@ public actor SystemResourceMonitor {
 
     public init(pollInterval: TimeInterval = 1.0) {
         self.pollInterval = pollInterval
-        var cont: AsyncStream<Sample>.Continuation!
-        self.stream = AsyncStream { c in cont = c }
-        self.continuation = cont
+        // makeStream() avoids the IUO trick — see LiveProbeMonitor.init.
+        let (stream, continuation) = AsyncStream<Sample>.makeStream()
+        self.stream = stream
+        self.continuation = continuation
     }
 
     public func updatePIDs(_ pids: Set<Int32>) {

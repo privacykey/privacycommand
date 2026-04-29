@@ -81,10 +81,16 @@ public struct ReportDiffer: Sendable {
         // Privacy keys can be added / removed AND have their purpose strings
         // edited. We surface key changes here; purpose-string edits come
         // through as "modified" entries with the new purpose appended.
-        let leftMap = Dictionary(uniqueKeysWithValues:
-            left.staticReport.declaredPrivacyKeys.map { ($0.rawKey, $0.purposeString) })
-        let rightMap = Dictionary(uniqueKeysWithValues:
-            right.staticReport.declaredPrivacyKeys.map { ($0.rawKey, $0.purposeString) })
+        // Use uniquingKeysWith: rather than uniqueKeysWithValues: —
+        // a malformed source Info.plist with duplicate privacy keys
+        // would otherwise trap. Keep the last-seen purpose string to
+        // match Info.plist's "last write wins" reading semantics.
+        let leftMap = Dictionary(
+            left.staticReport.declaredPrivacyKeys.map { ($0.rawKey, $0.purposeString) },
+            uniquingKeysWith: { _, last in last })
+        let rightMap = Dictionary(
+            right.staticReport.declaredPrivacyKeys.map { ($0.rawKey, $0.purposeString) },
+            uniquingKeysWith: { _, last in last })
 
         let leftKeys = Set(leftMap.keys), rightKeys = Set(rightMap.keys)
 

@@ -21,9 +21,11 @@ public actor ResourceMonitor {
     public init(initialPIDs: Set<Int32>, pollInterval: TimeInterval = 1.0) {
         self.pids = initialPIDs
         self.pollInterval = pollInterval
-        var continuationLocal: AsyncStream<[OpenResource]>.Continuation!
-        self.stream = AsyncStream(bufferingPolicy: .bufferingNewest(4)) { c in continuationLocal = c }
-        self.continuation = continuationLocal
+        // makeStream() avoids the IUO trick — see LiveProbeMonitor.init.
+        let (stream, continuation) = AsyncStream<[OpenResource]>.makeStream(
+            bufferingPolicy: .bufferingNewest(4))
+        self.stream = stream
+        self.continuation = continuation
     }
 
     public func updatePIDs(_ pids: Set<Int32>) { self.pids = pids }

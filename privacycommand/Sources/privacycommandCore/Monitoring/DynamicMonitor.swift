@@ -58,9 +58,10 @@ public actor DynamicMonitor {
         self.riskClassifier = riskClassifier ?? RiskClassifier(
             declaredCategories: Set(staticReport.declaredPrivacyKeys.map(\.category))
         )
-        var continuationLocal: AsyncStream<DynamicEvent>.Continuation!
-        self.stream = AsyncStream { c in continuationLocal = c }
-        self.continuation = continuationLocal
+        // makeStream() avoids the IUO trick — see LiveProbeMonitor.init.
+        let (stream, continuation) = AsyncStream<DynamicEvent>.makeStream()
+        self.stream = stream
+        self.continuation = continuation
     }
 
     /// Launches the target bundle and starts the monitors. Returns the root PID.
