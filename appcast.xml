@@ -1,0 +1,14 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>privacycommand</title>
+        <item>
+            <title>0.1.1</title>
+            <pubDate>Wed, 29 Apr 2026 07:16:02 +0000</pubDate>
+            <sparkle:version>1</sparkle:version>
+            <sparkle:shortVersionString>0.1.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://privacykey.github.io/privacycommand/privacycommand-0.1.1.dmg" length="4730556" type="application/octet-stream" sparkle:edSignature="6a4dFWwHa8u66XoekVIuV/s3CMZ4f65jl1V77Xf8FsMP4PoYJ9H/F1qD6d7DrbcKwBGKYvpJrMkVFBQn9u1ECQ=="/>
+        </item>
+    </channel>
+</rss>
