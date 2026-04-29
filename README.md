@@ -9,11 +9,9 @@
 Forensic permission audits for any macOS app — built for security teams, IT, and privacy-conscious users.
 
 [![Latest release](https://img.shields.io/github/v/release/privacykey/privacycommand?style=flat-square&color=4338CA&label=release)](https://github.com/privacykey/privacycommand/releases/latest)
-[![Build](https://img.shields.io/github/actions/workflow/status/privacykey/privacycommand/release.yml?branch=main&style=flat-square&label=build)](https://github.com/privacykey/privacycommand/actions/workflows/release.yml)
 [![Downloads](https://img.shields.io/github/downloads/privacykey/privacycommand/total?style=flat-square&color=A5B4FC&label=downloads)](https://github.com/privacykey/privacycommand/releases)
 [![Homebrew](https://img.shields.io/badge/homebrew-privacykey%2Ftap-FBBF24?style=flat-square&logo=homebrew&logoColor=white)](https://github.com/privacykey/homebrew-tap)
 [![macOS 13+](https://img.shields.io/badge/macOS-13%2B-1E1B4B?style=flat-square&logo=apple&logoColor=white)](https://www.apple.com/macos)
-[![Swift 5.9](https://img.shields.io/badge/Swift-5.9-F05138?style=flat-square&logo=swift&logoColor=white)](https://swift.org)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE)
 
 [Download](https://github.com/privacykey/privacycommand/releases/latest) · [Documentation](docs/) · [Release notes](https://github.com/privacykey/privacycommand/releases) · [Report an issue](https://github.com/privacykey/privacycommand/issues)
@@ -69,6 +67,9 @@ The Swift Package Manager target builds with `swift build` from `privacycommand/
 
 > _Screenshots go here once the brand site is up. The Dashboard renders telemetry, App Store privacy labels, live probes, and a forensic findings list; the Static tab walks every signal we extract from the binary._
 
+<img width="800" height="554" alt="CleanShot 2026-04-29 at 19 09 22" src="https://github.com/user-attachments/assets/170dedfb-e1d4-45e7-869f-39b8e39d87bb" />
+
+
 ## How it works
 
 privacycommand is a SwiftUI app backed by a pure-Swift analyzer library and an optional privileged helper. The architecture is split deliberately:
@@ -80,19 +81,7 @@ privacycommand is a SwiftUI app backed by a pure-Swift analyzer library and an o
 | Privileged helper | [`privacycommand/Sources/privacycommandHelper/`](privacycommand/Sources/privacycommandHelper/) | XPC service installed via `SMAppService.daemon` |
 | Guest agent (VM) | [`privacycommand/Sources/privacycommandGuestAgent/`](privacycommand/Sources/privacycommandGuestAgent/) | Runs in-VM, ships observations to the host |
 
-Read [`docs/04-architecture.md`](docs/04-architecture.md) for the longer version.
-
-## Documentation
-
-- **[Hardest constraints](docs/00-hardest-constraints.md)** — what's feasible with Developer ID vs Apple-granted entitlements (read first if you're evaluating)
-- **[Product spec](docs/01-product-spec.md)** — one-page feature scope
-- **[Feasibility matrix](docs/02-feasibility-matrix.md)** — which signals are static / dynamic / privileged
-- **[Roadmap](docs/03-roadmap.md)** — MVP → Advanced → Production
-- **[Architecture](docs/04-architecture.md)** — modules, data flow, IPC
-- **[Test plan](docs/05-test-plan.md)** — sample apps to verify against
-- **[Helper](privacycommand/HELPER.md)** — privileged helper bundling + verification
-- **[Guest agent](privacycommand/docs/GUEST_AGENT.md)** — VirtualBuddy / UTM / Parallels walkthroughs
-- **[Releases](docs/RELEASES.md)** — how to cut a signed + notarized release
+Read [`architecture.md`](ARCHITECTURE.md) for the longer version.
 
 ## Updates
 
