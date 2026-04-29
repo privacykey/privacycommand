@@ -38,6 +38,34 @@ if [[ -z "${SPARKLE_PRIVATE_KEY:-}" ]]; then
   exit 2
 fi
 
+# Validate the key format up front so we fail with a clear pointer to
+# docs/RELEASES.md instead of Sparkle's fairly opaque "Failed to
+# decode private and public keys from secret data" error.
+#
+# Sparkle's decodePrivateAndPublicKeys (in Sparkle/common_cli/Secret.swift)
+# base64-decodes the file contents once and accepts:
+#   • 32 bytes — new "regular seed" format. Sparkle derives the
+#     ed25519 keypair from this seed at sign time via
+#     ed25519_create_keypair. This is what current `generate_keys`
+#     produces.
+#   • 96 bytes — legacy "hashed seed" format (64-byte private +
+#     32-byte public concatenated). Older keys.
+# Anything else is rejected. The most common failure mode is double
+# base64-encoding — `generate_keys -x` already writes base64, so an
+# extra `| base64` step at export time produces a string that decodes
+# back to base64 text (~88 bytes), not 32 binary bytes.
+SPARKLE_KEY_DECODED_BYTES="$(printf '%s' "$SPARKLE_PRIVATE_KEY" | base64 -d 2>/dev/null | wc -c | tr -d ' ')"
+if [[ "$SPARKLE_KEY_DECODED_BYTES" != "32" && "$SPARKLE_KEY_DECODED_BYTES" != "96" ]]; then
+  echo "error: SPARKLE_PRIVATE_KEY base64-decodes to $SPARKLE_KEY_DECODED_BYTES bytes; Sparkle expects 32 (new) or 96 (legacy)." >&2
+  echo "       The most common cause is double base64-encoding when exporting." >&2
+  echo "       Re-export with:" >&2
+  echo "         ./privacycommand/.build/checkouts/Sparkle/bin/generate_keys -x ~/sparkle-private.key" >&2
+  echo "         pbcopy < ~/sparkle-private.key" >&2
+  echo "       and update the SPARKLE_PRIVATE_KEY environment secret with the value as-is" >&2
+  echo "       (do NOT pipe through base64 again). See docs/RELEASES.md for details." >&2
+  exit 2
+fi
+
 # Sparkle ships `generate_appcast` as a binary inside the SPM
 # checkout. CI does `git clone https://github.com/sparkle-project/Sparkle`
 # and adds bin/ to PATH; locally the developer can use Homebrew's
