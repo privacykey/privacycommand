@@ -115,9 +115,29 @@ public struct PrivacyLabels: Sendable, Hashable, Codable {
         self.types = types
     }
 
-    /// True when no privacy types have any categories declared.
+    /// True when the developer made no declaration of any kind — i.e.
+    /// Apple's payload contained zero privacy types.
+    ///
+    /// **This is different from "all types have zero categories".** A
+    /// developer who declared `DATA_NOT_COLLECTED` (and nothing else)
+    /// has made a *positive* statement that the app collects nothing.
+    /// That state shows up as `types == [oneType]` with the lone type
+    /// having an empty `categories` array — which is **not** empty in
+    /// the sense of "no information". Use `isExplicitlyNotCollected`
+    /// to distinguish it from "data is collected but no categories
+    /// listed" (which shouldn't happen in well-formed Apple data, but
+    /// we guard for it anyway).
     public var isEmpty: Bool {
-        types.allSatisfy { $0.categories.isEmpty }
+        types.isEmpty
+    }
+
+    /// True when the *only* privacy type declared is `DATA_NOT_COLLECTED`
+    /// — the App Store's positive "this app collects no data" answer.
+    /// Distinct from `isEmpty` (no declaration at all) and from
+    /// `noDetailsProvided` (developer hasn't filled in the form).
+    public var isExplicitlyNotCollected: Bool {
+        types.count == 1
+            && types[0].identifier == TypeIdentifier.notCollected.rawValue
     }
 
     /// Convenience: the type for one of the four canonical identifiers,

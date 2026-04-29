@@ -131,11 +131,25 @@ public enum AppStorePrivacyLabelFetcher {
         // pageData layout. If neither has anything, check whether
         // Apple's "No Details Provided" disclaimer is on the page —
         // that's a positive answer too, just a different one.
+        //
+        // **Distinguishing "Data Not Collected" from "No Details
+        // Provided".** Both states have a sparse payload, but they're
+        // semantically opposite — the first is a developer's explicit
+        // "we collect nothing", the second is "the developer hasn't
+        // filled this in". The disambiguator is whether *any* privacy
+        // type was declared:
+        //   • One or more types parsed → `.provided`. That includes
+        //     the lone-`DATA_NOT_COLLECTED` case, which has zero
+        //     categories under it but is still a positive answer.
+        //   • Zero types parsed but the disclaimer copy is on the
+        //     page → `.noDetailsProvided`.
+        //   • Zero types and no disclaimer → parse failure (Apple
+        //     changed the layout).
         if let items = privacyTypeItems(in: rootData), !items.isEmpty {
             let labels = mapToPrivacyLabels(items: items)
             return Result(
                 labels: labels,
-                detailsStatus: labels.isEmpty ? .noDetailsProvided : .provided,
+                detailsStatus: .provided,
                 privacyPolicyURL: privacyPolicyURL
             )
         }

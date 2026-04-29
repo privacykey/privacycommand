@@ -49,6 +49,13 @@ struct PrivacyLabelsCard: View {
                     if isFetching {
                         loadingRow
                     } else if let labels = info.privacyLabels, !labels.isEmpty {
+                        // `isEmpty` here means "no privacy types at all",
+                        // not "no categories" — so a developer who
+                        // declared only `DATA_NOT_COLLECTED` (a lone
+                        // type with zero categories) still falls into
+                        // this branch and gets the green positive
+                        // rendering, instead of being misclassified as
+                        // "no details provided".
                         Divider()
                         labelsBody(labels)
                     } else if info.privacyDetailsStatus == .noDetailsProvided {
@@ -260,12 +267,24 @@ struct PrivacyLabelsCard: View {
         }
     }
 
-    /// Apple uses different copy depending on whether a bucket is
-    /// genuinely empty vs. simply not declared. We're not given
-    /// enough to disambiguate so we keep one neutral message.
+    /// Per-bucket empty-state copy.
+    ///
+    /// `DATA_NOT_COLLECTED` is special — its presence in the labels is
+    /// itself the declaration. An empty `categories` array under it
+    /// means "the developer states the app collects nothing", which is
+    /// the strongest privacy answer the App Store offers. We say so
+    /// directly rather than the generic "(none declared)" copy used for
+    /// the data-collected buckets when the developer simply chose not
+    /// to put anything in them.
+    ///
+    /// This is **distinct** from Apple's "No Details Provided"
+    /// disclaimer (rendered by `noDetailsRow`), which fires when the
+    /// developer never filled in the form at all. See
+    /// `PrivacyLabels.isEmpty` and `isExplicitlyNotCollected` for the
+    /// upstream classification.
     private func emptyMessage(for identifier: String) -> String {
         if identifier == PrivacyLabels.TypeIdentifier.notCollected.rawValue {
-            return "Developer declares no data falls in this bucket."
+            return "The developer states this app does not collect any data."
         }
         return "(none declared)"
     }
