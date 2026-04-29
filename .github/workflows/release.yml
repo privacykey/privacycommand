@@ -91,17 +91,35 @@ jobs:
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "Releasing as $TAG"
 
-      - name: Verify tag matches Info.plist version
+      - name: Verify tag matches Marketing Version
+        # Info.plist now contains $(MARKETING_VERSION) as a placeholder
+        # — Xcode resolves it at build time from the project's build
+        # settings. PlistBuddy can't see that, so we ask xcodebuild to
+        # show us the resolved value directly. -showBuildSettings is a
+        # read-only dry-run; it doesn't trigger an actual build, but
+        # does load the project (so Select Xcode must run first — it
+        # does, see the step above).
         run: |
+          set -euo pipefail
           TAG_VERSION="${{ steps.resolve.outputs.tag }}"
           TAG_VERSION="${TAG_VERSION#v}"
-          PLIST_VERSION=$(/usr/libexec/PlistBuddy \
-            -c "Print :CFBundleShortVersionString" \
-            "privacycommand/Resources/Info.plist")
-          if [[ "$TAG_VERSION" != "$PLIST_VERSION" ]]; then
-            echo "error: tag $TAG_VERSION does not match Info.plist $PLIST_VERSION" >&2
+          PROJECT_VERSION=$(xcodebuild \
+              -project privacycommand/privacycommand.xcodeproj \
+              -target privacycommand \
+              -configuration Release \
+              -showBuildSettings -showOnlyBuildSettings 2>/dev/null \
+            | awk '$1 == "MARKETING_VERSION" { print $3; exit }')
+          if [[ -z "$PROJECT_VERSION" ]]; then
+            echo "error: could not read MARKETING_VERSION from privacycommand target" >&2
             exit 1
           fi
+          if [[ "$TAG_VERSION" != "$PROJECT_VERSION" ]]; then
+            echo "error: tag $TAG_VERSION does not match Marketing Version $PROJECT_VERSION" >&2
+            echo "       Either bump Marketing Version in Xcode → privacycommand → General → Identity," >&2
+            echo "       or push a tag matching the current value." >&2
+            exit 1
+          fi
+          echo "Marketing Version $PROJECT_VERSION matches tag $TAG_VERSION"
 
       - name: Set up keychain + Developer ID cert
         env:

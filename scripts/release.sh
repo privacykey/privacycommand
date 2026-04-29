@@ -50,14 +50,34 @@ mkdir -p "$DIST_DIR"
 TMP_DIR="$(mktemp -d -t privacycommand-release)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
-# ── 1. Resolve the version from Info.plist ─────────────────────────
-PLIST="$REPO_ROOT/privacycommand/Resources/Info.plist"
-VERSION="$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$PLIST")"
+# ── 1. Resolve the version from the Xcode project ─────────────────
+# Info.plist's CFBundleShortVersionString is now $(MARKETING_VERSION) —
+# Xcode resolves it at build time. PlistBuddy on the static file would
+# return the placeholder string, so we ask xcodebuild for the resolved
+# value. -showBuildSettings is a read-only dry-run; it doesn't compile
+# anything, but does load the project.
+VERSION=$(xcodebuild \
+    -project "$REPO_ROOT/privacycommand/privacycommand.xcodeproj" \
+    -target "$SCHEME" \
+    -configuration "$CONFIG" \
+    -showBuildSettings -showOnlyBuildSettings 2>/dev/null \
+  | awk '$1 == "MARKETING_VERSION" { print $3; exit }')
 if [[ -z "$VERSION" ]]; then
-  echo "error: could not read CFBundleShortVersionString from $PLIST" >&2
+  echo "error: could not read MARKETING_VERSION from privacycommand target" >&2
+  echo "       Make sure Xcode has Marketing Version set under Project →" >&2
+  echo "       privacycommand → General → Identity." >&2
   exit 2
 fi
 echo "Building privacycommand v$VERSION"
+
+# Auto-incrementing CFBundleVersion: count of git commits on HEAD.
+# Sparkle requires CFBundleVersion to monotonically increase across
+# releases, and `git rev-list --count HEAD` grows with every push to
+# main, so we get that for free. CI does fetch-depth: 0 so this works
+# in GitHub Actions; locally the result is whatever your full clone
+# has, which is also fine for dry-runs.
+BUILD_NUMBER="$(git -C "$REPO_ROOT" rev-list --count HEAD)"
+echo "Using CFBundleVersion: $BUILD_NUMBER"
 
 # ── 2. Resolve the signing identity ────────────────────────────────
 # CI sets APPLE_SIGNING_IDENTITY explicitly so we sign with the exact
@@ -123,6 +143,7 @@ xcodebuild \
   CODE_SIGN_IDENTITY="$DEVELOPER_ID" \
   CODE_SIGN_STYLE=Manual \
   DEVELOPMENT_TEAM="$TEAM_ID" \
+  CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
   archive
 
 # ── 4. Export the .app from the archive ────────────────────────────
