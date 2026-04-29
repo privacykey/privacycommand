@@ -1034,7 +1034,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 0.1.3;
+				MARKETING_VERSION = 0.1.4;
 				PRODUCT_BUNDLE_IDENTIFIER = org.privacykey.privacycommand;
 				PRODUCT_NAME = privacycommand;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -1063,7 +1063,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 0.1.3;
+				MARKETING_VERSION = 0.1.4;
 				PRODUCT_BUNDLE_IDENTIFIER = org.privacykey.privacycommand;
 				PRODUCT_NAME = privacycommand;
 				SWIFT_EMIT_LOC_STRINGS = YES;
