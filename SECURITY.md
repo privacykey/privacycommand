@@ -6,7 +6,7 @@ reports seriously.
 ## Reporting a vulnerability
 
 **Please don't open a public GitHub issue.** Email
-[`ecurity@privacykey.org`](mailto:ecurity@privacykey.org?subject=privacycommand%20security%20disclosure)
+[`security@privacykey.org`](mailto:ecurity@privacykey.org?subject=privacycommand%20security%20disclosure)
 with:
 
 - A description of the issue and its impact.
