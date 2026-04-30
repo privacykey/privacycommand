@@ -5,13 +5,10 @@
 blank_issues_enabled: false
 
 contact_links:
-  - name: Question or discussion
-    url: https://github.com/privacykey/privacycommand/discussions
-    about: For open-ended questions, ideas, or "is this expected?" — use Discussions instead of an issue.
 
   - name: Security disclosure
     url: mailto:security@privacykey.org?subject=privacycommand%20security%20disclosure
-    about: Found a vulnerability? Please don't open a public issue. Email security@privacykey.org — we aim to respond within 72 hours.
+    about: Found a vulnerability? Please don't open a public issue. Email security@privacykey.org or open an advisory through github — we aim to respond within 72 hours.
 
   - name: Accessibility feedback
     url: https://github.com/privacykey/privacycommand/issues/new?template=bug_report.yml&labels=bug,needs-triage,a11y&title=%5BA11y%5D%3A+
