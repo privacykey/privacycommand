@@ -14,11 +14,19 @@ Forensic permission audits for any macOS app — built for security teams, IT, a
 [![macOS 13+](https://img.shields.io/badge/macOS-13%2B-1E1B4B?style=flat-square&logo=apple&logoColor=white)](https://www.apple.com/macos)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE)
 
-[Download](https://github.com/privacykey/privacycommand/releases/latest) · [Documentation](docs/) · [Release notes](https://github.com/privacykey/privacycommand/releases) · [Report an issue](https://github.com/privacykey/privacycommand/issues)
+[Download](https://github.com/privacykey/privacycommand/releases/latest) · [Release notes](https://github.com/privacykey/privacycommand/releases) · [Report an issue](https://github.com/privacykey/privacycommand/issues)
 
 </div>
 
 ---
+
+> [!WARNING]
+> **This is a beta — pre v1.0.** privacycommand is under active development.
+> Expect occasional crashes, behaviour changes between releases, and
+> a report format that may still shift. If you see any bugs, please
+> attach the matching `.ips` from `~/Library/Logs/DiagnosticReports/`
+> to a [new issue](https://github.com/privacykey/privacycommand/issues/new)
+> or report a [security vulnerability[(https://github.com/privacykey/privacycommand/security/advisories/new) through github or the security email.
 
 ## What it does
 
