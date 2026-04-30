@@ -26,7 +26,7 @@ Forensic permission audits for any macOS app — built for security teams, IT, a
 > a report format that may still shift. If you see any bugs, please
 > attach the matching `.ips` from `~/Library/Logs/DiagnosticReports/`
 > to a [new issue](https://github.com/privacykey/privacycommand/issues/new)
-> or report a [security vulnerability[(https://github.com/privacykey/privacycommand/security/advisories/new) through github or the security email.
+> or report a [security vulnerability](https://github.com/privacykey/privacycommand/security/advisories/new) through github or the security email.
 
 ## What it does
 
