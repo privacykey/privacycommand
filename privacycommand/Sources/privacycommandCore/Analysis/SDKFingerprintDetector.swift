@@ -13,8 +13,26 @@ import Foundation
 /// evidence so the UI can show *why* we flagged it.
 public enum SDKFingerprintDetector {
 
+    /// Bundle identifier of privacycommand itself. The SDK fingerprint
+    /// *database* is compiled into our own binary, so scanning our own
+    /// app trips every `urlPatterns` / `symbolPatterns` string match and
+    /// reports trackers we don't actually use (issue #3). We special-case
+    /// this one bundle ID to suppress those string-derived false positives.
+    public static let analyzerBundleID = "org.privacykey.privacycommand"
+
     public static func detect(in report: StaticReport,
                               extraSymbols: Set<String> = []) -> [SDKHit] {
+        // Self-analysis guard (issue #3). When the bundle under inspection
+        // is privacycommand, the only reason its binary contains
+        // "app-measurement.com", "FIRApp", etc. is that *we* ship those
+        // signatures to detect trackers in other apps — they're detection
+        // data, not trackers we embed. So for our own bundle we ignore the
+        // string-derived signals (URLs, domains, symbols) and keep only
+        // framework- and bundle-ID evidence. Those require an actual linked
+        // dependency, so a genuine third-party SDK ever added to
+        // privacycommand would still be reported.
+        let isSelfAnalysis = report.bundle.bundleID == analyzerBundleID
+
         // Pre-compute lowercased haystacks once for every fingerprint to test.
         let frameworkNames: [String] = report.frameworks
             .map { $0.url.deletingPathExtension().lastPathComponent.lowercased() }
@@ -50,22 +68,27 @@ public enum SDKFingerprintDetector {
                 }
             }
 
-            // URLs / domains: combine and search once per fingerprint pattern.
-            for pat in fp.urlPatterns {
-                let needle = pat.lowercased()
-                if let match = urls.first(where: { $0.contains(needle) }) {
-                    evidence.append(.url(match))
-                    break
+            // URLs / domains / symbols are string-table signals — exactly the
+            // ones that misfire when we scan our own database-bearing binary,
+            // so they're skipped for self-analysis (see `isSelfAnalysis`).
+            if !isSelfAnalysis {
+                // URLs / domains: combine and search once per fingerprint pattern.
+                for pat in fp.urlPatterns {
+                    let needle = pat.lowercased()
+                    if let match = urls.first(where: { $0.contains(needle) }) {
+                        evidence.append(.url(match))
+                        break
+                    }
+                    if let match = domains.first(where: { $0.contains(needle) }) {
+                        evidence.append(.url(match))
+                        break
+                    }
                 }
-                if let match = domains.first(where: { $0.contains(needle) }) {
-                    evidence.append(.url(match))
-                    break
-                }
-            }
 
-            for pat in fp.symbolPatterns where symbols.contains(where: { $0.contains(pat) }) {
-                evidence.append(.symbol(pat))
-                break
+                for pat in fp.symbolPatterns where symbols.contains(where: { $0.contains(pat) }) {
+                    evidence.append(.symbol(pat))
+                    break
+                }
             }
 
             if !evidence.isEmpty {
