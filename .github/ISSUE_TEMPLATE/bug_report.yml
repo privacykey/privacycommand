@@ -35,7 +35,7 @@ body:
         - Documentation correction
         - Other
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: summary
@@ -60,7 +60,7 @@ body:
         3. Click the Static tab, scroll to "Embedded scripts & launchd".
         4. Section reports zero items, but `ls` of Contents/Library/LaunchAgents shows two plists.
     validations:
-      required: true
+      required: false
 
   - type: input
     id: inspected-app
@@ -85,7 +85,7 @@ body:
         - Built from source (`swift build`)
         - Other (describe in the summary)
     validations:
-      required: true
+      required: false
 
   - type: input
     id: app-version
@@ -95,7 +95,7 @@ body:
         From Settings → About, or `mdls -name kMDItemVersion /Applications/privacycommand.app` for installed builds. Source builds: paste `git rev-parse --short HEAD`.
       placeholder: "v0.2.0 · or commit abc1234"
     validations:
-      required: true
+      required: false
 
   - type: input
     id: macos-version
@@ -107,7 +107,7 @@ body:
         or only on Intel.
       placeholder: "macOS 14.5 · Apple M2 Pro · or · macOS 13.6 · Intel"
     validations:
-      required: true
+      required: false
 
   - type: dropdown
     id: helper-status
@@ -125,7 +125,7 @@ body:
         - "Not found (helper not bundled in the app)"
         - "Not relevant to this bug"
     validations:
-      required: true
+      required: false
 
   - type: checkboxes
     id: area
@@ -211,7 +211,7 @@ body:
       label: Before you submit
       options:
         - label: I searched existing issues and didn't find a duplicate.
-          required: true
+          required: false
         - label: I can reproduce this consistently (or I've described the conditions under which it happens).
           required: false
         - label: This is **not** a security vulnerability. (Security issues should go to `security@privacykey.org`, not a public issue.)
