@@ -145,8 +145,35 @@ public enum AppStorePrivacyLabelFetcher {
         //     page → `.noDetailsProvided`.
         //   • Zero types and no disclaimer → parse failure (Apple
         //     changed the layout).
-        if let items = privacyTypeItems(in: rootData), !items.isEmpty {
+        // Structured paths first, then a graph-wide sweep for any object
+        // carrying a canonical privacy-type identifier. The deep sweep
+        // rescues the sparse `DATA_NOT_COLLECTED`-only payload when Apple
+        // shifts the shelf out from under the rigid paths above — the case
+        // behind issue #1, where a "Data Not Collected" app was reported as
+        // "no details provided".
+        if let items = privacyTypeItems(in: rootData) ?? privacyTypeItemsDeep(in: rootData),
+           !items.isEmpty {
             let labels = mapToPrivacyLabels(items: items)
+            return Result(
+                labels: labels,
+                detailsStatus: .provided,
+                privacyPolicyURL: privacyPolicyURL
+            )
+        }
+
+        // No structured types at all. Before concluding the developer never
+        // filled in the form, look for the *positive* "Data Not Collected"
+        // declaration. Apple renders a specific line — "The developer does
+        // not collect any data from this app." — for apps that explicitly
+        // declared zero collection. That phrase is specific enough not to
+        // collide with the page's component string-catalogue (unlike the
+        // terse "No Details Provided" heading), and it is the opposite
+        // answer, so it must be checked *before* the no-details fallback.
+        if hasDataNotCollectedCopy(html: html) {
+            let labels = PrivacyLabels(types: [
+                .init(identifier: PrivacyLabels.TypeIdentifier.notCollected.rawValue,
+                      title: "Data Not Collected", detail: "", categories: [])
+            ])
             return Result(
                 labels: labels,
                 detailsStatus: .provided,
@@ -247,6 +274,47 @@ public enum AppStorePrivacyLabelFetcher {
         return nil
     }
 
+    /// The four canonical privacy-type identifiers, as a set, for the
+    /// graph-wide fallback below.
+    private static let knownTypeIdentifiers: Set<String> =
+        Set(PrivacyLabels.TypeIdentifier.allCases.map(\.rawValue))
+
+    /// Last-resort: walk the entire decoded JSON graph for any object whose
+    /// `identifier` is one of Apple's four canonical privacy-type ids. This
+    /// rescues the sparse `DATA_NOT_COLLECTED`-only payload (and any future
+    /// layout where Apple moves the shelf) without risking false matches:
+    /// category ids (`LOCATION`, `IDENTIFIERS`, …) are a disjoint set from
+    /// the type ids we look for here, and we additionally require the object
+    /// to carry an item-shaped key (`title` / `detail` / `categories` /
+    /// `purposes`) so a bare enum/schema listing of all four ids can't be
+    /// mistaken for a real declaration.
+    private static func privacyTypeItemsDeep(in rootData: [Any]) -> [[String: Any]]? {
+        var found: [[String: Any]] = []
+        var seenIdentifiers = Set<String>()
+
+        func looksLikeItem(_ dict: [String: Any]) -> Bool {
+            dict["title"] != nil || dict["detail"] != nil
+                || dict["categories"] != nil || dict["purposes"] != nil
+        }
+
+        func walk(_ node: Any) {
+            if let dict = node as? [String: Any] {
+                if let id = dict["identifier"] as? String,
+                   knownTypeIdentifiers.contains(id),
+                   looksLikeItem(dict),
+                   seenIdentifiers.insert(id).inserted {
+                    found.append(dict)
+                }
+                for value in dict.values { walk(value) }
+            } else if let arr = node as? [Any] {
+                for value in arr { walk(value) }
+            }
+        }
+
+        for node in rootData { walk(node) }
+        return found.isEmpty ? nil : found
+    }
+
     /// Convert Apple's raw item dicts into our `PrivacyLabels`
     /// structure. Handles both the flat `categories[]` shape and the
     /// nested `purposes[].categories[]` shape — for the latter we
@@ -316,6 +384,17 @@ public enum AppStorePrivacyLabelFetcher {
         }
 
         return PrivacyLabels(types: types)
+    }
+
+    /// Apple's *positive* "this app collects nothing" disclaimer. The body
+    /// copy — "The developer does not collect any data from this app." — is
+    /// specific enough that it doesn't collide with the page's component
+    /// string-catalogue, unlike the terse "Data Not Collected" heading which
+    /// can appear in unrelated chrome. Used as a fallback for `DATA_NOT_COLLECTED`
+    /// apps whose structured payload the parser above couldn't reach (issue #1).
+    private static func hasDataNotCollectedCopy(html: String) -> Bool {
+        html.range(of: #"does not collect any data from this app"#,
+                   options: [.regularExpression, .caseInsensitive]) != nil
     }
 
     /// Apple's "No Details Provided" disclaimer copy. Two phrasings
