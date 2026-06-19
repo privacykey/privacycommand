@@ -78,6 +78,11 @@ public enum DisassemblyAnalyzer {
         /// The enclosing function's symbol name as it appears in the
         /// disassembly, e.g. `_main`, `__ZN3net6Socket7ConnectEv`.
         public let function: String
+        /// The function's start address as printed by the disassembler (hex,
+        /// no `0x` prefix), e.g. `100003abc`. Lets the decompiler find the
+        /// function by address when the name is stripped or renamed. `nil` if
+        /// the disassembly didn't expose an address.
+        public let address: String?
         /// Networking-category symbols this function calls, with call counts,
         /// ordered most-frequent first.
         public let calls: [ExternalCall]
@@ -85,8 +90,10 @@ public enum DisassemblyAnalyzer {
         /// body — best-effort candidate destinations.
         public let hostHints: [String]
 
-        public init(function: String, calls: [ExternalCall], hostHints: [String]) {
+        public init(function: String, address: String? = nil,
+                    calls: [ExternalCall], hostHints: [String]) {
             self.function = function
+            self.address = address
             self.calls = calls
             self.hostHints = hostHints
         }
@@ -198,6 +205,10 @@ public enum DisassemblyAnalyzer {
         var fnHostHints: [String: [String]] = [:]       // fn -> ordered hints
         var fnHostSeen: [String: Set<String>] = [:]      // fn -> dedup set
         var fnOrder: [String] = []                       // first-seen order of net fns
+        var fnAddress: [String: String] = [:]            // fn -> start address (hex)
+        // After a function label we grab the address off the first following
+        // instruction line; this holds the function still awaiting one.
+        var awaitingAddressFor: String? = nil
 
         // Cheap regex objects, compiled once per call.
         // NB: NSRegularExpression is intentionally not stored statically —
@@ -218,10 +229,24 @@ public enum DisassemblyAnalyzer {
         let instrRE = try? NSRegularExpression(
             pattern: #"^\s*[0-9a-fA-F]+:\s+[0-9a-fA-F ]+\s+[a-z]+"#,
             options: [])
+        // Leading address on an instruction line: objdump's "100003abc:" or
+        // otool's "0000000100003abc" (then a colon, tab, or space).
+        let addrRE = try? NSRegularExpression(
+            pattern: #"^\s*([0-9a-fA-F]{4,})[:\s]"#,
+            options: [])
 
         for line in cappedLines {
             let s = String(line)
             let r = NSRange(s.startIndex..<s.endIndex, in: s)
+
+            // First instruction line after a function label carries the
+            // function's start address.
+            if let fn = awaitingAddressFor,
+               let m = addrRE?.firstMatch(in: s, range: r),
+               m.numberOfRanges > 1, let rg = Range(m.range(at: 1), in: s) {
+                fnAddress[fn] = String(s[rg])
+                awaitingAddressFor = nil
+            }
 
             if arch == nil, let m = archRE?.firstMatch(in: s, range: r),
                m.numberOfRanges > 1, let rg = Range(m.range(at: 1), in: s) {
@@ -256,7 +281,9 @@ public enum DisassemblyAnalyzer {
             if funcRE?.firstMatch(in: s, range: r) != nil {
                 totalFns += 1
                 // `s` is a bare `label:` line; drop the trailing colon.
-                currentFunction = String(s.trimmingCharacters(in: .whitespaces).dropLast())
+                let name = String(s.trimmingCharacters(in: .whitespaces).dropLast())
+                currentFunction = name
+                awaitingAddressFor = name
             }
             if instrRE?.firstMatch(in: s, range: r) != nil { totalInstr += 1 }
         }
@@ -291,7 +318,7 @@ public enum DisassemblyAnalyzer {
                     if $0.callCount != $1.callCount { return $0.callCount > $1.callCount }
                     return $0.symbol < $1.symbol
                 }
-            return NetworkCallSite(function: fn, calls: fnCalls,
+            return NetworkCallSite(function: fn, address: fnAddress[fn], calls: fnCalls,
                                    hostHints: fnHostHints[fn] ?? [])
         }
         .sorted {
@@ -315,6 +342,42 @@ public enum DisassemblyAnalyzer {
             networkCallSites: netSites,
             narrative: narrative
         )
+    }
+
+    // MARK: - Disassembling (Core-side tool runner)
+
+    /// Find a disassembler (`objdump` preferred for its symbol annotations,
+    /// `otool` as a fallback) and dump `executable`'s text section. Returns the
+    /// disassembly text, or nil if no tool is installed or the run produced
+    /// nothing. Synchronous — callers on a hot path should gate by binary size
+    /// first (`objdump` on a 600 MB framework is not free).
+    public static func disassemble(executable: URL,
+                                   maxBytes: Int = 4 * 1024 * 1024,
+                                   timeout: TimeInterval = 20) -> String? {
+        let roots = ["/opt/homebrew/bin", "/usr/local/bin", "/usr/bin",
+                     "/Library/Developer/CommandLineTools/usr/bin"]
+        let fm = FileManager.default
+        var tool: (path: String, args: [String])? = nil
+        for root in roots where tool == nil {
+            let p = "\(root)/objdump"
+            if fm.isExecutableFile(atPath: p) {
+                tool = (p, ["-d", "--no-show-raw-insn", "--macho"])
+            }
+        }
+        for root in roots where tool == nil {
+            let p = "\(root)/otool"
+            if fm.isExecutableFile(atPath: p) { tool = (p, ["-tV"]) }
+        }
+        guard let tool else { return nil }
+        let result = ProcessRunner.runSync(launchPath: tool.path,
+                                           arguments: tool.args + [executable.path],
+                                           timeout: timeout)
+        guard !result.stdout.isEmpty else { return nil }
+        let utf8 = result.stdout.utf8
+        if utf8.count > maxBytes {
+            return String(decoding: Array(utf8.prefix(maxBytes)), as: UTF8.self)
+        }
+        return result.stdout
     }
 
     /// True when a string literal looks like a hostname or URL — used to
@@ -354,6 +417,9 @@ public enum DisassemblyAnalyzer {
             if s.hasPrefix("CC")                      { return .init(category: .crypto, label: "CommonCrypto primitive", kbArticleID: nil) }
             if s.hasPrefix("CFNetwork") || s.hasPrefix("CFURL") || s.hasPrefix("CFHTTP") {
                 return .init(category: .networking, label: "CoreFoundation networking", kbArticleID: nil)
+            }
+            if s.hasPrefix("nw_") {
+                return .init(category: .networking, label: "Network.framework", kbArticleID: nil)
             }
             if s.hasPrefix("CL")                      { return .init(category: .privacy, label: "Location services", kbArticleID: "privacy-NSLocationUsageDescription") }
             if s.hasPrefix("CN")                      { return .init(category: .privacy, label: "Contacts framework", kbArticleID: "privacy-NSContactsUsageDescription") }
@@ -443,9 +509,20 @@ public enum DisassemblyAnalyzer {
             "listen":               .init(category: .networking, label: "Listen for incoming connections", kbArticleID: nil),
             "accept":               .init(category: .networking, label: "Accept an incoming connection", kbArticleID: nil),
             "getaddrinfo":          .init(category: .networking, label: "Resolve a hostname (DNS)", kbArticleID: nil),
+            "gethostbyname":        .init(category: .networking, label: "Resolve a hostname (legacy DNS)", kbArticleID: nil),
+            "gethostbyname2":       .init(category: .networking, label: "Resolve a hostname (legacy DNS)", kbArticleID: nil),
+            "res_query":            .init(category: .networking, label: "Raw DNS query (resolver)", kbArticleID: nil),
+            "res_search":           .init(category: .networking, label: "Raw DNS search (resolver)", kbArticleID: nil),
             "send":                 .init(category: .networking, label: "Send data on a socket", kbArticleID: nil),
+            "sendto":               .init(category: .networking, label: "Send a datagram to an address", kbArticleID: nil),
             "recv":                 .init(category: .networking, label: "Receive data on a socket", kbArticleID: nil),
+            "recvfrom":             .init(category: .networking, label: "Receive a datagram", kbArticleID: nil),
+            "connectx":             .init(category: .networking, label: "Connect a socket (extended / multipath)", kbArticleID: nil),
             "CFSocketCreate":       .init(category: .networking, label: "Create a CoreFoundation socket", kbArticleID: nil),
+            "CFStreamCreatePairWithSocketToHost": .init(category: .networking, label: "Open a CoreFoundation stream to a host", kbArticleID: nil),
+            "nw_connection_create": .init(category: .networking, label: "Create a Network.framework connection", kbArticleID: nil),
+            "nw_connection_start":  .init(category: .networking, label: "Start a Network.framework connection", kbArticleID: nil),
+            "nw_endpoint_create_host": .init(category: .networking, label: "Create a Network.framework host endpoint", kbArticleID: nil),
 
             // Crypto ----------------------------------------------------------
             "CCCrypt":              .init(category: .crypto, label: "Symmetric encryption / decryption", kbArticleID: nil),

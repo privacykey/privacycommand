@@ -99,6 +99,7 @@ public struct ReportDiffer: Sendable {
             diffStringSet(Set(left.staticReport.hardcodedPaths),   Set(right.staticReport.hardcodedPaths),   title: "Hard-coded paths"),
             diffFindings(left, right),
             diffNetworkHosts(left, right),
+            diffNetworkCallSites(left, right),
             diffPathCategories(left, right)
         ]
 
@@ -153,6 +154,16 @@ public struct ReportDiffer: Sendable {
             added: addedKeys + purposeEdits,
             removed: removedKeys
         )
+    }
+
+    private func diffNetworkCallSites(_ left: RunReport, _ right: RunReport) -> ReportDiff.DiffSection {
+        func keys(_ r: RunReport) -> Set<String> {
+            Set(r.staticReport.networkCallSites.map { site in
+                let syms = site.calls.map(\.symbol).sorted().joined(separator: ", ")
+                return "\(site.function) [\(syms)]"
+            })
+        }
+        return diffStringSet(keys(left), keys(right), title: "Network call sites")
     }
 
     private func diffEntitlements(_ left: RunReport, _ right: RunReport) -> ReportDiff.DiffSection {

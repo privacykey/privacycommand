@@ -5,6 +5,13 @@ import privacycommandCore
 
 struct TimelineView: View {
     @EnvironmentObject var coordinator: AnalysisCoordinator
+    /// Binary whose static network call sites we're inspecting in a sheet.
+    @State private var inspecting: InspectTarget?
+
+    private struct InspectTarget: Identifiable {
+        let id = UUID()
+        let url: URL
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -13,6 +20,16 @@ struct TimelineView: View {
                 FidelityBadge(.bestEffort,
                               detail: "Events come from process polling and lsof polling. Treat the timeline as a sample, not a complete log.")
                 Spacer()
+                if ConnectionTracer.isSupported() {
+                    Button {
+                        coordinator.traceConnections()
+                    } label: {
+                        Label(coordinator.isTracing ? "Tracing…" : "Trace call sites",
+                              systemImage: "scope")
+                    }
+                    .disabled(coordinator.bundle == nil || coordinator.isTracing)
+                    .help("Relaunch this app's binary under a connect()-time tracer to capture which function opened each connection. Non-hardened-runtime binaries only.")
+                }
                 Text(coordinator.isMonitoring ? "running" : "stopped")
                     .foregroundStyle(coordinator.isMonitoring ? .green : .secondary)
             }
@@ -32,6 +49,10 @@ struct TimelineView: View {
             }
         }
         .padding(20)
+        .sheet(item: $inspecting) { target in
+            DisassemblySummaryView(executableURL: target.url,
+                                   onClose: { inspecting = nil })
+        }
     }
 
     private func row(_ e: DynamicEvent) -> some View {
@@ -53,6 +74,24 @@ struct TimelineView: View {
                 Image(systemName: "network")
                 Text("\(n.netProto.rawValue.uppercased()) \(n.processName)[\(n.pid)] -> \(n.remoteHostname ?? n.remoteEndpoint.address):\(n.remoteEndpoint.port)")
                     .font(.callout.monospaced()).lineLimit(1)
+                if let path = n.processPath, !path.isEmpty {
+                    Button {
+                        inspecting = InspectTarget(url: URL(fileURLWithPath: path))
+                    } label: {
+                        Image(systemName: "curlybraces")
+                    }
+                    .buttonStyle(.borderless)
+                    .controlSize(.small)
+                    .help("Inspect this binary's outbound network call sites")
+                }
+                if let stack = n.callStack, let top = stack.first {
+                    Text("← \(top.display)")
+                        .font(.caption2.monospaced())
+                        .foregroundStyle(.purple)
+                        .lineLimit(1)
+                        .help("Call site captured at connect-time:\n" +
+                              stack.prefix(12).map(\.display).joined(separator: "\n"))
+                }
             }
         }
         .padding(.vertical, 1)

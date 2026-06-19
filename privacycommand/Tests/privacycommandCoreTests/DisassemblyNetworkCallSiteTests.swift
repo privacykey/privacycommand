@@ -51,6 +51,33 @@ final class DisassemblyNetworkCallSiteTests: XCTestCase {
         XCTAssertEqual(summary.networkCallSites.first?.function, "_heavy")
     }
 
+    /// The function's start address (from the first instruction line) is
+    /// captured for use as a decompile fallback.
+    func testCapturesFunctionStartAddress() {
+        let dis = """
+        _f:
+        100003abc:\tbl\t0x1\t; symbol stub for: _connect
+        100003ac0:\tret
+        """
+        let summary = DisassemblyAnalyzer.analyse(disassembly: dis)
+        XCTAssertEqual(summary.networkCallSites.first?.address, "100003abc")
+    }
+
+    /// Network.framework (`nw_*`) and legacy DNS resolvers are detected too.
+    func testDetectsNetworkFrameworkAndLegacyDNS() {
+        let dis = """
+        _g:
+        1000:\tbl\t0x1\t; symbol stub for: _nw_connection_start
+        1004:\tbl\t0x2\t; symbol stub for: _gethostbyname
+        1008:\tbl\t0x3\t; symbol stub for: _nw_path_create_evaluator
+        """
+        let summary = DisassemblyAnalyzer.analyse(disassembly: dis)
+        let syms = Set(summary.networkCallSites.first?.calls.map(\.symbol) ?? [])
+        XCTAssertTrue(syms.contains("_nw_connection_start"))
+        XCTAssertTrue(syms.contains("_gethostbyname"))
+        XCTAssertTrue(syms.contains("_nw_path_create_evaluator"), "nw_ prefix heuristic")
+    }
+
     /// A binary with no networking stubs yields an empty map.
     func testNoNetworkingMeansNoCallSites() {
         let dis = """

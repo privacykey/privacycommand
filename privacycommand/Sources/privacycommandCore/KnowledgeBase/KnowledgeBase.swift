@@ -1007,6 +1007,12 @@ public enum KnowledgeBase {
             detail: "Reading raw `mov`/`add`/`bl` instructions is meaningless to most people. What matters is **what the binary asks the operating system to do** — and that's almost entirely visible at the boundary where it calls into shared libraries. Auditor extracts those external-call symbols (e.g. `_dlopen`, `_SecItemCopyMatching`, `_system`), categorises them by purpose (file I/O, networking, keychain, shell, etc.), and looks for combinations that match well-known patterns (stub launcher, malloc replacement, C++ exception machinery, keylogger smell, …).\n\nThis is **evidence, not proof**. A symbol being present means the code references it — not that it was actually called at runtime. Use the live monitored run to confirm behaviour."
         ),
         .init(
+            id: "asm-network-call-sites",
+            title: "Outbound network call sites",
+            summary: "The functions inside this binary that contain code capable of opening a network connection — a static map of *where* connections could originate, plus any host/URL strings near them.",
+            detail: "Auditor reads the disassembly and groups the networking primitives (`connect`, `getaddrinfo`/`gethostbyname`, BSD `socket`/`send`/`recv`, CoreFoundation networking, and `nw_*` Network.framework calls) by the function that contains them. For each such function it also surfaces nearby host- or URL-looking string literals — so you can often see a function calling `connect` right next to a literal like `api.example.com`.\n\n**This is a candidate map, not runtime proof.** It tells you which functions *could* make a connection and what they reference — not that a specific connection you observed actually came from one of them. The disassembler can't see the call stack, so it can't attribute a live TCP request to a function. Doing that needs a backtrace captured at the moment of `connect()` (a privileged runtime-instrumentation step); for interpreted runtimes (Node, Electron, the JVM) the native call site is the language runtime, not the script that triggered it.\n\nWhere Ghidra is installed, each function offers an on-demand **Decompile** action that turns it into readable C so you can see exactly how the destination is built."
+        ),
+        .init(
             id: "asm-stub-launcher",
             title: "Stub launcher binary",
             summary: "A small executable whose entire job is to load another framework via `dlopen`, look up an entry point with `dlsym`, and jump to it.",

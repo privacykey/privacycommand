@@ -64,6 +64,25 @@ public struct FileEvent: Codable, Hashable, Sendable, Identifiable {
     }
 }
 
+/// One symbolicated frame of a userspace backtrace captured at the moment a
+/// connection was opened (by `ConnectionTracer`). This is the data that turns
+/// "process X connected to host Y" into "function F in module M opened it".
+public struct StackFrame: Codable, Hashable, Sendable, Identifiable {
+    public var id: Int { index }
+    public let index: Int
+    public let module: String
+    public let symbol: String
+    public let offset: String   // hex byte offset into the symbol, no 0x prefix
+    public init(index: Int, module: String, symbol: String, offset: String) {
+        self.index = index
+        self.module = module
+        self.symbol = symbol
+        self.offset = offset
+    }
+    /// Compact display form, e.g. `node`_uv__tcp_connect + 0x40`.
+    public var display: String { "\(module)`\(symbol) + 0x\(offset)" }
+}
+
 public struct NetworkEvent: Codable, Hashable, Sendable, Identifiable {
     public enum NetProto: String, Codable, Hashable, Sendable { case tcp, udp, other }
 
@@ -101,6 +120,10 @@ public struct NetworkEvent: Codable, Hashable, Sendable, Identifiable {
     public let tlsSNI: String?
     public let payloadSamples: [PayloadSample]
     public let risk: Risk
+    /// Userspace backtrace captured at `connect()`/`getaddrinfo()` time by the
+    /// runtime tracer (Tier 2). `nil` for lsof-polled events, which have no
+    /// call-stack visibility. The first frame is the closest to the syscall.
+    public let callStack: [StackFrame]?
 
     public init(
         id: UUID = .init(),
@@ -117,7 +140,8 @@ public struct NetworkEvent: Codable, Hashable, Sendable, Identifiable {
         bytesReceived: UInt64,
         tlsSNI: String?,
         payloadSamples: [PayloadSample],
-        risk: Risk
+        risk: Risk,
+        callStack: [StackFrame]? = nil
     ) {
         self.id = id
         self.firstSeen = firstSeen
@@ -134,6 +158,7 @@ public struct NetworkEvent: Codable, Hashable, Sendable, Identifiable {
         self.tlsSNI = tlsSNI
         self.payloadSamples = payloadSamples
         self.risk = risk
+        self.callStack = callStack
     }
 }
 

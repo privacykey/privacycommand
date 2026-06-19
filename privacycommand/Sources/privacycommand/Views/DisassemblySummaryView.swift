@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 #if SWIFT_PACKAGE
 import privacycommandCore
 #endif
@@ -16,6 +17,18 @@ struct DisassemblySummaryView: View {
     let onClose: () -> Void
 
     @StateObject private var runner = DisassemblyRunner()
+    /// Whether a usable Ghidra `analyzeHeadless` was found — gates the
+    /// per-function "Decompile" affordance so we never show a dead button.
+    @State private var ghidraAvailable = false
+    /// The function the user asked to decompile, driving the sheet.
+    @State private var decompileTarget: DecompileTarget?
+
+    /// A function (of `executableURL`) to decompile in the Ghidra sheet.
+    private struct DecompileTarget: Identifiable {
+        let id = UUID()
+        let function: String
+        let address: String?
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -26,6 +39,12 @@ struct DisassemblySummaryView: View {
         }
         .frame(minWidth: 820, minHeight: 600)
         .task { await runner.run(on: executableURL) }
+        .task { ghidraAvailable = GhidraDecompiler.isAvailable() }
+        .sheet(item: $decompileTarget) { target in
+            GhidraDecompileSheet(binary: executableURL,
+                                 function: target.function,
+                                 address: target.address)
+        }
     }
 
     // MARK: - Header
@@ -207,20 +226,51 @@ struct DisassemblySummaryView: View {
     @ViewBuilder
     private func networkCallSitesCard(_ summary: DisassemblyAnalyzer.Summary) -> some View {
         if !summary.networkCallSites.isEmpty {
-            GroupBox(label: Label("Outbound network call sites", systemImage: "point.3.connected.trianglepath.dotted")) {
+            GroupBox(label: HStack {
+                Label("Outbound network call sites", systemImage: "point.3.connected.trianglepath.dotted")
+                InfoButton(articleID: "asm-network-call-sites")
+            }) {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("These functions contain code capable of opening outbound connections (BSD sockets, DNS resolution, CoreFoundation networking). This is a **static capability** map: it shows where the binary *could* initiate a connection and what destinations it references — not proof that a specific request came from here. Attributing a live TCP request to one of these requires a captured backtrace at connect-time.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
 
+                    if !ghidraAvailable {
+                        Label("Install Ghidra to decompile any of these functions to C. The app looks for `support/analyzeHeadless` in any `ghidra*` folder under /Applications, ~/Applications, /opt, /usr/local, or ~/Tools.",
+                              systemImage: "info.circle")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
                     ForEach(summary.networkCallSites.prefix(100)) { site in
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(site.function)
-                                .font(.callout.monospaced().bold())
-                                .textSelection(.enabled)
-                                .lineLimit(1)
-                                .truncationMode(.middle)
+                            HStack(spacing: 8) {
+                                Text(site.function)
+                                    .font(.callout.monospaced().bold())
+                                    .textSelection(.enabled)
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                                if let addr = site.address {
+                                    Text("0x\(addr)")
+                                        .font(.caption2.monospaced())
+                                        .foregroundStyle(.tertiary)
+                                        .textSelection(.enabled)
+                                }
+                                Spacer(minLength: 8)
+                                if ghidraAvailable {
+                                    Button {
+                                        decompileTarget = DecompileTarget(function: site.function,
+                                                                          address: site.address)
+                                    } label: {
+                                        Label("Decompile", systemImage: "curlybraces")
+                                    }
+                                    .buttonStyle(.borderless)
+                                    .controlSize(.small)
+                                    .help("Decompile \(site.function) to C with Ghidra")
+                                }
+                            }
                             Text(site.calls.map { call in
                                 call.callCount > 1 ? "\(call.symbol) ×\(call.callCount)" : call.symbol
                             }.joined(separator: "  ·  "))
@@ -506,5 +556,112 @@ fileprivate final class ByteCollector: @unchecked Sendable {
     func snapshot() -> Data {
         lock.lock(); defer { lock.unlock() }
         return data
+    }
+}
+
+// MARK: - Ghidra decompile sheet
+
+/// Decompiles a single function with Ghidra headless and shows the C. The
+/// first decompilation of a binary runs Ghidra's full auto-analysis (minutes);
+/// subsequent functions of the same binary return in seconds (cached project).
+struct GhidraDecompileSheet: View {
+    let binary: URL
+    let function: String
+    var address: String? = nil
+
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var model = GhidraDecompileModel()
+
+    var body: some View {
+        VStack(spacing: 0) {
+            header
+            Divider()
+            content.frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .frame(minWidth: 760, minHeight: 520)
+        .task { await model.run(binary: binary, function: function, address: address) }
+    }
+
+    private var header: some View {
+        HStack(alignment: .firstTextBaseline) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Decompiled function").font(.title3.bold())
+                Text(function)
+                    .font(.callout.monospaced())
+                    .foregroundStyle(.secondary)
+                    .textSelection(.enabled)
+                    .lineLimit(1).truncationMode(.middle)
+            }
+            Spacer()
+            if case .ready(let c) = model.phase {
+                Button {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(c, forType: .string)
+                } label: { Label("Copy", systemImage: "doc.on.doc") }
+            }
+            Button("Close") { dismiss() }.keyboardShortcut(.escape)
+        }
+        .padding()
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        switch model.phase {
+        case .running:
+            VStack(spacing: 12) {
+                ProgressView()
+                Text("Running Ghidra…").font(.callout)
+                Text("The first decompilation of a binary runs full auto-analysis and can take several minutes. Later functions of the same binary are fast.")
+                    .font(.caption).foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center).frame(maxWidth: 460)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+        case .failed(let message):
+            VStack(spacing: 12) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 40)).foregroundStyle(.orange)
+                Text("Couldn't decompile").font(.headline)
+                Text(message)
+                    .font(.callout).foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center).frame(maxWidth: 560)
+                    .textSelection(.enabled)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity).padding()
+
+        case .ready(let c):
+            ScrollView([.vertical, .horizontal]) {
+                Text(c.isEmpty ? "(empty)" : c)
+                    .font(.system(.caption, design: .monospaced))
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+            }
+        }
+    }
+}
+
+@MainActor
+final class GhidraDecompileModel: ObservableObject {
+    enum Phase {
+        case running
+        case ready(String)
+        case failed(String)
+    }
+
+    @Published var phase: Phase = .running
+    private let decompiler = GhidraDecompiler()
+
+    func run(binary: URL, function: String, address: String? = nil) async {
+        phase = .running
+        do {
+            let result = try await decompiler.decompile(binary: binary,
+                                                        function: function,
+                                                        address: address)
+            phase = .ready(result.cCode)
+        } catch {
+            let msg = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+            phase = .failed(msg)
+        }
     }
 }

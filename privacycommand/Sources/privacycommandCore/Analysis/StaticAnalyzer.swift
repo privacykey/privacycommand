@@ -60,7 +60,18 @@ public struct StaticAnalyzer {
         let urls = scan.urls.sorted()
         let paths = scan.paths.sorted()
 
+        // Persist the network call-site map so it's diffable across updates.
+        // Size-capped + disassembler-gated so large apps aren't slowed.
+        let netCallSites = StaticAnalyzer.networkCallSites(for: bundle.executableURL)
+
         var warnings: [Finding] = []
+        if let note = netCallSites.note {
+            warnings.append(Finding(
+                severity: .info,
+                message: note,
+                evidence: ["The on-demand Forensic disassembly summary can still analyse it."],
+                kbArticleID: "asm-network-call-sites"))
+        }
         for k in plistResult.declaredPrivacyKeys where k.isEmpty {
             warnings.append(Finding(
                 severity: .warn,
@@ -302,8 +313,33 @@ public struct StaticAnalyzer {
             privacyManifest: privacyManifest,
             notarizationDeepDive: notarizationDeep,
             flagFindings: flagFindings,
+            networkCallSites: netCallSites.sites,
             appStoreInfo: appStoreInfo
         )
+    }
+
+    // MARK: - Network call sites
+
+    /// Above this size we skip disassembly during static analysis to keep the
+    /// pass fast (the on-demand summary sheet has no such cap). 25 MB covers
+    /// the vast majority of single-binary apps while excluding browser-class
+    /// mega-frameworks.
+    static let disassemblySizeCap = 25 * 1024 * 1024
+
+    /// Disassemble the main executable (size-capped) and extract the network
+    /// call-site map. Returns the sites plus an optional fidelity note when we
+    /// deliberately skipped because the binary is too large.
+    static func networkCallSites(for executable: URL)
+        -> (sites: [DisassemblyAnalyzer.NetworkCallSite], note: String?) {
+        let attrs = try? FileManager.default.attributesOfItem(atPath: executable.path)
+        let size = (attrs?[.size] as? NSNumber)?.intValue ?? 0
+        if size > disassemblySizeCap {
+            return ([], "Network call-site map skipped: the executable is \(size / (1024 * 1024)) MB (cap \(disassemblySizeCap / (1024 * 1024)) MB).")
+        }
+        guard let text = DisassemblyAnalyzer.disassemble(executable: executable) else {
+            return ([], nil)   // no disassembler installed — stay silent
+        }
+        return (DisassemblyAnalyzer.analyse(disassembly: text).networkCallSites, nil)
     }
 
     // MARK: - Inference

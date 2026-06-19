@@ -86,6 +86,8 @@
 		0BBBBBBB000000000000C10A /* UpdateMechanismDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C10A /* UpdateMechanismDetector.swift */; };
 		0BBBBBBB000000000000C10B /* AppcastParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C10B /* AppcastParser.swift */; };
 		0BBBBBBB000000000000C10C /* DisassemblyAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C10C /* DisassemblyAnalyzer.swift */; };
+		0BBBBBBB000000000000C11E /* GhidraDecompiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C11E /* GhidraDecompiler.swift */; };
+		0BBBBBBB000000000000C11F /* ConnectionTracer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C11F /* ConnectionTracer.swift */; };
 		0BBBBBBB000000000000C10D /* SDKFingerprintDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C10D /* SDKFingerprintDatabase.swift */; };
 		0BBBBBBB000000000000C10E /* SDKFingerprintDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C10E /* SDKFingerprintDetector.swift */; };
 		0BBBBBBB000000000000C10F /* SecretsScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C10F /* SecretsScanner.swift */; };
@@ -292,6 +294,8 @@
 		0FFFFFFF000000000000C10A /* UpdateMechanismDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateMechanismDetector.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C10B /* AppcastParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppcastParser.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C10C /* DisassemblyAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisassemblyAnalyzer.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C11E /* GhidraDecompiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhidraDecompiler.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C11F /* ConnectionTracer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionTracer.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C10D /* SDKFingerprintDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDKFingerprintDatabase.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C10E /* SDKFingerprintDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDKFingerprintDetector.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C10F /* SecretsScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecretsScanner.swift; sourceTree = "<group>"; };
@@ -553,6 +557,8 @@
 				0FFFFFFF000000000000C10A /* UpdateMechanismDetector.swift */,
 				0FFFFFFF000000000000C10B /* AppcastParser.swift */,
 				0FFFFFFF000000000000C10C /* DisassemblyAnalyzer.swift */,
+				0FFFFFFF000000000000C11E /* GhidraDecompiler.swift */,
+				0FFFFFFF000000000000C11F /* ConnectionTracer.swift */,
 				0FFFFFFF000000000000C10D /* SDKFingerprintDatabase.swift */,
 				0FFFFFFF000000000000C10E /* SDKFingerprintDetector.swift */,
 				0FFFFFFF000000000000C10F /* SecretsScanner.swift */,
@@ -893,6 +899,8 @@
 				0BBBBBBB000000000000C10A /* UpdateMechanismDetector.swift in Sources */,
 				0BBBBBBB000000000000C10B /* AppcastParser.swift in Sources */,
 				0BBBBBBB000000000000C10C /* DisassemblyAnalyzer.swift in Sources */,
+				0BBBBBBB000000000000C11E /* GhidraDecompiler.swift in Sources */,
+				0BBBBBBB000000000000C11F /* ConnectionTracer.swift in Sources */,
 				0BBBBBBB000000000000A116 /* DisassemblySummaryView.swift in Sources */,
 				0BBBBBBB000000000000C10D /* SDKFingerprintDatabase.swift in Sources */,
 				0BBBBBBB000000000000C10E /* SDKFingerprintDetector.swift in Sources */,

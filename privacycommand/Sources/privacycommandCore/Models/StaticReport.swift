@@ -42,6 +42,11 @@ public struct StaticReport: Codable, Hashable, Sendable {
     /// Feature flags / trial-state / debug toggles found in binary
     /// strings. Empty for older saved reports (backward-compatible).
     public let flagFindings: [FlagFinding]
+    /// Functions in the main executable capable of opening outbound
+    /// connections, from a size-capped disassembly of the main binary. Empty
+    /// when the binary is too large or no disassembler is installed.
+    /// Backward-compatible Codable.
+    public let networkCallSites: [DisassemblyAnalyzer.NetworkCallSite]
     /// Mac App Store metadata + scraped Privacy Nutrition Labels.
     /// Detected synchronously from `Contents/_MASReceipt/receipt`;
     /// the `privacyLabels` field is populated asynchronously by
@@ -81,6 +86,7 @@ public struct StaticReport: Codable, Hashable, Sendable {
         privacyManifest: PrivacyManifest? = nil,
         notarizationDeepDive: NotarizationDeepDiveReport = .empty,
         flagFindings: [FlagFinding] = [],
+        networkCallSites: [DisassemblyAnalyzer.NetworkCallSite] = [],
         appStoreInfo: AppStoreInfo = .notMAS,
         analyzedAt: Date = .init()
     ) {
@@ -112,6 +118,7 @@ public struct StaticReport: Codable, Hashable, Sendable {
         self.privacyManifest = privacyManifest
         self.notarizationDeepDive = notarizationDeepDive
         self.flagFindings = flagFindings
+        self.networkCallSites = networkCallSites
         self.appStoreInfo = appStoreInfo
         self.analyzedAt = analyzedAt
     }
@@ -123,6 +130,7 @@ public struct StaticReport: Codable, Hashable, Sendable {
         case atsConfig, provenance, updateMechanism, sdkHits
         case secrets, bundleSigning, antiAnalysis, rpathAudit, embeddedAssets
         case privacyManifest, notarizationDeepDive, flagFindings
+        case networkCallSites
         case appStoreInfo
         case analyzedAt
     }
@@ -156,6 +164,7 @@ public struct StaticReport: Codable, Hashable, Sendable {
         self.privacyManifest = try c.decodeIfPresent(PrivacyManifest.self, forKey: .privacyManifest)
         self.notarizationDeepDive = try c.decodeIfPresent(NotarizationDeepDiveReport.self, forKey: .notarizationDeepDive) ?? .empty
         self.flagFindings = try c.decodeIfPresent([FlagFinding].self, forKey: .flagFindings) ?? []
+        self.networkCallSites = try c.decodeIfPresent([DisassemblyAnalyzer.NetworkCallSite].self, forKey: .networkCallSites) ?? []
         self.appStoreInfo = try c.decodeIfPresent(AppStoreInfo.self, forKey: .appStoreInfo) ?? .notMAS
         self.analyzedAt = try c.decode(Date.self, forKey: .analyzedAt)
     }

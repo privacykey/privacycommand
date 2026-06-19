@@ -18,6 +18,8 @@ final class AnalysisCoordinator: ObservableObject {
     @Published var mountedDMG: DMGMounter.Mount?
     @Published var events: [DynamicEvent] = []
     @Published var isMonitoring = false
+    /// True while a Tier-2 connection trace (relaunch-under-interposer) runs.
+    @Published var isTracing = false
     /// True while a fresh `analyze(bundleAt:)` pass is running. The
     /// bundle URL of the in-flight analysis is exposed so the UI can
     /// show "Analyzing Foo.app…" rather than a generic spinner.
@@ -450,6 +452,45 @@ final class AnalysisCoordinator: ObservableObject {
     private static func isDiskImage(_ url: URL) -> Bool {
         let ext = url.pathExtension.lowercased()
         return ext == "dmg" || ext == "sparseimage" || ext == "sparsebundle"
+    }
+
+    /// **Tier 2 runtime attribution.** Relaunch the analysed app's main binary
+    /// under the `ConnectionTracer` interposer, capture a userspace backtrace at
+    /// each `connect()`, and feed the results into the timeline as network
+    /// events carrying their call stack — the "which function opened this
+    /// connection" answer. Only meaningful for non-hardened-runtime binaries
+    /// you can relaunch; macOS ignores the injection otherwise.
+    func traceConnections() {
+        guard let bundle, !isTracing else { return }
+        let exe = bundle.executableURL
+        let name = exe.lastPathComponent
+        let hardened = staticReport?.codeSigning.hardenedRuntime ?? false
+        isTracing = true
+        lastError = nil
+        Task {
+            do {
+                let conns = try await ConnectionTracer().trace(executable: exe, timeout: 20)
+                let now = Date()
+                var added = 0
+                for c in conns where c.kind == .connect {
+                    if let ev = ConnectionTracer.networkEvent(
+                        from: c, processName: name, processPath: exe.path, now: now) {
+                        self.upsert(.network(ev))
+                        added += 1
+                    }
+                }
+                if added == 0 {
+                    self.fidelityNotes.append(hardened
+                        ? "Connection trace of ‘\(name)’ captured nothing: it uses the Hardened Runtime, so macOS ignored the tracer injection. Runtime attribution only works on non-hardened binaries you can relaunch."
+                        : "Connection trace of ‘\(name)’ observed no outbound connections in the trace window.")
+                } else {
+                    self.fidelityNotes.append("Connection trace captured \(added) outbound connection(s) from ‘\(name)’ with call-site backtraces.")
+                }
+            } catch {
+                self.lastError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+            }
+            self.isTracing = false
+        }
     }
 
     func startMonitoredRun() async {
