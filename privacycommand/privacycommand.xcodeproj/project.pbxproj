@@ -121,6 +121,8 @@
 		0BBBBBBB000000000000C302 /* RiskClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C302 /* RiskClassifier.swift */; };
 		0BBBBBBB000000000000C303 /* RiskScorer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C303 /* RiskScorer.swift */; };
 		0BBBBBBB000000000000C304 /* DomainClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C304 /* DomainClassifier.swift */; };
+		0BBBBBBB000000000000C306 /* KnownTLDs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C306 /* KnownTLDs.swift */; };
+		0BBBBBBB000000000000C307 /* DomainValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C307 /* DomainValidator.swift */; };
 		0BBBBBBB000000000000C305 /* ContributorSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C305 /* ContributorSource.swift */; };
 		0BBBBBBB000000000000C401 /* JSONExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C401 /* JSONExporter.swift */; };
 		0BBBBBBB000000000000C402 /* HTMLExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C402 /* HTMLExporter.swift */; };
@@ -329,6 +331,8 @@
 		0FFFFFFF000000000000C302 /* RiskClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiskClassifier.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C303 /* RiskScorer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiskScorer.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C304 /* DomainClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainClassifier.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C306 /* KnownTLDs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnownTLDs.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C307 /* DomainValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainValidator.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C305 /* ContributorSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContributorSource.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C401 /* JSONExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONExporter.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C402 /* HTMLExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTMLExporter.swift; sourceTree = "<group>"; };
@@ -607,6 +611,8 @@
 				0FFFFFFF000000000000C303 /* RiskScorer.swift */,
 				0FFFFFFF000000000000C304 /* DomainClassifier.swift */,
 				0FFFFFFF000000000000C305 /* ContributorSource.swift */,
+				0FFFFFFF000000000000C306 /* KnownTLDs.swift */,
+				0FFFFFFF000000000000C307 /* DomainValidator.swift */,
 			);
 			path = Classification;
 			sourceTree = "<group>";
@@ -977,6 +983,8 @@
 				0BBBBBBB000000000000C302 /* RiskClassifier.swift in Sources */,
 				0BBBBBBB000000000000C303 /* RiskScorer.swift in Sources */,
 				0BBBBBBB000000000000C304 /* DomainClassifier.swift in Sources */,
+				0BBBBBBB000000000000C306 /* KnownTLDs.swift in Sources */,
+				0BBBBBBB000000000000C307 /* DomainValidator.swift in Sources */,
 				0BBBBBBB000000000000C305 /* ContributorSource.swift in Sources */,
 				0BBBBBBB000000000000A10E /* DomainCategoryBadge.swift in Sources */,
 				0BBBBBBB000000000000A10F /* EmbeddedBundleRow.swift in Sources */,

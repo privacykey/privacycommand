@@ -386,14 +386,11 @@ public enum DisassemblyAnalyzer {
     static func isHostLike(_ raw: String) -> Bool {
         let s = raw.trimmingCharacters(in: .whitespaces)
         if s.contains("://") { return true }
-        // Bare domain: dotted labels, no path/space, ending in an alpha TLD.
-        guard !s.isEmpty, s.count <= 253, !s.contains(" "), !s.contains("/") else { return false }
-        let parts = s.split(separator: ".")
-        guard parts.count >= 2,
-              let tld = parts.last, tld.count >= 2, tld.allSatisfy(\.isLetter) else { return false }
-        return parts.allSatisfy { label in
-            !label.isEmpty && label.allSatisfy { $0.isLetter || $0.isNumber || $0 == "-" }
-        }
+        // Bare domain — share the scanner's validator so a real IANA TLD and a
+        // non-reverse-DNS first label are required here too (no bundle IDs /
+        // cert fields masquerading as network destinations).
+        guard s.count <= 253 else { return false }
+        return DomainValidator.isLikelyDomain(s)
     }
 
     // MARK: - Symbol dictionary

@@ -64,15 +64,11 @@ public enum BinaryStringScanner {
         if let m = s.range(of: #"https?://[A-Za-z0-9._~:/?#@!$&'()*+,;=%-]+"#, options: .regularExpression) {
             r.urls.insert(String(s[m]))
         }
-        // Bare domains. Avoid file paths and Foundation reverse-DNS keys.
-        if !s.contains("/") && !s.contains(" ") {
-            if let m = s.range(of: #"^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$"#,
-                               options: [.regularExpression, .caseInsensitive]) {
-                let domain = String(s[m]).lowercased()
-                if !domain.hasSuffix(".local") {
-                    r.domains.insert(domain)
-                }
-            }
+        // Bare domains. `DomainValidator` rejects the look-alikes that used to
+        // leak in here — reverse-DNS bundle IDs, cert fields, file names — by
+        // requiring a real IANA TLD and a non-reverse-DNS first label.
+        if !s.contains("/") && !s.contains(" "), DomainValidator.isLikelyDomain(s) {
+            r.domains.insert(s.lowercased())
         }
         // Hard-coded paths
         if s.hasPrefix("/") || s.hasPrefix("~/") {

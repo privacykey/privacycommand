@@ -31,6 +31,23 @@ final class BinaryStringScannerTests: XCTestCase {
                       "should find privacy-sensitive symbol references")
     }
 
+    func testRejectsReverseDNSAndCertFieldFalsePositives() throws {
+        // Mix one real domain in with the look-alikes that used to leak through.
+        let payload = [
+            "api.segment.io",                      // real domain — keep
+            "com.apple.security.device.usb",       // entitlement key — drop
+            "com.google.chrome.beta",              // bundle ID — drop
+            "subject.ou",                          // cert field — drop
+            "config.plist"                         // file name — drop
+        ].joined(separator: "\u{0}")
+        let url = makeFixture(named: "domain-fp-fixture", contents: payload)
+
+        let result = BinaryStringScanner.scan(executable: url, timeoutSeconds: 5)
+
+        XCTAssertEqual(result.domains, ["api.segment.io"],
+                       "only the real hostname should survive; got \(result.domains.sorted())")
+    }
+
     private func makeFixture(named: String, contents: String) -> URL {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
