@@ -58,10 +58,45 @@ final class HelperInstaller: ObservableObject {
         case .requiresApproval:
             status = .requiresApproval
         case .notFound:
-            status = .notFound
+            // `.notFound` is overloaded. It genuinely means "missing" only
+            // when the plist isn't in the bundle. When the plist *is*
+            // bundled (verified by a direct filesystem check) SMAppService
+            // still returns `.notFound` if it can't register the daemon —
+            // almost always because the app is running translocated (opened
+            // straight from the DMG / a quarantined Downloads copy) or from
+            // a non-standard location, or the embedded helper's signature
+            // isn't accepted. Reporting "Helper not bundled" there sends the
+            // user to HELPER.md for a problem that isn't a packaging problem,
+            // so split the two.
+            status = bundledPlistExists
+                ? .error(registrationDiagnostic())
+                : .notFound
         @unknown default:
             status = .unknown
         }
+    }
+
+    /// Human-readable reason SMAppService refused a *bundled* daemon.
+    /// Distinguishes the common "translocated / not in /Applications"
+    /// case (which the user can fix in seconds) from a signature problem.
+    private func registrationDiagnostic() -> String {
+        let bundlePath = Bundle.main.bundleURL.path
+        if bundlePath.contains("/AppTranslocation/") {
+            return "The helper is bundled, but the app is running from a "
+                + "temporary read-only copy (Gatekeeper app translocation). "
+                + "Move privacycommand to /Applications, reopen it from there, "
+                + "then install the helper."
+        }
+        if !bundlePath.hasPrefix("/Applications/") {
+            return "The helper is bundled, but macOS won't register a daemon "
+                + "for an app running from \(Bundle.main.bundleURL.deletingLastPathComponent().path). "
+                + "Move privacycommand into /Applications and reopen it."
+        }
+        return "The helper is bundled, but macOS declined to register the "
+            + "daemon (SMAppService reported ‘not found’). This usually means "
+            + "the embedded helper's code signature isn't accepted — rebuild "
+            + "with a Developer ID identity whose Team ID matches the app, or "
+            + "check Console (filter: privacycommand) for signing errors."
     }
 
     /// Begin installation. On a clean install the OS shows a system prompt;
