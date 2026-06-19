@@ -1,42 +1,72 @@
 import Foundation
 import privacycommandCore
 
-// `auditctl <path-to-app>` — small static-only smoke test for the analyzer.
-// Used by CI and by humans who want a quick sanity check without launching the GUI.
+// `auditctl` — a small static-only command line front-end for the analyzer.
+//
+//   auditctl <path-to-app>          static audit of one app (back-compat / CI smoke test)
+//   auditctl audit <path-to-app>    same, explicit
+//   auditctl preview [options]      preview the apps you're about to update
+//
+// CI relies on `auditctl /System/Applications/Calculator.app` exiting non-zero
+// when the analyzer can't parse a bundle, so that bare-path form is preserved.
 
-let args = CommandLine.arguments
-guard args.count == 2 else {
-    let stderr = FileHandle.standardError
-    stderr.write(Data("usage: auditctl <path-to-app>\n".utf8))
-    exit(2)
+let arguments = Array(CommandLine.arguments.dropFirst())
+
+func die(_ message: String, code: Int32 = 2) -> Never {
+    FileHandle.standardError.write(Data((message + "\n").utf8))
+    exit(code)
 }
 
-let path = (args[1] as NSString).expandingTildeInPath
-let url = URL(fileURLWithPath: path)
-let analyzer = StaticAnalyzer()
+let topLevelUsage = """
+usage:
+  auditctl <path-to-app>          static audit of one app
+  auditctl audit <path-to-app>    same, explicit
+  auditctl preview [options]      preview apps before you update them
 
-do {
-    let report = try analyzer.analyze(bundleAt: url)
-    let summary = """
-    \(report.bundle.bundleName ?? "?") (\(report.bundle.bundleID ?? "no-id")) v\(report.bundle.bundleVersion ?? "?")
-    Architectures:    \(report.bundle.architectures.joined(separator: ", "))
-    Team identifier:  \(report.codeSigning.teamIdentifier ?? "—")
-    Hardened runtime: \(report.codeSigning.hardenedRuntime ? "yes" : "no")
-    Notarization:     \(report.notarization)
-    Sandbox:          \(report.entitlements.isSandboxed ? "yes" : "no")
-    Privacy keys:     \(report.declaredPrivacyKeys.map(\.rawKey).joined(separator: ", "))
-    Inferred caps:    \(report.inferredCapabilities.map { "\($0.category.rawValue)\($0.inferredButNotDeclared ? "*" : "")" }.joined(separator: ", "))
-    Frameworks:       \(report.frameworks.count)  XPC:\(report.xpcServices.count)  Helpers:\(report.helpers.count)  LoginItems:\(report.loginItems.count)
-    Findings:         \(report.warnings.count)
-    """
-    print(summary)
-    if !report.warnings.isEmpty {
+Run `auditctl preview --help` for preview options.
+"""
+
+guard let command = arguments.first else { die(topLevelUsage) }
+
+switch command {
+case "preview":
+    PreviewCommand.run(Array(arguments.dropFirst()))
+case "audit":
+    guard arguments.count == 2 else { die("usage: auditctl audit <path-to-app>") }
+    runAudit(path: arguments[1])
+case "-h", "--help":
+    print(topLevelUsage)
+    exit(0)
+default:
+    // Back-compat: a bare first argument is treated as the app to audit.
+    guard arguments.count == 1 else { die(topLevelUsage) }
+    runAudit(path: command)
+}
+
+// MARK: - Single-app audit (the original behaviour)
+
+func runAudit(path: String) -> Never {
+    let url = URL(fileURLWithPath: (path as NSString).expandingTildeInPath)
+    do {
+        let report = try StaticAnalyzer().analyze(bundleAt: url)
+        let summary = """
+        \(report.bundle.bundleName ?? "?") (\(report.bundle.bundleID ?? "no-id")) v\(report.bundle.bundleVersion ?? "?")
+        Architectures:    \(report.bundle.architectures.joined(separator: ", "))
+        Team identifier:  \(report.codeSigning.teamIdentifier ?? "—")
+        Hardened runtime: \(report.codeSigning.hardenedRuntime ? "yes" : "no")
+        Notarization:     \(report.notarization)
+        Sandbox:          \(report.entitlements.isSandboxed ? "yes" : "no")
+        Privacy keys:     \(report.declaredPrivacyKeys.map(\.rawKey).joined(separator: ", "))
+        Inferred caps:    \(report.inferredCapabilities.map { "\($0.category.rawValue)\($0.inferredButNotDeclared ? "*" : "")" }.joined(separator: ", "))
+        Frameworks:       \(report.frameworks.count)  XPC:\(report.xpcServices.count)  Helpers:\(report.helpers.count)  LoginItems:\(report.loginItems.count)
+        Findings:         \(report.warnings.count)
+        """
+        print(summary)
         for w in report.warnings {
             print("  [\(w.severity.rawValue)] \(w.message)")
         }
+        exit(0)
+    } catch {
+        die("Failed to analyze: \(error.localizedDescription)", code: 1)
     }
-    exit(0)
-} catch {
-    FileHandle.standardError.write(Data("Failed to analyze: \(error.localizedDescription)\n".utf8))
-    exit(1)
 }

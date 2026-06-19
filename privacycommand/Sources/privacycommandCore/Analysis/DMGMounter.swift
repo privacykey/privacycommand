@@ -58,16 +58,22 @@ public enum DMGMounter {
         let result = try await runHdiutil(arguments: [
             "attach", "-nobrowse", "-noautoopen", "-readonly", "-plist", url.path
         ])
-        guard let plist = try? PropertyListSerialization.propertyList(
-            from: result, options: [], format: nil) as? [String: Any],
-              let entities = plist["system-entities"] as? [[String: Any]] else {
-            throw MountError.parseFailed
-        }
+        // A 0-exit `attach` means the image is genuinely attached, even if we
+        // then can't make sense of the plist. Parse leniently and, on any
+        // shortfall, detach whatever attached so we never leak a volume.
+        let plist = try? PropertyListSerialization.propertyList(
+            from: result, options: [], format: nil) as? [String: Any]
+        let entities = (plist?["system-entities"] as? [[String: Any]]) ?? []
         let mountPoints = entities.compactMap { $0["mount-point"] as? String }
             .filter { !$0.isEmpty }
             .map { URL(fileURLWithPath: $0, isDirectory: true) }
         guard let first = mountPoints.first else {
-            throw MountError.noMountPoints
+            // Attached but unusable (unparseable plist, or a block-level attach
+            // with no mount point). Detach by device entry so it doesn't linger.
+            for dev in entities.compactMap({ $0["dev-entry"] as? String }) {
+                _ = try? await runHdiutil(arguments: ["detach", "-force", dev])
+            }
+            throw entities.isEmpty ? MountError.parseFailed : MountError.noMountPoints
         }
         return Mount(dmgURL: url,
                      primaryMountPoint: first,
@@ -139,8 +145,11 @@ public enum DMGMounter {
             }
             task.terminationHandler = { proc in
                 timeoutTask.cancel()
-                let outData = outPipe.fileHandleForReading.availableData
-                let errData = errPipe.fileHandleForReading.availableData
+                // Read to EOF, not availableData — a single availableData call
+                // can under-read a multi-volume `-plist` and make a good attach
+                // look like a parse failure (and then leak the volume).
+                let outData = outPipe.fileHandleForReading.readDataToEndOfFile()
+                let errData = errPipe.fileHandleForReading.readDataToEndOfFile()
                 if proc.terminationStatus == 0 {
                     cont.resume(returning: outData)
                 } else {
