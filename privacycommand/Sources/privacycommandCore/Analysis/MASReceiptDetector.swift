@@ -42,14 +42,13 @@ public enum MASReceiptDetector {
         public static let none = Result(isMASApp: false)
     }
 
-    /// Inspect the bundle at `bundleURL`. Pure I/O — runs in microseconds
+    /// Inspect a resolved `AppBundle`. Pure I/O — runs in microseconds
     /// (a single FileManager `attributesOfItem` call) so it can be invoked
-    /// inline from `StaticAnalyzer` without a background dispatch.
-    public static func detect(bundleAt bundleURL: URL) -> Result {
-        let receiptURL = bundleURL
-            .appendingPathComponent("Contents", isDirectory: true)
-            .appendingPathComponent("_MASReceipt", isDirectory: true)
-            .appendingPathComponent("receipt", isDirectory: false)
+    /// inline from `StaticAnalyzer` without a background dispatch. The receipt
+    /// and Info.plist locations follow the bundle's layout (`Contents/` for a
+    /// standard macOS app, the bundle root for a flat iOS app).
+    public static func detect(for bundle: AppBundle) -> Result {
+        let receiptURL = bundle.masReceiptURL
 
         let fm = FileManager.default
         guard fm.fileExists(atPath: receiptURL.path) else {
@@ -62,20 +61,17 @@ public enum MASReceiptDetector {
             size = n.intValue
         }
 
-        // Pull the bundle ID from Info.plist. Best-effort — if the
-        // plist is unreadable we still report `isMASApp: true`; the
-        // App Store lookup just won't have anything to key on.
-        let bundleID = readBundleID(from: bundleURL)
+        // Prefer the bundle ID we already cached at resolve time; fall back to
+        // re-reading Info.plist. Best-effort — if it's unreadable we still
+        // report `isMASApp: true`, the App Store lookup just won't key on it.
+        let bundleID = bundle.bundleID ?? readBundleID(at: bundle.infoPlistURL)
 
         return Result(isMASApp: true, receiptBytes: size, bundleID: bundleID)
     }
 
     // MARK: - Helpers
 
-    private static func readBundleID(from bundleURL: URL) -> String? {
-        let plistURL = bundleURL
-            .appendingPathComponent("Contents", isDirectory: true)
-            .appendingPathComponent("Info.plist", isDirectory: false)
+    private static func readBundleID(at plistURL: URL) -> String? {
         guard let data = try? Data(contentsOf: plistURL),
               let plist = try? PropertyListSerialization.propertyList(
                 from: data, options: [], format: nil) as? [String: Any] else {

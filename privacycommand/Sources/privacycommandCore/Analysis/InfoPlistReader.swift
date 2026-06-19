@@ -11,9 +11,7 @@ public enum InfoPlistReader {
     }
 
     public static func read(for bundle: AppBundle, db: PrivacyKeyDatabase) -> Result {
-        let infoPlistURL = bundle.url
-            .appendingPathComponent("Contents", isDirectory: true)
-            .appendingPathComponent("Info.plist")
+        let infoPlistURL = bundle.infoPlistURL
         guard let data = try? Data(contentsOf: infoPlistURL),
               let plist = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any] else {
             return Result(declaredPrivacyKeys: [], urlSchemes: [], documentTypes: [], raw: [:])

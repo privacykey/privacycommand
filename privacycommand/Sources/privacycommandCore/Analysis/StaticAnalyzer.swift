@@ -62,7 +62,7 @@ public struct StaticAnalyzer {
         // attribute lookup) so it lives inline. The actual iTunes
         // Lookup + privacy-label fetch are async and live in the
         // coordinator — they call back to update this struct in place.
-        let masReceipt = MASReceiptDetector.detect(bundleAt: bundle.url)
+        let masReceipt = MASReceiptDetector.detect(for: bundle)
         let appStoreInfo = AppStoreInfo(
             isMASApp: masReceipt.isMASApp,
             bundleID: masReceipt.bundleID
@@ -84,6 +84,18 @@ public struct StaticAnalyzer {
         let netCallSites = StaticAnalyzer.networkCallSites(for: bundle.executableURL)
 
         var warnings: [Finding] = []
+        // iPhone/iPad apps run on Apple Silicon from a wrapped, flat bundle.
+        // Flag that up front so the reader knows why some macOS-only checks
+        // (Hardened Runtime, notarization stapling) are intentionally skipped.
+        if bundle.platform == .iOS {
+            warnings.append(Finding(
+                severity: .info,
+                message: "iPhone/iPad app running on macOS.",
+                evidence: ["Analyzed the wrapped iOS bundle (flat layout).",
+                           "macOS-only checks like Hardened Runtime and notarization stapling don't apply to iOS apps."],
+                kbArticleID: "ios-app-on-mac"
+            ))
+        }
         if let note = netCallSites.note {
             warnings.append(Finding(
                 severity: .info,
@@ -107,7 +119,7 @@ public struct StaticAnalyzer {
                 kbArticleID: "code-signing"
             ))
         }
-        if !signing.hardenedRuntime && !signing.isPlatformBinary {
+        if !signing.hardenedRuntime && !signing.isPlatformBinary && bundle.platform == .macOS {
             warnings.append(Finding(
                 severity: .warn,
                 message: "Hardened Runtime is OFF.",
@@ -303,7 +315,8 @@ public struct StaticAnalyzer {
         // to verify, and offline-first installs may break).
         if notarizationDeep.staplerOutput.verdict == .noTicket
             && !signing.isPlatformBinary
-            && !signing.isAdhocSigned {
+            && !signing.isAdhocSigned
+            && bundle.platform == .macOS {
             enrichedWarnings.append(Finding(
                 severity: .info,
                 message: "Notarization ticket is not stapled to the bundle.",

@@ -252,7 +252,10 @@ final class AnalysisCoordinator: ObservableObject {
                                            reportRunID: self.currentRunID)
                 }
             case .failure(let error):
-                self.lastError = error.localizedDescription
+                // Lead with a plain-English reason (e.g. permissions, missing
+                // metadata) and keep the raw message as detail.
+                let kind = ScanFailureKind.classify(error)
+                self.lastError = "\(kind.explanation)\n\n\(error.localizedDescription)"
             }
             self.isAnalyzing = false
             self.analyzingURL = nil

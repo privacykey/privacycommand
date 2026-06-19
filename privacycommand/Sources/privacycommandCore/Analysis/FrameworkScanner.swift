@@ -7,9 +7,12 @@ public enum FrameworkScanner {
                                                    xpcServices: [BundleRef],
                                                    helpers: [BundleRef]) {
         let fm = FileManager.default
-        let contents = bundle.url.appendingPathComponent("Contents", isDirectory: true)
+        // Standard macOS bundles nest these under Contents/; flat iOS bundles
+        // keep Frameworks/ at the root (and don't ship the macOS-only
+        // XPCServices/LoginItems/Helpers dirs, which simply won't exist).
+        let contents = bundle.contentsURL
 
-        let frameworksDir = contents.appendingPathComponent("Frameworks", isDirectory: true)
+        let frameworksDir = bundle.frameworksURL
         let xpcDir = contents.appendingPathComponent("XPCServices", isDirectory: true)
         let loginDir = contents.appendingPathComponent("Library/LoginItems", isDirectory: true)
         let helpersDir = contents.appendingPathComponent("Helpers", isDirectory: true)

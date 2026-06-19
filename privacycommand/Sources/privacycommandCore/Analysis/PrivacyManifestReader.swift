@@ -43,9 +43,10 @@ public enum PrivacyManifestReader {
     }
 
     private static func candidateLocations(in bundle: AppBundle) -> [URL] {
-        let resources = bundle.url.appendingPathComponent("Contents/Resources")
+        // Standard bundles keep it in Contents/Resources; flat iOS bundles put
+        // it at the root (which is also `resourcesURL` for that layout).
         return [
-            resources.appendingPathComponent("PrivacyInfo.xcprivacy"),
+            bundle.resourcesURL.appendingPathComponent("PrivacyInfo.xcprivacy"),
             bundle.url.appendingPathComponent("PrivacyInfo.xcprivacy")
         ]
     }
