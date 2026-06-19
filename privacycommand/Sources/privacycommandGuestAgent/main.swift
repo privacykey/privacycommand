@@ -13,18 +13,20 @@ import privacycommandGuestProtocol
 // folder) and add a launchd plist that boots it at login. The agent
 // listens on `49374` by default; override with `--port <n>`.
 //
-// **Observation pipeline status.** The agent's process / network /
-// file / live-probe monitors are *intended to be the same classes
-// the host uses today* — we'd link against `privacycommandCore` in a
-// later step so the guest gets ProcessTracker / NetworkMonitor /
-// ResourceMonitor / LiveProbeMonitor / DeviceUsageProbe out of the
-// box. For this scaffold the launch-and-monitor flow is stubbed
-// with a clear TODO so the wire protocol can be exercised
-// end-to-end without pulling Core in yet.
+// **Observation pipeline.** `.launchAndMonitor` links against
+// `privacycommandCore` and runs the same monitors the host uses —
+// `ProcessTracker` / `NetworkMonitor` / `SystemResourceMonitor` /
+// `LiveProbeMonitor` — forwarding their events as `GuestObservation`s
+// (see `GuestMonitorSession`). File-system events need `fs_usage`
+// (root) and are out of scope, matching the host's Tier A.
 
 let port = parsePort(CommandLine.arguments) ?? 49374
 let agent = GuestAgent(listenPort: UInt16(port))
-agent.runForever()
+// Run the blocking accept/read loop off the main thread so the main
+// run loop stays free to service AppKit work — `NSWorkspace` launching
+// the target app and the live-probe pollers both expect one.
+Thread.detachNewThread { agent.runForever() }
+dispatchMain()
 
 // MARK: - Argument parsing
 
@@ -38,8 +40,12 @@ private func parsePort(_ args: [String]) -> Int? {
 
 // MARK: - GuestAgent
 
-final class GuestAgent {
+final class GuestAgent: @unchecked Sendable {
     let listenPort: UInt16
+
+    /// The in-flight monitored run, if any. Set/cleared on the read thread;
+    /// driven asynchronously.
+    private var monitorSession: GuestMonitorSession?
 
     private var listenSocket: Int32 = -1
     /// Single-client design — there's only ever one host inspecting
@@ -184,25 +190,32 @@ final class GuestAgent {
                 hostName: ProcessInfo.processInfo.hostName,
                 macOSVersion: ProcessInfo.processInfo.operatingSystemVersionString))
         case .launchAndMonitor(let path):
-            // TODO: link against privacycommandCore and re-use
-            // ProcessTracker / NetworkMonitor / ResourceMonitor /
-            // LiveProbeMonitor here. The monitors don't actually need
-            // the host bits — they're pure libproc / lsof / Core
-            // queries that work the same inside a guest.
-            //
-            // For now we ack, log, and stop — proves the wire is alive.
             send(.acknowledge(commandID: env.id))
-            send(.logMessage(level: .info,
-                             message: "Launching \(path) — monitoring is stubbed in this build"))
+            // Replace any previous run, then launch + monitor the target
+            // using the same Core monitors the host uses (see
+            // GuestMonitorSession). Live-probe monitoring is included, so
+            // no separate start is required.
+            let previous = monitorSession
+            let session = GuestMonitorSession(bundlePath: path) { [weak self] obs in
+                self?.send(obs)
+            }
+            monitorSession = session
             monitoring = true
+            Task {
+                await previous?.stop()
+                await session.start()
+            }
         case .stopMonitoring:
             send(.acknowledge(commandID: env.id))
-            send(.logMessage(level: .info, message: "Monitoring stopped"))
+            let session = monitorSession
+            monitorSession = nil
             monitoring = false
+            Task { await session?.stop() }
+            send(.logMessage(level: .info, message: "Monitoring stopped"))
         case .startLiveProbes:
+            // Live probes are already part of a monitored run; nothing extra
+            // to start. Ack for protocol completeness.
             send(.acknowledge(commandID: env.id))
-            send(.logMessage(level: .info,
-                             message: "Live probes stubbed — see TODO in guest agent"))
         case .stopLiveProbes:
             send(.acknowledge(commandID: env.id))
         case .shutdown:
