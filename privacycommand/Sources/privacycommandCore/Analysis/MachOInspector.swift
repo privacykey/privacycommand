@@ -37,6 +37,26 @@ public enum MachOInspector {
         return parseThinLoadCommands(in: data, at: sliceOffset, is64: is64)
     }
 
+    /// The undefined **external** symbols a Mach-O imports — i.e. the
+    /// functions it calls in shared libraries (`_connect`, `_dlopen`,
+    /// `_SecItemCopyMatching`, …). These are the *capabilities* the binary
+    /// references and are the robust, instant answer to "what is this binary
+    /// asking the OS to do?" — far more reliable than parsing a full text
+    /// disassembly, and readable even on encrypted App Store binaries (the
+    /// `__LINKEDIT` symbol table is not encrypted).
+    ///
+    /// Parses the first thin slice's `LC_SYMTAB` directly — no `nm`/`objdump`
+    /// dependency, so it works even without Xcode Command Line Tools.
+    /// Leading underscores are preserved (Mach-O convention). Returns at most
+    /// `limit` symbols. Returns `[]` (never throws) for unparseable inputs.
+    public static func importedSymbols(of url: URL, limit: Int = 8000) -> [String] {
+        guard let data = try? Data(contentsOf: url, options: [.mappedIfSafe]),
+              data.count >= 32 else { return [] }
+        let (sliceOffset, is64) = firstThinSlice(in: data)
+        guard let sliceOffset else { return [] }
+        return parseImportedSymbols(in: data, at: sliceOffset, is64: is64, limit: limit)
+    }
+
     public static func architectures(of url: URL) throws -> [String] {
         let data = try Data(contentsOf: url, options: [.mappedIfSafe])
         guard data.count >= 4 else { return [] }
@@ -231,6 +251,116 @@ public enum MachOInspector {
             rpaths: rpaths, dylibs: dylibs,
             hasEncryptedSegment: hasEncryptedSegment,
             isStripped: isStripped)
+    }
+
+    /// Locate `LC_SYMTAB`, walk the nlist table and collect the names of all
+    /// undefined external symbols (the imports). Bounds-checked throughout —
+    /// a malformed table yields whatever we parsed before the bad entry, not
+    /// a crash.
+    private static func parseImportedSymbols(in data: Data, at sliceOffset: Int, is64: Bool, limit: Int) -> [String] {
+        let headerSize = is64 ? 32 : 28
+        guard data.count >= sliceOffset + headerSize else { return [] }
+
+        let magic = data.withUnsafeBytes {
+            $0.baseAddress!.advanced(by: sliceOffset).load(as: UInt32.self)
+        }
+        let swap = magic == mh_cigam || magic == mh_cigam_64
+        func u32(_ off: Int) -> UInt32 {
+            guard off >= 0, data.count >= off + 4 else { return 0 }
+            let raw = data.withUnsafeBytes {
+                $0.baseAddress!.advanced(by: off).load(as: UInt32.self)
+            }
+            return swap ? raw.byteSwapped : raw
+        }
+
+        let LC_SYMTAB: UInt32 = 0x2
+        let ncmds = u32(sliceOffset + 16)
+        var cursor = sliceOffset + headerSize
+
+        var symoff: UInt32 = 0, nsyms: UInt32 = 0, stroff: UInt32 = 0, strsize: UInt32 = 0
+        var found = false
+        for _ in 0..<Int(ncmds) {
+            guard data.count >= cursor + 8 else { break }
+            let cmd = u32(cursor)
+            let cmdSize = u32(cursor + 4)
+            guard cmdSize >= 8, data.count >= cursor + Int(cmdSize) else { break }
+            if cmd == LC_SYMTAB, cmdSize >= 24 {
+                symoff  = u32(cursor + 8)
+                nsyms   = u32(cursor + 12)
+                stroff  = u32(cursor + 16)
+                strsize = u32(cursor + 20)
+                found = true
+                break
+            }
+            cursor += Int(cmdSize)
+        }
+        guard found, nsyms > 0 else { return [] }
+
+        // nlist offsets are relative to the slice (the Mach-O image) base.
+        let symBase = sliceOffset + Int(symoff)
+        let strBase = sliceOffset + Int(stroff)
+        let strEnd  = strBase + Int(strsize)
+        let nlistSize = is64 ? 16 : 12
+        guard symBase >= 0, strBase >= 0,
+              strEnd <= data.count,
+              data.count >= symBase + Int(nsyms) * nlistSize else {
+            // String table or symbol table runs past EOF — bail rather than
+            // read garbage (common on truncated / mmapped slices of a fat file).
+            // Fall through with whatever bound we *can* safely walk.
+            return safeWalk(data: data, swap: swap, is64: is64,
+                            symBase: symBase, nsyms: nsyms, nlistSize: nlistSize,
+                            strBase: strBase, strEnd: min(strEnd, data.count), limit: limit)
+        }
+        return safeWalk(data: data, swap: swap, is64: is64,
+                        symBase: symBase, nsyms: nsyms, nlistSize: nlistSize,
+                        strBase: strBase, strEnd: strEnd, limit: limit)
+    }
+
+    private static func safeWalk(data: Data, swap: Bool, is64: Bool,
+                                 symBase: Int, nsyms: UInt32, nlistSize: Int,
+                                 strBase: Int, strEnd: Int, limit: Int) -> [String] {
+        // nlist(_64): n_strx(4) n_type(1) n_sect(1) n_desc(2) n_value(4/8)
+        let N_STAB: UInt8 = 0xe0
+        let N_TYPE: UInt8 = 0x0e
+        let N_EXT:  UInt8 = 0x01
+        let N_UNDF: UInt8 = 0x00
+
+        var out: [String] = []
+        var seen = Set<String>()
+        out.reserveCapacity(min(Int(nsyms), limit))
+
+        data.withUnsafeBytes { rb in
+            let base = rb.baseAddress!.assumingMemoryBound(to: UInt8.self)
+            func u32at(_ off: Int) -> UInt32 {
+                let v = UnsafeRawPointer(base + off).loadUnaligned(as: UInt32.self)
+                return swap ? v.byteSwapped : v
+            }
+            for i in 0..<Int(nsyms) {
+                if out.count >= limit { break }
+                let entry = symBase + i * nlistSize
+                // `entry >= 0` is belt-and-braces: on a 64-bit platform the
+                // offsets above can't go negative, but this keeps the pointer
+                // arithmetic provably in-bounds regardless of future changes.
+                guard entry >= 0, entry + nlistSize <= data.count else { break }
+                let nType = base[entry + 4]
+                // Skip debug (STAB) symbols entirely.
+                if (nType & N_STAB) != 0 { continue }
+                // Imports = undefined (no section) AND external.
+                guard (nType & N_TYPE) == N_UNDF, (nType & N_EXT) != 0 else { continue }
+                let nStrx = Int(u32at(entry))
+                let nameStart = strBase + nStrx
+                guard nameStart >= strBase, nameStart < strEnd else { continue }
+                // Read a NUL-terminated name out of the string table.
+                var j = nameStart
+                while j < strEnd, base[j] != 0 { j += 1 }
+                guard j > nameStart else { continue }
+                let bytes = UnsafeBufferPointer(start: base + nameStart, count: j - nameStart)
+                if let name = String(bytes: bytes, encoding: .utf8), seen.insert(name).inserted {
+                    out.append(name)
+                }
+            }
+        }
+        return out
     }
 
     private static func cString(in data: Data, from start: Int, until end: Int) -> String {

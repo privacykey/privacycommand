@@ -49,15 +49,16 @@ struct DisassemblerLauncher: View {
                         Label("Reveal in Finder", systemImage: "folder")
                     }
 
-                    // Always-available: in-app forensic summary. Doesn't
-                    // require any third-party tool — it shells out to the
-                    // bundled `objdump`/`otool` from Xcode CLT.
+                    // Always-available: in-app forensic summary. Reads the
+                    // binary's import table + linked libraries directly (no
+                    // third-party tool required); a local objdump/otool, if
+                    // present, adds optional instruction-level detail.
                     Button {
                         showingForensicSheet = true
                     } label: {
                         Label("Forensic summary", systemImage: "doc.text.magnifyingglass")
                     }
-                    .help("Plain-English explanation of what this binary does, derived from its disassembly.")
+                    .help("Plain-English explanation of what this binary can do, derived from its imports and linked frameworks.")
 
                     if detectedTools.isEmpty {
                         Text("No reverse-engineering tools detected on PATH or /Applications.")

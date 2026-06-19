@@ -213,21 +213,25 @@ public enum DisassemblyAnalyzer {
         // Cheap regex objects, compiled once per call.
         // NB: NSRegularExpression is intentionally not stored statically —
         // these patterns are very fast and the analyzer is rarely called.
+        // Annotations are introduced by `;` in `otool -tV` output and by `##`
+        // in modern LLVM `objdump --macho` output — match either.
         let stubRE = try? NSRegularExpression(
-            pattern: #";\s*symbol stub for:\s*([A-Za-z0-9_\$\.@:]+)"#,
+            pattern: #"(?:;|#)+\s*symbol stub for:\s*([A-Za-z0-9_\$\.@:]+)"#,
             options: [])
         let literalRE = try? NSRegularExpression(
-            pattern: #";\s*literal pool for:\s*"(.+)"\s*$"#,
+            pattern: #"(?:;|#)+\s*literal pool for:\s*"(.+)"\s*$"#,
             options: [])
         let funcRE = try? NSRegularExpression(
             pattern: #"^[_A-Za-z][A-Za-z0-9_\.\$]*:\s*$"#,
             options: [])
         let archRE = try? NSRegularExpression(
-            pattern: #"file format\s+([A-Za-z0-9\-]+)"#,
+            pattern: #"(?:file format|architecture)\s+\(?([A-Za-z0-9_\-]+)"#,
             options: [])
-        // Match a tab-indented disassembly line: "<addr>: <bytes>\t<mnemonic>…"
+        // Match a disassembly line. Two shapes:
+        //   objdump --no-show-raw-insn:  "<addr>:\t<mnemonic> …"
+        //   with raw bytes / otool:      "<addr>: <hex bytes>\t<mnemonic> …"
         let instrRE = try? NSRegularExpression(
-            pattern: #"^\s*[0-9a-fA-F]+:\s+[0-9a-fA-F ]+\s+[a-z]+"#,
+            pattern: #"^\s*[0-9a-fA-F]+:\s+(?:[0-9a-fA-F]{2} )*[a-z]"#,
             options: [])
         // Leading address on an instruction line: objdump's "100003abc:" or
         // otool's "0000000100003abc" (then a colon, tab, or space).
@@ -393,6 +397,38 @@ public enum DisassemblyAnalyzer {
         return DomainValidator.isLikelyDomain(s)
     }
 
+    // MARK: - Reusable categorisation (shared with the import-based summary)
+
+    /// Categorise a set of raw imported/called symbols into ranked
+    /// `ExternalCall`s. Used by `BinaryCapabilityAnalyzer`, which feeds the
+    /// Mach-O **import table** (not a text disassembly) through the same
+    /// dictionary the disassembly path uses — so both surfaces speak the
+    /// same language. `counts` lets the disassembly path pass real call
+    /// counts; the import path passes 1 (presence, not frequency).
+    public static func classify(symbols: [String], counts: [String: Int] = [:]) -> [ExternalCall] {
+        var seen = Set<String>()
+        return symbols.compactMap { sym -> ExternalCall? in
+            guard seen.insert(sym).inserted else { return nil }
+            let info = SymbolDictionary.lookup(sym)
+            return ExternalCall(symbol: sym,
+                                category: info.category,
+                                callCount: counts[sym] ?? 1,
+                                humanLabel: info.label,
+                                kbArticleID: info.kbArticleID)
+        }
+        .sorted {
+            if $0.callCount != $1.callCount { return $0.callCount > $1.callCount }
+            return $0.symbol < $1.symbol
+        }
+    }
+
+    /// Run the pattern detector over a set of calls + string literals.
+    /// Exposed so the import-based summary reuses the exact same heuristics
+    /// (stub launcher, keychain, shell, crypto, keylogger smell, …).
+    public static func detectPatterns(calls: [ExternalCall], literals: [String]) -> [Pattern] {
+        PatternDetector.detect(calls: calls, literals: literals)
+    }
+
     // MARK: - Symbol dictionary
     //
     // Intentionally pragmatic, not exhaustive. We're not trying to model
@@ -400,7 +436,7 @@ public enum DisassemblyAnalyzer {
     // because they hint at a *capability*. Anything not listed falls back
     // to a heuristic categorisation by name prefix.
 
-    fileprivate enum SymbolDictionary {
+    enum SymbolDictionary {
         struct Info { let category: Category; let label: String; let kbArticleID: String? }
 
         static func lookup(_ symbol: String) -> Info {
