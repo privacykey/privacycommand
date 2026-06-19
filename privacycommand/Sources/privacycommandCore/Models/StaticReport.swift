@@ -209,6 +209,13 @@ public enum AppleEventsEntitlement: Codable, Hashable, Sendable {
 
 public struct CodeSigningInfo: Codable, Hashable, Sendable {
     public let teamIdentifier: String?
+    /// Human-readable developer / organization name, expanded from the
+    /// leaf signing certificate's common name (e.g. the "ACME Inc." in
+    /// "Developer ID Application: ACME Inc. (AB12CD34EF)"). `nil` for
+    /// ad-hoc / unsigned binaries and for App-Store-resigned apps whose
+    /// on-disk leaf is Apple's, not the developer's. Optional in the
+    /// Codable shape so older reports decode without it.
+    public let teamName: String?
     public let signingIdentifier: String?       // CFBundleIdentifier-ish from CodeDirectory
     public let designatedRequirement: String?   // textual form
     public let hardenedRuntime: Bool
@@ -219,6 +226,7 @@ public struct CodeSigningInfo: Codable, Hashable, Sendable {
 
     public init(
         teamIdentifier: String?,
+        teamName: String? = nil,
         signingIdentifier: String?,
         designatedRequirement: String?,
         hardenedRuntime: Bool,
@@ -228,6 +236,7 @@ public struct CodeSigningInfo: Codable, Hashable, Sendable {
         validationError: String?
     ) {
         self.teamIdentifier = teamIdentifier
+        self.teamName = teamName
         self.signingIdentifier = signingIdentifier
         self.designatedRequirement = designatedRequirement
         self.hardenedRuntime = hardenedRuntime

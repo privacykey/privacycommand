@@ -98,13 +98,28 @@ struct ExecutiveSummaryView: View {
         return parts.joined(separator: " ")
     }
 
+    /// "ACME Inc. (Team ID AB12CD34EF)" when we expanded the Team ID to a
+    /// developer name, else "Team ID AB12CD34EF", else "an unknown team".
+    private func teamDescriptor() -> String {
+        let sign = report.codeSigning
+        let name = (sign.teamName?.isEmpty == false) ? sign.teamName
+            : (report.appStoreInfo.sellerName?.isEmpty == false
+               ? report.appStoreInfo.sellerName : nil)
+        switch (name, sign.teamIdentifier) {
+        case let (name?, id?): return "\(name) (Team ID \(id))"
+        case let (name?, nil): return name
+        case let (nil, id?):   return "Team ID \(id)"
+        default:               return "an unknown team"
+        }
+    }
+
     private func signingPhrase() -> String {
         let sign = report.codeSigning
         switch report.notarization {
         case .notarized:
-            return "is notarized by Apple under Team ID \(sign.teamIdentifier ?? "?")"
+            return "is notarized by Apple, signed by \(teamDescriptor())"
         case .developerIDOnly:
-            return "is signed with a Developer ID (Team \(sign.teamIdentifier ?? "?")) but not notarized — older or pre-notarization build"
+            return "is signed with a Developer ID (\(teamDescriptor())) but not notarized — older or pre-notarization build"
         case .unsigned:
             return "is **not signed** — Gatekeeper would refuse to launch this in default settings"
         case .rejected:

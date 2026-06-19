@@ -36,6 +36,7 @@ public enum CodesignWrapper {
         let dict = (infoCF as? [String: Any]) ?? [:]
 
         let teamID = dict[kSecCodeInfoTeamIdentifier as String] as? String
+        let teamName = developerName(from: dict)
         let signingID = dict[kSecCodeInfoIdentifier as String] as? String
         let flags = (dict[kSecCodeInfoFlags as String] as? UInt32) ?? 0
 
@@ -65,6 +66,7 @@ public enum CodesignWrapper {
 
         return CodeSigningInfo(
             teamIdentifier: teamID,
+            teamName: teamName,
             signingIdentifier: signingID,
             designatedRequirement: requirementText,
             hardenedRuntime: hardened,
@@ -80,6 +82,44 @@ public enum CodesignWrapper {
             validates: false, validationError: "Security.framework unavailable on this build")
         #endif
     }
+
+    #if canImport(Security)
+    /// Expand the Team ID into the developer / organization name by
+    /// reading the leaf signing certificate's common name. For a
+    /// developer-identity cert this is shaped like
+    /// "Developer ID Application: ACME Inc. (AB12CD34EF)" — we return
+    /// the "ACME Inc." in the middle. Returns `nil` when the signature
+    /// carries no developer-identity cert (ad-hoc, unsigned, or an
+    /// App-Store-resigned leaf such as "Apple Mac OS Application
+    /// Signing", which has no developer name and no Team-ID suffix).
+    private static func developerName(from dict: [String: Any]) -> String? {
+        guard let certs = dict[kSecCodeInfoCertificates as String] as? [SecCertificate],
+              let leaf = certs.first else { return nil }
+        var cn: CFString?
+        guard SecCertificateCopyCommonName(leaf, &cn) == errSecSuccess,
+              let commonName = cn as String? else { return nil }
+        return developerName(fromCommonName: commonName)
+    }
+
+    /// Pull the org name out of a signing-cert common name. The
+    /// trailing "(<10-char Team ID>)" is the discriminator: only
+    /// developer-identity certs carry it, so requiring it keeps us from
+    /// mistaking Apple's re-signing identity for the developer.
+    /// Exposed `internal` so it can be unit-tested without a real cert.
+    static func developerName(fromCommonName commonName: String) -> String? {
+        guard let teamSuffix = commonName.range(
+            of: #"\s*\([A-Z0-9]{10}\)\s*$"#, options: .regularExpression)
+        else { return nil }
+        var name = String(commonName[..<teamSuffix.lowerBound])
+        // Drop the leading role prefix ("Developer ID Application: ",
+        // "Apple Distribution: ", "Apple Development: ", …).
+        if let colon = name.range(of: ": ") {
+            name = String(name[colon.upperBound...])
+        }
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+    #endif
 
     public static func notarization(for bundle: AppBundle) -> NotarizationStatus {
         // `spctl --assess -vvv <app>` is the documented way to query Gatekeeper assessment.

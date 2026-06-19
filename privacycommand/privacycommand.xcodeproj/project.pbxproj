@@ -134,6 +134,7 @@
 		0BBBBBBB000000000000D001 /* PathClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000D001 /* PathClassifierTests.swift */; };
 		0BBBBBBB000000000000D002 /* BinaryStringScannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000D002 /* BinaryStringScannerTests.swift */; };
 		0BBBBBBB000000000000D003 /* StaticAnalyzerSmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000D003 /* StaticAnalyzerSmokeTests.swift */; };
+		0BBBBBBB000000000000D004 /* CodesignDeveloperNameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000D004 /* CodesignDeveloperNameTests.swift */; };
 		0DDDDDDD000000000000B003 /* PrivacyKeyDatabase.json in Resources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B003 /* PrivacyKeyDatabase.json */; };
 		0DDDDDDD000000000000B004 /* PathClassifier.json in Resources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B004 /* PathClassifier.json */; };
 		0DDDDDDD000000000000B005 /* RiskRules.json in Resources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B005 /* RiskRules.json */; };
@@ -337,6 +338,7 @@
 		0FFFFFFF000000000000D001 /* PathClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathClassifierTests.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000D002 /* BinaryStringScannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BinaryStringScannerTests.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000D003 /* StaticAnalyzerSmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticAnalyzerSmokeTests.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000D004 /* CodesignDeveloperNameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodesignDeveloperNameTests.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000E001 /* privacycommand.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = privacycommand.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0FFFFFFF000000000000E002 /* privacycommandTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = privacycommandTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A954CFEA2F9E0506005AC054 /* privacycommandHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = privacycommandHelper; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -667,6 +669,7 @@
 				0FFFFFFF000000000000D001 /* PathClassifierTests.swift */,
 				0FFFFFFF000000000000D002 /* BinaryStringScannerTests.swift */,
 				0FFFFFFF000000000000D003 /* StaticAnalyzerSmokeTests.swift */,
+				0FFFFFFF000000000000D004 /* CodesignDeveloperNameTests.swift */,
 			);
 			name = Tests;
 			path = Tests/privacycommandCoreTests;
@@ -986,6 +989,7 @@
 				0BBBBBBB000000000000D001 /* PathClassifierTests.swift in Sources */,
 				0BBBBBBB000000000000D002 /* BinaryStringScannerTests.swift in Sources */,
 				0BBBBBBB000000000000D003 /* StaticAnalyzerSmokeTests.swift in Sources */,
+				0BBBBBBB000000000000D004 /* CodesignDeveloperNameTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -76,6 +76,9 @@ struct HeaderBar: View {
     @EnvironmentObject var coordinator: AnalysisCoordinator
     @EnvironmentObject var watchManager: WatchModeManager
 
+    /// Whether the signing-team popover (developer name + Team ID) is open.
+    @State private var showingTeamPopover = false
+
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 14) {
@@ -115,12 +118,78 @@ struct HeaderBar: View {
             RiskTierBadge(score: score)
         }
         if let report = coordinator.staticReport {
-            Label(report.codeSigning.teamIdentifier ?? "no team",
-                  systemImage: "checkmark.seal")
-                .labelStyle(.titleAndIcon)
-                .foregroundStyle(report.codeSigning.teamIdentifier != nil
-                                 ? Color.primary : .orange)
+            teamBadge(report)
         }
+    }
+
+    /// Signing-team badge. Shows the developer name (expanded from the
+    /// Team ID via the signing certificate) when we have one, otherwise
+    /// the raw Team ID. Clicking reveals the full name, the Team ID, and
+    /// where the name came from.
+    private func teamBadge(_ report: StaticReport) -> some View {
+        let signing = report.codeSigning
+        let resolvedName = teamDisplayName(report)
+        let labelText = resolvedName ?? signing.teamIdentifier ?? "no team"
+        let known = resolvedName != nil || signing.teamIdentifier != nil
+        return Button {
+            showingTeamPopover.toggle()
+        } label: {
+            Label(labelText, systemImage: "checkmark.seal")
+                .labelStyle(.titleAndIcon)
+                .lineLimit(1).truncationMode(.tail)
+                .foregroundStyle(known ? Color.primary : .orange)
+        }
+        .buttonStyle(.plain)
+        .help(known ? "Signing team — click for the developer name and Team ID."
+                    : "This app carries no signing team.")
+        .popover(isPresented: $showingTeamPopover, arrowEdge: .bottom) {
+            teamPopover(report)
+        }
+    }
+
+    /// The best human-readable name for the signer: the certificate's
+    /// developer name first, then the App Store seller name (for
+    /// App-Store-resigned apps whose on-disk cert is Apple's).
+    private func teamDisplayName(_ report: StaticReport) -> String? {
+        if let n = report.codeSigning.teamName, !n.isEmpty { return n }
+        if let s = report.appStoreInfo.sellerName, !s.isEmpty { return s }
+        return nil
+    }
+
+    private func teamPopover(_ report: StaticReport) -> some View {
+        let signing = report.codeSigning
+        let certName = signing.teamName
+        let sellerName = report.appStoreInfo.sellerName
+        return VStack(alignment: .leading, spacing: 10) {
+            Text("Signing team").font(.caption).foregroundStyle(.secondary)
+
+            if let name = certName, !name.isEmpty {
+                Label(name, systemImage: "person.text.rectangle")
+                    .font(.callout.bold())
+                    .textSelection(.enabled)
+                Text("From the signing certificate.")
+                    .font(.caption2).foregroundStyle(.secondary)
+            } else if let seller = sellerName, !seller.isEmpty {
+                Label(seller, systemImage: "bag")
+                    .font(.callout.bold())
+                    .textSelection(.enabled)
+                Text("From the App Store listing.")
+                    .font(.caption2).foregroundStyle(.secondary)
+            } else {
+                Text("No developer name — the signature carries no developer-identity certificate (ad-hoc, unsigned, or Apple-resigned).")
+                    .font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Divider()
+            LabeledContent("Team ID") {
+                Text(signing.teamIdentifier ?? "—")
+                    .font(.caption.monospaced())
+                    .textSelection(.enabled)
+            }
+        }
+        .padding(12)
+        .frame(width: 260)
     }
 
     /// Run primary controls: Start / Stop, with Pause inline while
