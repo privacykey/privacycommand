@@ -29,7 +29,9 @@ struct privacycommandApp: App {
     }
 
     var body: some Scene {
-        WindowGroup("privacycommand") {
+        // `id: "main"` so batch mode's "Analyze in Main Window" can focus
+        // this window via `openWindow(id:)`.
+        WindowGroup("privacycommand", id: "main") {
             Group {
                 if hasCompletedOnboarding {
                     ContentView()
@@ -75,6 +77,8 @@ struct privacycommandApp: App {
             CommandMenu("Run") {
                 Button("Open .app…") { coordinator.presentOpenPanel() }
                     .keyboardShortcut("o")
+                OpenBatchScanMenuItem()
+                Divider()
                 Button("Start Monitored Run") { Task { await coordinator.startMonitoredRun() } }
                     .keyboardShortcut("r")
                     .disabled(!coordinator.canStartRun)
@@ -153,6 +157,15 @@ struct privacycommandApp: App {
         }
         .windowResizability(.contentSize)
 
+        // Batch mode — scan many apps at once and triage them in a sortable,
+        // filterable table. Standalone window (id) so the Run menu item can
+        // request it via @Environment(\.openWindow). Shares the coordinator so
+        // "Analyze in Main Window" can hand an app to the deep-dive flow.
+        Window("Scan Apps", id: "batch-scan") {
+            BatchScanView()
+                .environmentObject(coordinator)
+        }
+
         // Menu-bar item for watch mode. Only inserted while watching, so
         // it disappears the moment the user (or a connection failure)
         // stops the run. Uses the windowed style so we get a SwiftUI
@@ -195,6 +208,19 @@ private struct OpenKnowledgeBaseMenuItem: View {
             openWindow(id: "knowledge-base")
         }
         .keyboardShortcut("k", modifiers: [.command, .shift])
+    }
+}
+
+/// Opens the batch-scan window from the Run menu. Same `openWindow`-from-
+/// commands trick as the Knowledge Base item.
+private struct OpenBatchScanMenuItem: View {
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Button("Scan Installed Apps…") {
+            openWindow(id: "batch-scan")
+        }
+        .keyboardShortcut("b", modifiers: [.command, .shift])
     }
 }
 

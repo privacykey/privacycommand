@@ -3,7 +3,7 @@ import Foundation
 // MARK: - Public types
 
 public struct UpdateMechanism: Codable, Hashable, Sendable {
-    public enum Kind: String, Codable, Hashable, Sendable {
+    public enum Kind: String, Codable, Hashable, Sendable, CaseIterable {
         case sparkle
         case squirrel              // GitHub's Squirrel.Mac (used directly)
         case electronUpdater       // electron-updater (Slack, VS Code, Discord…)

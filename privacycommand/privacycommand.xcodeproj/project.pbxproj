@@ -120,6 +120,11 @@
 		0BBBBBBB000000000000C301 /* PathClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C301 /* PathClassifier.swift */; };
 		0BBBBBBB000000000000C302 /* RiskClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C302 /* RiskClassifier.swift */; };
 		0BBBBBBB000000000000C303 /* RiskScorer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C303 /* RiskScorer.swift */; };
+		0BBBBBBB000000000000C141 /* InstalledAppEnumerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C141 /* InstalledAppEnumerator.swift */; };
+		0BBBBBBB000000000000C142 /* BatchAppResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C142 /* BatchAppResult.swift */; };
+		0BBBBBBB000000000000C143 /* BatchAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C143 /* BatchAnalyzer.swift */; };
+		0BBBBBBB000000000000A009 /* BatchScanModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A009 /* BatchScanModel.swift */; };
+		0BBBBBBB000000000000A131 /* BatchScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A131 /* BatchScanView.swift */; };
 		0BBBBBBB000000000000C304 /* DomainClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C304 /* DomainClassifier.swift */; };
 		0BBBBBBB000000000000C306 /* KnownTLDs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C306 /* KnownTLDs.swift */; };
 		0BBBBBBB000000000000C307 /* DomainValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C307 /* DomainValidator.swift */; };
@@ -331,6 +336,11 @@
 		0FFFFFFF000000000000C301 /* PathClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathClassifier.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C302 /* RiskClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiskClassifier.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C303 /* RiskScorer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiskScorer.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C141 /* InstalledAppEnumerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstalledAppEnumerator.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C142 /* BatchAppResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchAppResult.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C143 /* BatchAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchAnalyzer.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A009 /* BatchScanModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchScanModel.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A131 /* BatchScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchScanView.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C304 /* DomainClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainClassifier.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C306 /* KnownTLDs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnownTLDs.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C307 /* DomainValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainValidator.swift; sourceTree = "<group>"; };
@@ -423,6 +433,7 @@
 				0FFFFFFF000000000000A006 /* UpdateFetcher.swift */,
 				0FFFFFFF000000000000A007 /* WatchModeManager.swift */,
 				0FFFFFFF000000000000A008 /* UpdateController.swift */,
+				0FFFFFFF000000000000A009 /* BatchScanModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -478,6 +489,7 @@
 				0FFFFFFF000000000000A12E /* TelemetrySummaryCard.swift */,
 				0FFFFFFF000000000000A12F /* PrivacyLabelsCard.swift */,
 				0FFFFFFF000000000000A130 /* UpdatesSettingsView.swift */,
+				0FFFFFFF000000000000A131 /* BatchScanView.swift */,
 				0CCCCCCC0000000000000A03 /* Onboarding */,
 			);
 			path = Views;
@@ -515,6 +527,16 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		0CCCCCCC0000000000000C14 /* Batch */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000C141 /* InstalledAppEnumerator.swift */,
+				0FFFFFFF000000000000C142 /* BatchAppResult.swift */,
+				0FFFFFFF000000000000C143 /* BatchAnalyzer.swift */,
+			);
+			path = Batch;
+			sourceTree = "<group>";
+		};
 		0CCCCCCC0000000000000C00 /* privacycommandCore */ = {
 			isa = PBXGroup;
 			children = (
@@ -528,6 +550,7 @@
 				0CCCCCCC0000000000000C11 /* KnowledgeBase */,
 				0CCCCCCC0000000000000C12 /* Search */,
 				0CCCCCCC0000000000000C13 /* Updates */,
+				0CCCCCCC0000000000000C14 /* Batch */,
 			);
 			name = privacycommandCore;
 			path = Sources/privacycommandCore;
@@ -1002,6 +1025,11 @@
 				0BBBBBBB000000000000A10D /* PathCategoryGuide.swift in Sources */,
 				0BBBBBBB000000000000C701 /* KnowledgeBase.swift in Sources */,
 				0BBBBBBB000000000000C801 /* RunSearcher.swift in Sources */,
+				0BBBBBBB000000000000C141 /* InstalledAppEnumerator.swift in Sources */,
+				0BBBBBBB000000000000C142 /* BatchAppResult.swift in Sources */,
+				0BBBBBBB000000000000C143 /* BatchAnalyzer.swift in Sources */,
+				0BBBBBBB000000000000A009 /* BatchScanModel.swift in Sources */,
+				0BBBBBBB000000000000A131 /* BatchScanView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
