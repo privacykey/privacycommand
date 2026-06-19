@@ -35,6 +35,13 @@ struct UpdateComparisonSheet: View {
         HStack {
             VStack(alignment: .leading, spacing: 1) {
                 Text("Preview next version").font(.title2.bold())
+                // Anchor the comparison: always show what we're updating
+                // *from*. Literal "Current version" label so it's
+                // unambiguous which side of the diff this is.
+                Text("Current version: v\(currentReport.bundle.bundleVersion ?? "—")")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .textSelection(.enabled)
                 Text(fetcher.feedURL.absoluteString)
                     .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
