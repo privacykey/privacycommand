@@ -13,6 +13,10 @@ import privacycommandCore
 ///   3. Per-tool VM list with Start + Reveal-installer buttons
 struct GuestAgentSettingsView: View {
 
+    @EnvironmentObject private var coordinator: AnalysisCoordinator
+    /// Path to the .app *inside the guest* to launch for a VM run. The host
+    /// can't enumerate the guest's filesystem, so the user types it.
+    @State private var guestBundlePath = ""
     @State private var detectedTools: [VMHostDetection.Tool] = []
     @State private var vmsByTool: [VMHostDetection.Tool.Kind: VMHostDetection.VMQueryOutcome] = [:]
     /// VM name the user typed for a tool whose VM list is `.unsupported`
@@ -58,8 +62,11 @@ struct GuestAgentSettingsView: View {
                 Text("1.  Open the **privacycommand-guest** volume in the guest's Finder.")
                 Text("2.  Double-click **Install.command**. Enter your password when sudo asks.")
                 Text("3.  Wait for the confirmation that the agent is listening on TCP 49374.")
-                Text("4.  Note the VM's IP address: `ifconfig en0 | grep inet`. Plug that IP into the host's connection panel.")
+                Text("4.  Note the VM's IP address: `ifconfig en0 | grep inet`. Plug that IP into the connection panel below.")
                     .font(.callout)
+            }
+            Section("Step 3½ · Connect to the guest agent & run") {
+                connectionSection
             }
             Section("Step 4 · Picking an app to inspect") {
                 pickAppSection
@@ -280,6 +287,98 @@ struct GuestAgentSettingsView: View {
     private func startManually(name: String, tool: VMHostDetection.Tool) {
         guard !name.isEmpty else { return }
         _ = VMHostDetection.startVM(named: name, tool: tool)
+    }
+
+    // MARK: - Connect & run-in-VM
+
+    /// The connection panel: VM address + port, a Test button with a live
+    /// status badge, and (once reachable) a control to launch a run inside
+    /// the guest. The run's observations stream into the normal tabs.
+    @ViewBuilder
+    private var connectionSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Point privacycommand at the guest agent running inside your VM, then launch the app there. The run shows up in the Dashboard / Network / Files / Probes tabs, just tagged as a VM run.")
+                .font(.callout).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            HStack {
+                TextField("VM IP address (e.g. 192.168.64.5)", text: $coordinator.vmHost)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(maxWidth: 240)
+                TextField("Port", value: $coordinator.vmPort,
+                          format: .number.grouping(.never))
+                    .textFieldStyle(.roundedBorder)
+                    .frame(maxWidth: 70)
+                Button("Test connection") {
+                    Task { await coordinator.testVMConnection() }
+                }
+                .controlSize(.small)
+                .disabled(coordinator.vmConnection == .checking)
+            }
+
+            connectionStatusBadge
+
+            Divider().padding(.vertical, 2)
+
+            Text("Path to the .app **inside the VM** to launch (you transfer it in via drag-drop / AirDrop / scp first):")
+                .font(.caption).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack {
+                TextField("/Users/you/Downloads/Foo.app", text: $guestBundlePath)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(maxWidth: 320)
+                if coordinator.isVMRun && coordinator.isMonitoring {
+                    Button("Stop VM run") {
+                        Task { await coordinator.stopMonitoredRun() }
+                    }
+                    .controlSize(.small)
+                    .tint(.red)
+                } else {
+                    Button("Run in VM") {
+                        Task { await coordinator.startMonitoredRunInVM(guestBundlePath: guestBundlePath) }
+                    }
+                    .controlSize(.small)
+                    .buttonStyle(.borderedProminent)
+                    .disabled(!coordinator.canStartVMRun
+                              || guestBundlePath.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+            }
+            if !coordinator.canStartVMRun
+                && !(coordinator.isVMRun && coordinator.isMonitoring) {
+                Text("Test the connection first — “Run in VM” enables once the guest agent answers.")
+                    .font(.caption2).foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var connectionStatusBadge: some View {
+        switch coordinator.vmConnection {
+        case .idle:
+            Label("Not checked yet.", systemImage: "circle.dashed")
+                .font(.caption).foregroundStyle(.secondary)
+        case .checking:
+            HStack(spacing: 6) {
+                ProgressView().controlSize(.small)
+                Text("Contacting the guest agent…").font(.caption).foregroundStyle(.secondary)
+            }
+        case .connected(let host, let macOS, let version):
+            Label("Connected — \(host), macOS \(macOS) (agent v\(version)).",
+                  systemImage: "checkmark.circle.fill")
+                .font(.caption).foregroundStyle(.green)
+                .fixedSize(horizontal: false, vertical: true)
+        case .versionMismatch(let guestVersion, let hostVersion):
+            Label("Guest agent is v\(guestVersion) but this host speaks v\(hostVersion). Rebuild the installer DMG and reinstall the agent inside the VM.",
+                  systemImage: "exclamationmark.triangle.fill")
+                .font(.caption).foregroundStyle(.orange)
+                .fixedSize(horizontal: false, vertical: true)
+        case .unreachable(let why):
+            Label("Not reachable — \(why) Check the VM is running, the agent is installed, and the IP/port are right.",
+                  systemImage: "xmark.circle.fill")
+                .font(.caption).foregroundStyle(.red)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
 
     // MARK: - Explanatory sections

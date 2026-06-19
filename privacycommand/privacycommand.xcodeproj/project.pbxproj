@@ -114,6 +114,7 @@
 		0BBBBBBB000000000000C209 /* USBDeviceMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C209 /* USBDeviceMonitor.swift */; };
 		0BBBBBBB000000000000C20A /* GuestObservationStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C20A /* GuestObservationStream.swift */; };
 		0BBBBBBB000000000000C20B /* VMHostDetection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C20B /* VMHostDetection.swift */; };
+		0BBBBBBB000000000000C20C /* VMGuestSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C20C /* VMGuestSession.swift */; };
 		0BBBBBBB000000000000C301 /* PathClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C301 /* PathClassifier.swift */; };
 		0BBBBBBB000000000000C302 /* RiskClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C302 /* RiskClassifier.swift */; };
 		0BBBBBBB000000000000C303 /* RiskScorer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C303 /* RiskScorer.swift */; };
@@ -318,6 +319,7 @@
 		0FFFFFFF000000000000C209 /* USBDeviceMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = USBDeviceMonitor.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C20A /* GuestObservationStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestObservationStream.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C20B /* VMHostDetection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMHostDetection.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C20C /* VMGuestSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMGuestSession.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C301 /* PathClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathClassifier.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C302 /* RiskClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiskClassifier.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C303 /* RiskScorer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiskScorer.swift; sourceTree = "<group>"; };
@@ -584,6 +586,7 @@
 				0FFFFFFF000000000000C209 /* USBDeviceMonitor.swift */,
 				0FFFFFFF000000000000C20A /* GuestObservationStream.swift */,
 				0FFFFFFF000000000000C20B /* VMHostDetection.swift */,
+				0FFFFFFF000000000000C20C /* VMGuestSession.swift */,
 			);
 			path = Monitoring;
 			sourceTree = "<group>";
@@ -943,6 +946,7 @@
 				0BBBBBBB000000000000C11C /* AppStoreLookup.swift in Sources */,
 				0BBBBBBB000000000000C11D /* AppStorePrivacyLabelFetcher.swift in Sources */,
 				0BBBBBBB000000000000C20B /* VMHostDetection.swift in Sources */,
+				0BBBBBBB000000000000C20C /* VMGuestSession.swift in Sources */,
 				0BBBBBBB000000000000C11A /* FlagsScanner.swift in Sources */,
 				0BBBBBBB000000000000C901 /* GuestProtocol.swift in Sources */,
 				0BBBBBBB000000000000A006 /* UpdateFetcher.swift in Sources */,
