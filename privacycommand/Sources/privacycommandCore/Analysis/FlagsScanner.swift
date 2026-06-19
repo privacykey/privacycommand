@@ -146,19 +146,19 @@ public enum FlagsScanner {
             first(in: s, pattern: #"\b(?:FIRRemoteConfig|firebase[_]?remote[_]?config|getRemoteConfig)\b"#)
         },
         Rule(kind: .posthogFlag, kbArticleID: "flag-posthog") { s in
-            first(in: s, pattern: #"\b(?:PHGPostHog|posthog|isFeatureEnabled|getFeatureFlag)\b"#)
+            first(in: s, pattern: #"\b(?:PHGPostHog|posthog)\b"#)
         },
         Rule(kind: .statsig, kbArticleID: "flag-statsig") { s in
             first(in: s, pattern: #"\b(?:StatsigClient|statsig|checkGate|getExperiment|getDynamicConfig)\b"#)
         },
         Rule(kind: .unleash, kbArticleID: "flag-unleash") { s in
-            first(in: s, pattern: #"\b(?:UnleashClient|isEnabled|unleash[_]?(?:toggle|api|context))\b"#)
+            first(in: s, pattern: #"\b(?:UnleashClient|getunleash|unleash[_]?(?:toggle|api|context))\b"#)
         },
 
         // ─── Generic feature flag patterns ─────────────────────────────────
 
         Rule(kind: .featureFlag, kbArticleID: "flag-generic") { s in
-            first(in: s, pattern: #"\b(?:feature[_]?flag(?:s)?|featureFlag(?:s)?|FeatureFlag(?:s)?|feature[_]?toggle|FeatureToggle|kFeature\w+)\b"#)
+            first(in: s, pattern: #"\b(?:feature[_]?flag(?:s)?|featureFlag(?:s)?|FeatureFlag(?:s)?|feature[_]?toggle|FeatureToggle|kFeature\w+|isFeatureEnabled|getFeatureFlag)\b"#)
         },
 
         // ─── A/B experiments ───────────────────────────────────────────────

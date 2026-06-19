@@ -1450,7 +1450,7 @@ public enum KnowledgeBase {
               learnMoreURL: URL(string: "https://docs.statsig.com/client/iosClientSDK")),
 
         .init(id: "flag-unleash", title: "Unleash",
-              summary: "References to `UnleashClient`, `isEnabled`, `unleash_toggle`, `unleash_api`, or `unleash_context`. Unleash is an open-source feature-toggle platform.",
+              summary: "References to `UnleashClient`, `getunleash`, `unleash_toggle`, `unleash_api`, or `unleash_context`. Unleash is an open-source feature-toggle platform. (`isEnabled` alone is NOT treated as an Unleash signal — it is the ubiquitous Cocoa control selector.)",
               detail: "Unleash is commonly self-hosted; SaaS is also available at `*.getunleash.io`. The client polls a relay for toggle definitions and evaluates them locally.",
               learnMoreURL: URL(string: "https://docs.getunleash.io/")),
 
