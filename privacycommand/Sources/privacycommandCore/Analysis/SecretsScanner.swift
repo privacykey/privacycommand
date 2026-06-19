@@ -29,43 +29,93 @@ public enum SecretsScanner {
     public static func scan(executable url: URL,
                             maxBytes: Int = 64 * 1024 * 1024,
                             timeoutSeconds: TimeInterval = 5) -> Result {
-        guard let data = try? Data(contentsOf: url, options: [.mappedIfSafe]) else { return Result() }
-        return scan(data: data.prefix(maxBytes), timeoutSeconds: timeoutSeconds)
+        var findings: [SecretFinding] = []
+        var seen: Set<String> = []
+        scanFile(url, label: url.lastPathComponent, maxBytes: maxBytes,
+                 deadline: Date().addingTimeInterval(timeoutSeconds),
+                 into: &findings, seen: &seen)
+        return Result(findings: findings)
+    }
+
+    /// Scan several Mach-O files in one pass — the main executable plus
+    /// embedded frameworks / helpers / XPC services — attributing each finding
+    /// to the file (`label`) it came from. A secret that appears in more than
+    /// one file is reported once, against the **first** file in `files`, so
+    /// pass the main executable first for it to win attribution. `timeoutSeconds`
+    /// is a *total* budget shared across all the files.
+    public static func scan(files: [(url: URL, label: String)],
+                            maxBytes: Int = 64 * 1024 * 1024,
+                            timeoutSeconds: TimeInterval = 15) -> Result {
+        var findings: [SecretFinding] = []
+        var seen: Set<String> = []
+        let deadline = Date().addingTimeInterval(timeoutSeconds)
+        for f in files {
+            if Date() > deadline { break }
+            scanFile(f.url, label: f.label, maxBytes: maxBytes,
+                     deadline: deadline, into: &findings, seen: &seen)
+        }
+        return Result(findings: findings)
+    }
+
+    /// mmap a file and scan its bytes into the shared accumulator/dedup set.
+    private static func scanFile(_ url: URL, label: String?, maxBytes: Int,
+                                 deadline: Date,
+                                 into findings: inout [SecretFinding],
+                                 seen: inout Set<String>) {
+        guard let data = try? Data(contentsOf: url, options: [.mappedIfSafe]) else { return }
+        scan(data: data.prefix(maxBytes), label: label, deadline: deadline,
+             into: &findings, seen: &seen)
     }
 
     /// Scan a chunk of bytes. Walks null-terminated runs of ASCII printable
     /// bytes (mirroring `strings(1)`) and applies each rule to every run
     /// whose length plausibly matches.
     public static func scan(data: some DataProtocol, timeoutSeconds: TimeInterval = 5) -> Result {
-        let deadline = Date().addingTimeInterval(timeoutSeconds)
         var findings: [SecretFinding] = []
-        var seenMatches: Set<String> = []
+        var seen: Set<String> = []
+        scan(data: data, label: nil, deadline: Date().addingTimeInterval(timeoutSeconds),
+             into: &findings, seen: &seen)
+        return Result(findings: findings)
+    }
+
+    /// Workhorse: walk null-terminated printable runs, apply the rules, and
+    /// accumulate into a shared `findings` / `seen` pair so multiple files can
+    /// be deduplicated together. `label` becomes each finding's `sourceFile`.
+    private static func scan(data: some DataProtocol, label: String?, deadline: Date,
+                             into findings: inout [SecretFinding],
+                             seen: inout Set<String>) {
         var current = [UInt8]()
         current.reserveCapacity(256)
+        // `absOffset` is the byte position from the start of `data`; `runStart`
+        // is where the current printable-string run began. We record runStart
+        // on each finding so the UI can say *where* in the binary it was found.
+        var absOffset = 0
+        var runStart = 0
 
         @inline(__always) func flush() {
-            guard current.count >= 16 else { current.removeAll(keepingCapacity: true); return }
+            defer { current.removeAll(keepingCapacity: true) }
+            guard current.count >= 16 else { return }
             if let s = String(bytes: current, encoding: .ascii) {
-                applyRules(to: s, into: &findings, seen: &seenMatches)
+                applyRules(to: s, offset: runStart, label: label, into: &findings, seen: &seen)
             }
-            current.removeAll(keepingCapacity: true)
         }
 
         for b in data {
             if b >= 0x20 && b < 0x7F {
+                if current.isEmpty { runStart = absOffset }
                 current.append(b)
             } else {
                 flush()
                 if Date() > deadline { break }
             }
+            absOffset += 1
         }
         flush()
-        return Result(findings: findings)
     }
 
     // MARK: - Rules
 
-    private static func applyRules(to s: String,
+    private static func applyRules(to s: String, offset: Int, label: String?,
                                    into findings: inout [SecretFinding],
                                    seen: inout Set<String>) {
         for rule in rules {
@@ -75,7 +125,8 @@ public enum SecretsScanner {
                 findings.append(SecretFinding(
                     kind: rule.kind, vendor: rule.vendor,
                     masked: maskSecret(m), rawLength: m.count,
-                    confidence: rule.confidence, kbArticleID: rule.kbArticleID))
+                    confidence: rule.confidence, kbArticleID: rule.kbArticleID,
+                    sourceFile: label, byteOffset: offset))
             }
         }
     }
@@ -221,6 +272,15 @@ public struct SecretFinding: Sendable, Hashable, Codable, Identifiable {
     public let rawLength: Int
     public let confidence: Confidence
     public let kbArticleID: String?
+    /// Where the secret was found: the Mach-O it was extracted from, as a path
+    /// relative to the .app bundle when known (e.g. "Contents/MacOS/AppName").
+    /// Today only the main executable is scanned. `nil` for findings produced
+    /// before location tracking (old persisted reports decode it as nil).
+    public var sourceFile: String?
+    /// Byte offset, within `sourceFile`, of the start of the printable string
+    /// the secret was matched in — enough to locate it in a hex/disassembly
+    /// view. `nil` when unknown.
+    public var byteOffset: Int?
 
     public enum Kind: String, Sendable, Hashable, Codable {
         case awsAccessKey      = "AWS access key"
@@ -242,12 +302,15 @@ public struct SecretFinding: Sendable, Hashable, Codable, Identifiable {
     }
 
     public init(kind: Kind, vendor: String, masked: String,
-                rawLength: Int, confidence: Confidence, kbArticleID: String?) {
+                rawLength: Int, confidence: Confidence, kbArticleID: String?,
+                sourceFile: String? = nil, byteOffset: Int? = nil) {
         self.kind = kind
         self.vendor = vendor
         self.masked = masked
         self.rawLength = rawLength
         self.confidence = confidence
         self.kbArticleID = kbArticleID
+        self.sourceFile = sourceFile
+        self.byteOffset = byteOffset
     }
 }

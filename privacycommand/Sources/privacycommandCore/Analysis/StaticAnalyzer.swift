@@ -29,7 +29,26 @@ public struct StaticAnalyzer {
 
         // New forensic passes — none are in the hot path; each uses bytes
         // already on disk or shelling to `codesign` (which is fast).
-        let secrets = SecretsScanner.scan(executable: bundle.executableURL).findings
+        // Scan the main executable plus every embedded Mach-O (frameworks,
+        // helpers, XPC services, login items) for hard-coded secrets, so one
+        // buried in a vendored binary is found and attributed to the file it
+        // lives in rather than silently missed. Each finding's sourceFile is a
+        // path relative to the .app ("Contents/MacOS/AppName"). The main
+        // executable goes first so it wins attribution when the same secret
+        // appears in more than one file.
+        let bundleRoot = bundle.url.path
+        func bundleRelative(_ url: URL) -> String {
+            let p = url.standardizedFileURL.path
+            return p.hasPrefix(bundleRoot + "/")
+                ? String(p.dropFirst(bundleRoot.count + 1))
+                : url.lastPathComponent
+        }
+        let mainExec = bundle.executableURL.standardizedFileURL
+        let embeddedMachOs = BundleSigningAuditor.enumerateExecutables(in: bundle.url)
+            .filter { $0.standardizedFileURL != mainExec }
+        let secretFiles = ([mainExec] + embeddedMachOs)
+            .map { (url: $0, label: bundleRelative($0)) }
+        let secrets = SecretsScanner.scan(files: secretFiles).findings
         let bundleSigning = BundleSigningAuditor.audit(bundle: bundle)
         let antiAnalysis = AntiAnalysisDetector.analyse(
             executable: bundle.executableURL, scan: scan).findings
@@ -195,10 +214,19 @@ public struct StaticAnalyzer {
 
         // Secrets — high signal, single-finding callout regardless of count.
         if !secrets.isEmpty {
+            let fileCount = Set(secrets.compactMap(\.sourceFile)).count
+            let scope = fileCount > 1 ? " across \(fileCount) binaries" : " in the binary"
             enrichedWarnings.append(Finding(
                 severity: .error,
-                message: "Found \(secrets.count) hard-coded credential\(secrets.count == 1 ? "" : "s") in the binary.",
-                evidence: secrets.map { "\($0.kind.rawValue): \($0.masked)" },
+                message: "Found \(secrets.count) hard-coded credential\(secrets.count == 1 ? "" : "s")\(scope).",
+                evidence: secrets.map { s in
+                    var line = "\(s.kind.rawValue): \(s.masked)"
+                    if let src = s.sourceFile {
+                        line += " — \(src)"
+                        if let off = s.byteOffset { line += " @ 0x\(String(off, radix: 16))" }
+                    }
+                    return line
+                },
                 kbArticleID: "secret-findings"
             ))
         }

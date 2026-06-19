@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 #if SWIFT_PACKAGE
 import privacycommandCore
 #endif
@@ -9,6 +10,10 @@ import privacycommandCore
 /// reveal a secret rather than leak it on a screenshot.
 struct SecretsView: View {
     let findings: [SecretFinding]
+    /// The main executable the secrets were scanned from, used for the
+    /// "reveal in Finder" affordance. Optional so previews/old callers
+    /// still compile.
+    var executableURL: URL? = nil
 
     var body: some View {
         if !findings.isEmpty {
@@ -31,6 +36,14 @@ struct SecretsView: View {
                                 Text(f.kind.rawValue).font(.callout.bold())
                                 Text("\(f.vendor) · \(f.rawLength) chars")
                                     .font(.caption).foregroundStyle(.secondary)
+                                // Where in the app it was found — answers "where
+                                // did this PEM/key come from?" without a click.
+                                if let loc = locationText(f) {
+                                    Label(loc, systemImage: "doc.text.magnifyingglass")
+                                        .font(.caption2.monospaced())
+                                        .foregroundStyle(.secondary)
+                                        .textSelection(.enabled)
+                                }
                             }
                             Spacer()
                             Text(f.masked)
@@ -39,6 +52,15 @@ struct SecretsView: View {
                                 .background(Color.secondary.opacity(0.1),
                                             in: RoundedRectangle(cornerRadius: 4))
                                 .textSelection(.enabled)
+                            if let url = revealableURL {
+                                Button {
+                                    NSWorkspace.shared.activateFileViewerSelecting([url])
+                                } label: {
+                                    Image(systemName: "folder")
+                                }
+                                .buttonStyle(.borderless)
+                                .help("Reveal the binary (\(url.lastPathComponent)) in Finder.")
+                            }
                             if f.kbArticleID != nil {
                                 InfoButton(articleID: f.kbArticleID)
                             }
@@ -49,6 +71,21 @@ struct SecretsView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
+    }
+
+    /// "Contents/MacOS/AppName @ 0x1f3a0" — file + byte offset when known.
+    private func locationText(_ f: SecretFinding) -> String? {
+        guard let src = f.sourceFile else { return nil }
+        if let off = f.byteOffset { return "\(src) @ 0x\(String(off, radix: 16))" }
+        return src
+    }
+
+    /// The executable URL, but only if it still exists on disk (the analyzed
+    /// app may have moved since the report was generated).
+    private var revealableURL: URL? {
+        guard let url = executableURL,
+              FileManager.default.fileExists(atPath: url.path) else { return nil }
+        return url
     }
 
     private func severity(_ c: SecretFinding.Confidence) -> Color {

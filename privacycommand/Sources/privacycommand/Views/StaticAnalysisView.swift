@@ -104,7 +104,8 @@ struct StaticAnalysisView: View {
                             onRunDirect: { runBTMDirect(bundle: report.bundle) }
                         )
                             .id(SectionAnchor.btm.rawValue)
-                        SecretsView(findings: report.secrets)
+                        SecretsView(findings: report.secrets,
+                                    executableURL: report.bundle.executableURL)
                             .id(SectionAnchor.secrets.rawValue)
                         BundleSigningAuditView(audit: report.bundleSigning)
                             .id(SectionAnchor.bundleSigning.rawValue)

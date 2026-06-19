@@ -51,7 +51,10 @@ public enum BundleSigningAuditor {
 
     // MARK: - Walkers
 
-    private static func enumerateExecutables(in root: URL) -> [URL] {
+    /// Every Mach-O file under `root`, by magic-number sniff. Shared with the
+    /// secrets scanner so it can scan embedded frameworks/helpers, not just the
+    /// main executable.
+    static func enumerateExecutables(in root: URL) -> [URL] {
         let fm = FileManager.default
         guard let walker = fm.enumerator(at: root,
                                          includingPropertiesForKeys: [.isRegularFileKey, .isExecutableKey],

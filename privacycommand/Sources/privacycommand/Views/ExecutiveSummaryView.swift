@@ -316,23 +316,10 @@ struct ExecutiveSummaryView: View {
     /// the meaning.
     private func concernActions(_ concern: Finding) -> some View {
         HStack(spacing: 4) {
-            // Web-search — opens DuckDuckGo with a query built from the
-            // finding's message + first evidence line. DDG isn't an
-            // affirmative endorsement; it's the search engine that
-            // doesn't redirect through us-region results and won't
-            // require sign-in for the kinds of technical queries this
-            // produces.
-            if let url = webSearchURL(for: concern) {
-                Link(destination: url) {
-                    Image(systemName: "magnifyingglass")
-                }
-                .buttonStyle(.borderless)
-                .help("Search the web for context on this finding.")
-            }
-
             // Copy-to-clipboard for sharing in Slack / GitHub issues /
             // a vendor-support ticket. Markdown-flavoured so it pastes
-            // cleanly into any of those.
+            // cleanly into any of those. Leftmost because it's harmless and
+            // the most common action.
             Button {
                 copyToClipboard(formattedFinding(concern))
             } label: {
@@ -358,6 +345,20 @@ struct ExecutiveSummaryView: View {
 
             if concern.kbArticleID != nil {
                 InfoButton(articleID: concern.kbArticleID)
+            }
+
+            // Web-search — opens DuckDuckGo with a query built from the
+            // finding's message + first evidence line. Deliberately LAST:
+            // it's the only action that leaves the app for an external
+            // browser, so it shouldn't sit in the first (most easily
+            // mis-clicked) slot — especially as its tooltip can be slow to
+            // appear. DDG won't require sign-in for these technical queries.
+            if let url = webSearchURL(for: concern) {
+                Link(destination: url) {
+                    Image(systemName: "magnifyingglass")
+                }
+                .buttonStyle(.borderless)
+                .help("Search the web for context on this finding.")
             }
         }
     }
