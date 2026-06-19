@@ -156,16 +156,25 @@ struct CompareView: View {
     private func changeSummary(_ diff: ReportDiff) -> some View {
         let added = diff.sections.reduce(0) { $0 + $1.added.count }
         let removed = diff.sections.reduce(0) { $0 + $1.removed.count }
+        let modified = diff.sections.reduce(0) { $0 + $1.modified.count }
         return HStack(spacing: 8) {
             Text(diff.right.displayName).font(.callout.bold())
-            if added == 0 && removed == 0 {
+            if added == 0 && removed == 0 && modified == 0 {
                 Text("has no tracked changes vs \(diff.left.displayName)")
                     .font(.callout).foregroundStyle(.secondary)
             } else {
-                Label("\(added) added", systemImage: "plus.circle.fill")
-                    .font(.callout).foregroundStyle(.green)
-                Label("\(removed) removed", systemImage: "minus.circle.fill")
-                    .font(.callout).foregroundStyle(.red)
+                if added > 0 {
+                    Label("\(added) added", systemImage: "plus.circle.fill")
+                        .font(.callout).foregroundStyle(.green)
+                }
+                if removed > 0 {
+                    Label("\(removed) removed", systemImage: "minus.circle.fill")
+                        .font(.callout).foregroundStyle(.red)
+                }
+                if modified > 0 {
+                    Label("\(modified) modified", systemImage: "arrow.triangle.2.circlepath.circle.fill")
+                        .font(.callout).foregroundStyle(.orange)
+                }
                 Text("vs \(diff.left.displayName)")
                     .font(.callout).foregroundStyle(.secondary)
             }
@@ -214,13 +223,18 @@ struct CompareView: View {
                 Text("−\(s.removed.count)")
                     .font(.caption.monospacedDigit().bold()).foregroundStyle(.red)
             }
+            if !s.modified.isEmpty {
+                Text("~\(s.modified.count)")
+                    .font(.caption.monospacedDigit().bold()).foregroundStyle(.orange)
+            }
         }) {
             VStack(alignment: .leading, spacing: 6) {
-                if s.added.isEmpty && s.removed.isEmpty {
+                if s.isEmpty {
                     Text("No changes").font(.callout).foregroundStyle(.secondary)
                 } else {
                     diffList("Added in \(rightName)", items: s.added, color: .green, symbol: "plus")
                     diffList("Removed in \(rightName)", items: s.removed, color: .red, symbol: "minus")
+                    modifiedList("Modified — build token only", changes: s.modified)
                 }
             }
             .padding(8)
@@ -241,6 +255,53 @@ struct CompareView: View {
                 }
             }
         }
+    }
+
+    /// Items that changed only by a volatile build token (e.g. a Rust
+    /// `/rustc/<hash>/…` path). Shows the normalised form with the token elided
+    /// to a placeholder; the full before → after is on hover.
+    @ViewBuilder
+    private func modifiedList(_ label: String, changes: [ReportDiff.DiffSection.Change]) -> some View {
+        if !changes.isEmpty {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(label).font(.caption.bold()).foregroundStyle(.orange)
+                tokenSummary(changes)
+                ForEach(changes) { change in
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                            .font(.caption2).foregroundStyle(.orange)
+                        Text(change.display).font(.callout)
+                            .lineLimit(2).truncationMode(.middle)
+                    }
+                    .help("\(change.before)\n→ \(change.after)")
+                }
+            }
+        }
+    }
+
+    /// The actual volatile token(s) that changed across this section — usually
+    /// one (the rebuilt binary's commit hash). Shown selectable so the real
+    /// before/after values stay comparable, not just the elided `<hash>` form.
+    @ViewBuilder
+    private func tokenSummary(_ changes: [ReportDiff.DiffSection.Change]) -> some View {
+        let tokens = Self.distinctTokens(changes)
+        ForEach(Array(tokens.enumerated()), id: \.offset) { _, t in
+            HStack(spacing: 4) {
+                Image(systemName: "number").font(.caption2).foregroundStyle(.secondary)
+                Text("\(t.before)  →  \(t.after)")
+                    .font(.caption.monospaced()).foregroundStyle(.secondary)
+                    .lineLimit(1).truncationMode(.middle)
+                    .textSelection(.enabled)
+            }
+        }
+    }
+
+    static func distinctTokens(_ changes: [ReportDiff.DiffSection.Change])
+        -> [ReportDiff.DiffSection.Change.TokenChange] {
+        var seen = Set<ReportDiff.DiffSection.Change.TokenChange>()
+        var out: [ReportDiff.DiffSection.Change.TokenChange] = []
+        for c in changes { for t in c.tokens where seen.insert(t).inserted { out.append(t) } }
+        return out.sorted { $0.before < $1.before }
     }
 
     private var emptyState: some View {

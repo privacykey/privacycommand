@@ -25,8 +25,53 @@ public struct ReportDiff: Hashable, Sendable {
         public let title: String
         public let added: [String]
         public let removed: [String]
-        public var isEmpty: Bool { added.isEmpty && removed.isEmpty }
-        public var totalChanges: Int { added.count + removed.count }
+        /// Items present on both sides that differ only by a volatile build
+        /// token (e.g. a Rust `/rustc/<hash>/…` path). Surfaced as a single
+        /// "modified" entry instead of a separate added + removed pair, so the
+        /// diff of a hash-stamped binary isn't drowned in per-build churn.
+        public let modified: [Change]
+
+        public init(title: String, added: [String], removed: [String], modified: [Change] = []) {
+            self.title = title
+            self.added = added
+            self.removed = removed
+            self.modified = modified
+        }
+
+        public var isEmpty: Bool { added.isEmpty && removed.isEmpty && modified.isEmpty }
+        public var totalChanges: Int { added.count + removed.count + modified.count }
+
+        /// One item that changed in place: the same logical entry with a
+        /// different volatile token. `display` is the normalised form (volatile
+        /// part replaced by a placeholder) for compact rendering; `before`/
+        /// `after` keep the full strings for detail/tooltips.
+        public struct Change: Hashable, Sendable, Identifiable {
+            public var id: String { "\(before)\u{1}\(after)" }
+            public let before: String
+            public let after: String
+            public let display: String
+            /// The actual volatile token(s) that changed (e.g. the old vs new
+            /// rustc commit hash), kept so the real values stay comparable
+            /// instead of being hidden behind the `<hash>` placeholder.
+            public let tokens: [TokenChange]
+
+            public init(before: String, after: String, display: String, tokens: [TokenChange] = []) {
+                self.before = before
+                self.after = after
+                self.display = display
+                self.tokens = tokens
+            }
+
+            /// One volatile token's before → after values.
+            public struct TokenChange: Hashable, Sendable {
+                public let before: String
+                public let after: String
+                public init(before: String, after: String) {
+                    self.before = before
+                    self.after = after
+                }
+            }
+        }
     }
 }
 
@@ -161,6 +206,79 @@ public struct ReportDiffer: Sendable {
     private func diffStringSet(_ left: Set<String>, _ right: Set<String>, title: String) -> ReportDiff.DiffSection {
         let added   = Array(right.subtracting(left)).sorted()
         let removed = Array(left.subtracting(right)).sorted()
-        return ReportDiff.DiffSection(title: title, added: added, removed: removed)
+        let c = coalesceVolatile(added: added, removed: removed)
+        return ReportDiff.DiffSection(title: title, added: c.added, removed: c.removed, modified: c.modified)
     }
+
+    // MARK: - Volatile-token coalescing
+
+    /// Pair an added item with a removed item when the two are identical after
+    /// normalising volatile build tokens. Such a pair is the *same* item
+    /// rebuilt (e.g. a Rust binary's `/rustc/<commit>/library/std/…` path where
+    /// only the commit hash rotates), not a genuine add + remove — collapsing
+    /// it into a single "modified" entry keeps the diff readable.
+    func coalesceVolatile(added: [String], removed: [String])
+        -> (added: [String], removed: [String], modified: [ReportDiff.DiffSection.Change]) {
+
+        // Bucket only the removed items that actually carry a volatile token
+        // (their normalised form differs from the original); nothing else can
+        // ever pair. Sort buckets so pairing is deterministic.
+        var removedByKey: [String: [String]] = [:]
+        for r in removed {
+            let key = Self.normalizeVolatile(r)
+            if key != r { removedByKey[key, default: []].append(r) }
+        }
+        for key in removedByKey.keys { removedByKey[key]?.sort() }
+
+        var remainingAdded: [String] = []
+        var modified: [ReportDiff.DiffSection.Change] = []
+        var consumedRemoved = Set<String>()
+
+        for a in added {
+            let key = Self.normalizeVolatile(a)
+            if key != a, var bucket = removedByKey[key], !bucket.isEmpty {
+                let before = bucket.removeFirst()
+                removedByKey[key] = bucket
+                consumedRemoved.insert(before)
+                modified.append(.init(before: before, after: a, display: key,
+                                      tokens: Self.tokenChanges(before: before, after: a)))
+            } else {
+                remainingAdded.append(a)
+            }
+        }
+
+        let remainingRemoved = removed.filter { !consumedRemoved.contains($0) }
+        return (remainingAdded,
+                remainingRemoved,
+                modified.sorted { $0.display < $1.display })
+    }
+
+    /// Replace per-build volatile identifiers with stable placeholders so that
+    /// strings differing only by a build token compare equal. Conservative —
+    /// only UUIDs and hex runs of 16+ chars (git/rustc commit hashes, cargo
+    /// registry hashes) are touched, so unrelated items aren't merged.
+    static func normalizeVolatile(_ s: String) -> String {
+        s.replacing(uuidPattern, with: "<id>")
+         .replacing(hashPattern, with: "<hash>")
+    }
+    private static let uuidPattern =
+        try! Regex("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
+    private static let hashPattern = try! Regex("[0-9a-fA-F]{16,}")
+
+    /// The actual volatile tokens that differ between two otherwise-identical
+    /// strings, paired by position. Because both sides normalise to the same
+    /// form, their token lists line up 1:1; we keep only the ones that changed.
+    static func tokenChanges(before: String, after: String) -> [ReportDiff.DiffSection.Change.TokenChange] {
+        let b = volatileTokens(before), a = volatileTokens(after)
+        guard b.count == a.count else { return [] }
+        return zip(b, a).filter { $0 != $1 }.map { .init(before: $0, after: $1) }
+    }
+
+    /// Volatile tokens (UUIDs and 16+ hex runs) in left-to-right order — the
+    /// same spans `normalizeVolatile` would replace.
+    static func volatileTokens(_ s: String) -> [String] {
+        s.matches(of: volatilePattern).map { String(s[$0.range]) }
+    }
+    private static let volatilePattern = try! Regex(
+        "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}|[0-9a-fA-F]{16,}")
 }

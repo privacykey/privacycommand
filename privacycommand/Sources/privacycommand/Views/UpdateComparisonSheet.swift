@@ -318,8 +318,42 @@ struct UpdateComparisonSheet: View {
                 if !s.removed.isEmpty {
                     diffList("Removed", items: s.removed, color: .red, symbol: "minus")
                 }
+                if !s.modified.isEmpty {
+                    modifiedList("Modified — build token only", changes: s.modified)
+                }
             }
             .padding(8)
+        }
+    }
+
+    /// Items that changed only by a volatile build token (e.g. a Rust
+    /// `/rustc/<hash>/…` path) — shown once in normalised form rather than as a
+    /// noisy added/removed pair. Full before → after is on hover.
+    @ViewBuilder
+    private func modifiedList(_ label: String,
+                              changes: [ReportDiff.DiffSection.Change]) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(label).font(.caption.bold()).foregroundStyle(.orange)
+            // The actual volatile token(s) that changed — usually one commit
+            // hash — shown selectable so the real values remain comparable.
+            ForEach(Array(CompareView.distinctTokens(changes).enumerated()), id: \.offset) { _, t in
+                HStack(spacing: 4) {
+                    Image(systemName: "number").font(.caption2).foregroundStyle(.secondary)
+                    Text("\(t.before)  →  \(t.after)")
+                        .font(.caption.monospaced()).foregroundStyle(.secondary)
+                        .lineLimit(1).truncationMode(.middle)
+                        .textSelection(.enabled)
+                }
+            }
+            ForEach(changes) { change in
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .font(.caption2).foregroundStyle(.orange)
+                    Text(change.display).font(.callout)
+                        .lineLimit(2).truncationMode(.middle)
+                }
+                .help("\(change.before)\n→ \(change.after)")
+            }
         }
     }
 
