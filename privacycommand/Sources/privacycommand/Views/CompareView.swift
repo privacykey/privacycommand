@@ -116,7 +116,7 @@ struct CompareView: View {
                         emptyState
                     } else {
                         ForEach(sections) { section in
-                            sectionView(section)
+                            sectionView(section, rightName: diff.right.displayName)
                         }
                     }
                 }
@@ -135,19 +135,48 @@ struct CompareView: View {
 
     private func headlineCard(_ diff: ReportDiff) -> some View {
         GroupBox {
-            HStack(spacing: 16) {
-                sideSummary(diff.left)
-                Image(systemName: "arrow.right").foregroundStyle(.secondary)
-                sideSummary(diff.right)
-                Spacer()
-                deltaCard(diff)
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 16) {
+                    sideSummary(diff.left, role: "Baseline (left)")
+                    Image(systemName: "arrow.right").foregroundStyle(.secondary)
+                    sideSummary(diff.right, role: "Compared (right)")
+                    Spacer()
+                    deltaCard(diff)
+                }
+                Divider()
+                changeSummary(diff)
             }
             .padding(8)
         }
     }
 
-    private func sideSummary(_ side: ReportDiff.ReportSide) -> some View {
+    /// One-line plain-language summary framed from the right app's point of
+    /// view: "<right> adds N, removes M vs <left>". Makes it obvious that the
+    /// right column is the one whose changes are listed below.
+    private func changeSummary(_ diff: ReportDiff) -> some View {
+        let added = diff.sections.reduce(0) { $0 + $1.added.count }
+        let removed = diff.sections.reduce(0) { $0 + $1.removed.count }
+        return HStack(spacing: 8) {
+            Text(diff.right.displayName).font(.callout.bold())
+            if added == 0 && removed == 0 {
+                Text("has no tracked changes vs \(diff.left.displayName)")
+                    .font(.callout).foregroundStyle(.secondary)
+            } else {
+                Label("\(added) added", systemImage: "plus.circle.fill")
+                    .font(.callout).foregroundStyle(.green)
+                Label("\(removed) removed", systemImage: "minus.circle.fill")
+                    .font(.callout).foregroundStyle(.red)
+                Text("vs \(diff.left.displayName)")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
+            Spacer()
+        }
+    }
+
+    private func sideSummary(_ side: ReportDiff.ReportSide, role: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
+            Text(role.uppercased())
+                .font(.caption2.bold()).foregroundStyle(.secondary)
             Text(side.displayName).font(.headline)
             HStack(spacing: 6) {
                 if let v = side.version {
@@ -173,18 +202,25 @@ struct CompareView: View {
         }
     }
 
-    private func sectionView(_ s: ReportDiff.DiffSection) -> some View {
-        GroupBox(label: HStack {
+    private func sectionView(_ s: ReportDiff.DiffSection, rightName: String) -> some View {
+        GroupBox(label: HStack(spacing: 8) {
             Text(s.title)
-            Text("\(s.totalChanges) change\(s.totalChanges == 1 ? "" : "s")")
-                .font(.caption).foregroundStyle(.secondary)
+            Spacer()
+            if !s.added.isEmpty {
+                Text("+\(s.added.count)")
+                    .font(.caption.monospacedDigit().bold()).foregroundStyle(.green)
+            }
+            if !s.removed.isEmpty {
+                Text("−\(s.removed.count)")
+                    .font(.caption.monospacedDigit().bold()).foregroundStyle(.red)
+            }
         }) {
             VStack(alignment: .leading, spacing: 6) {
                 if s.added.isEmpty && s.removed.isEmpty {
                     Text("No changes").font(.callout).foregroundStyle(.secondary)
                 } else {
-                    diffList("Added", items: s.added, color: .green, symbol: "plus")
-                    diffList("Removed", items: s.removed, color: .red, symbol: "minus")
+                    diffList("Added in \(rightName)", items: s.added, color: .green, symbol: "plus")
+                    diffList("Removed in \(rightName)", items: s.removed, color: .red, symbol: "minus")
                 }
             }
             .padding(8)

@@ -87,6 +87,11 @@ public struct NetworkEvent: Codable, Hashable, Sendable, Identifiable {
     public let lastSeen: Date
     public let pid: Int32
     public let processName: String
+    /// Absolute on-disk path of the process executable (from `proc_pidpath`),
+    /// captured when the connection is first seen so it survives the process
+    /// exiting. Lets the UI inspect the binary's static network call sites
+    /// even after the PID is gone. Optional — guest/remote events have none.
+    public let processPath: String?
     public let netProto: NetProto
     public let localEndpoint: Endpoint
     public let remoteEndpoint: Endpoint
@@ -103,6 +108,7 @@ public struct NetworkEvent: Codable, Hashable, Sendable, Identifiable {
         lastSeen: Date,
         pid: Int32,
         processName: String,
+        processPath: String? = nil,
         netProto: NetProto,
         localEndpoint: Endpoint,
         remoteEndpoint: Endpoint,
@@ -118,6 +124,7 @@ public struct NetworkEvent: Codable, Hashable, Sendable, Identifiable {
         self.lastSeen = lastSeen
         self.pid = pid
         self.processName = processName
+        self.processPath = processPath
         self.netProto = netProto
         self.localEndpoint = localEndpoint
         self.remoteEndpoint = remoteEndpoint

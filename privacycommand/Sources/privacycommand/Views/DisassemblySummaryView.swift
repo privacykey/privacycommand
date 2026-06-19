@@ -91,6 +91,7 @@ struct DisassemblySummaryView: View {
                     statsRow(summary, toolUsed: toolUsed)
                     narrativeCard(summary)
                     patternsCard(summary)
+                    networkCallSitesCard(summary)
                     callsCard(summary)
                     literalsCard(summary)
                 }
@@ -114,6 +115,7 @@ struct DisassemblySummaryView: View {
             statBox(value: "\(summary.totalInstructions)", label: "instructions")
             statBox(value: "\(summary.totalFunctions)", label: "functions")
             statBox(value: "\(summary.externalCalls.count)", label: "external symbols")
+            statBox(value: "\(summary.networkCallSites.count)", label: "network sites")
             statBox(value: "\(summary.detectedPatterns.count)", label: "patterns")
             Spacer()
             VStack(alignment: .trailing, spacing: 1) {
@@ -199,6 +201,52 @@ struct DisassemblySummaryView: View {
         case .high:   return .green
         case .medium: return .orange
         case .low:    return .secondary
+        }
+    }
+
+    @ViewBuilder
+    private func networkCallSitesCard(_ summary: DisassemblyAnalyzer.Summary) -> some View {
+        if !summary.networkCallSites.isEmpty {
+            GroupBox(label: Label("Outbound network call sites", systemImage: "point.3.connected.trianglepath.dotted")) {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("These functions contain code capable of opening outbound connections (BSD sockets, DNS resolution, CoreFoundation networking). This is a **static capability** map: it shows where the binary *could* initiate a connection and what destinations it references — not proof that a specific request came from here. Attributing a live TCP request to one of these requires a captured backtrace at connect-time.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    ForEach(summary.networkCallSites.prefix(100)) { site in
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(site.function)
+                                .font(.callout.monospaced().bold())
+                                .textSelection(.enabled)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                            Text(site.calls.map { call in
+                                call.callCount > 1 ? "\(call.symbol) ×\(call.callCount)" : call.symbol
+                            }.joined(separator: "  ·  "))
+                                .font(.caption2.monospaced())
+                                .foregroundStyle(.blue)
+                            if !site.hostHints.isEmpty {
+                                Text("Nearby literals: \(site.hostHints.prefix(5).joined(separator: ", "))")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(2)
+                                    .truncationMode(.tail)
+                                    .textSelection(.enabled)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.vertical, 2)
+                        if site.id != summary.networkCallSites.prefix(100).last?.id { Divider() }
+                    }
+
+                    if summary.networkCallSites.count > 100 {
+                        Text("…and \(summary.networkCallSites.count - 100) more functions")
+                            .font(.caption2).foregroundStyle(.tertiary)
+                    }
+                }
+                .padding(8)
+            }
         }
     }
 

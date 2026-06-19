@@ -49,6 +49,39 @@ final class AnalysisCoordinator: ObservableObject {
     @Published var subBundleErrors: [URL: String] = [:]
     @Published var subBundleAnalyzing: Set<URL> = []
 
+    // MARK: - VM run
+
+    /// Reachability of the in-VM guest agent, as last probed. Drives the
+    /// connection badge and gates the "Run in VM" controls.
+    enum VMConnectionState: Equatable {
+        case idle
+        case checking
+        case connected(hostName: String, macOSVersion: String, guestVersion: Int)
+        case versionMismatch(guestVersion: Int, hostVersion: Int)
+        case unreachable(String)
+    }
+
+    /// The VM's IP / hostname and the guest agent's port. Persisted so the
+    /// user doesn't re-enter the VM address every launch.
+    @Published var vmHost: String =
+        UserDefaults.standard.string(forKey: AnalysisCoordinator.vmHostKey) ?? "" {
+        didSet { UserDefaults.standard.set(vmHost, forKey: AnalysisCoordinator.vmHostKey) }
+    }
+    @Published var vmPort: Int =
+        (UserDefaults.standard.object(forKey: AnalysisCoordinator.vmPortKey) as? Int) ?? 49374 {
+        didSet { UserDefaults.standard.set(vmPort, forKey: AnalysisCoordinator.vmPortKey) }
+    }
+    @Published var vmConnection: VMConnectionState = .idle
+    /// True while the *current* monitored run is happening inside the VM
+    /// rather than on the host. Lets `stopMonitoredRun` take the VM path.
+    @Published private(set) var isVMRun = false
+
+    private static let vmHostKey = "privacycommand.vm.host"
+    private static let vmPortKey = "privacycommand.vm.port"
+
+    private var vmSession: VMGuestSession?
+    private var vmStreamTask: Task<Void, Never>?
+
     private let analyzer = StaticAnalyzer()
     private var monitor: DynamicMonitor?
     private var streamTask: Task<Void, Never>?
@@ -190,6 +223,12 @@ final class AnalysisCoordinator: ObservableObject {
                 self.staticReport = report
                 self.events = []
                 self.eventIndices = [:]
+                // Drop the previous app's live resource samples and open
+                // files/sockets so the Resource-use card and Resources tab
+                // start empty for the newly-opened app instead of carrying the
+                // last app's data over.
+                self.resourceSamples = []
+                self.openResources = []
                 self.subBundleAnalyses = [:]
                 self.subBundleErrors = [:]
                 self.subBundleAnalyzing = []
@@ -428,6 +467,7 @@ final class AnalysisCoordinator: ObservableObject {
         self.startedAt = Date()
         self.endedAt = nil
         self.isMonitoring = true
+        self.isVMRun = false   // this is a host run; keep stop() on the host path
         self.fidelityNotes = m.fidelityNotes
         self.lastError = nil
 
@@ -553,6 +593,171 @@ final class AnalysisCoordinator: ObservableObject {
         }
     }
 
+    // MARK: - VM run
+
+    /// True when the guest agent has been confirmed reachable and we're not
+    /// already running. Gates the "Run in VM" button.
+    var canStartVMRun: Bool {
+        if case .connected = vmConnection { return !isMonitoring }
+        return false
+    }
+
+    /// Fidelity caveats specific to a VM run — guest observations come over
+    /// the wire from `privacycommand-guest`, and path classification is
+    /// host-relative.
+    static let vmFidelityNotes: [String] = [
+        "This run happened inside a VM. Observations are reported by the privacycommand-guest agent over TCP and reflect the guest's process tree, not your host.",
+        "File-path categories are classified host-side, so a guest whose username differs from yours may show some paths as ‘home (other)’ rather than the exact category.",
+        "Guest network destinations may be reachable from the host or guest-only depending on the VM's networking mode."
+    ]
+
+    /// Probe the configured VM address and update `vmConnection`. Safe to
+    /// call repeatedly (e.g. a Refresh button).
+    func testVMConnection() async {
+        let host = vmHost.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !host.isEmpty else {
+            vmConnection = .unreachable("Enter the VM's IP address first.")
+            return
+        }
+        guard let port = UInt16(exactly: vmPort), port > 0 else {
+            vmConnection = .unreachable("Port must be between 1 and 65535.")
+            return
+        }
+        vmConnection = .checking
+        switch await VMGuestSession.probe(host: host, port: port) {
+        case .connected(let info):
+            vmConnection = .connected(hostName: info.hostName,
+                                      macOSVersion: info.macOSVersion,
+                                      guestVersion: info.guestVersion)
+        case .versionMismatch(let g, let h):
+            vmConnection = .versionMismatch(guestVersion: g, hostVersion: h)
+        case .unreachable(let why):
+            vmConnection = .unreachable(why)
+        }
+    }
+
+    /// Start a monitored run *inside the VM*: connect to the guest agent and
+    /// ask it to launch + monitor the bundle at `guestBundlePath` (a path on
+    /// the guest's filesystem). Guest observations stream into the same
+    /// `events` / `liveProbeEvents` / `resourceSamples` the host tabs read.
+    func startMonitoredRunInVM(guestBundlePath: String) async {
+        let host = vmHost.trimmingCharacters(in: .whitespacesAndNewlines)
+        let path = guestBundlePath.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !host.isEmpty, let port = UInt16(exactly: vmPort), port > 0 else {
+            lastError = "Set the VM IP and port, then test the connection first."
+            return
+        }
+        guard !path.isEmpty else {
+            lastError = "Enter the path to the .app inside the VM (e.g. /Users/you/Downloads/Foo.app)."
+            return
+        }
+
+        // Reuse the host's classifiers so VM file events colour the same way.
+        let riskClassifier: RiskClassifier
+        if let staticReport {
+            riskClassifier = RiskClassifier(
+                declaredCategories: Set(staticReport.declaredPrivacyKeys.map(\.category)))
+        } else {
+            riskClassifier = RiskClassifier()
+        }
+        let session = VMGuestSession(host: host, port: port,
+                                     ownerBundleURL: bundle?.url,
+                                     pathClassifier: PathClassifier(),
+                                     riskClassifier: riskClassifier)
+        self.vmSession = session
+
+        // Reset run state, mirroring startMonitoredRun().
+        self.events = []
+        self.eventIndices = [:]
+        self.liveProbeEvents = []
+        self.resourceSamples = []
+        self.openResources = []
+        self.usbChanges = []
+        self.connectedUSBDevices = []
+        self.startedAt = Date()
+        self.endedAt = nil
+        self.lastError = nil
+        self.isVMRun = true
+        self.isMonitoring = true
+        self.fidelityNotes = Self.vmFidelityNotes
+
+        // Fan the guest's four streams into the published arrays. One task so
+        // teardown is a single cancel.
+        vmStreamTask = Task { [weak self] in
+            await withTaskGroup(of: Void.self) { group in
+                group.addTask { [weak self] in
+                    for await event in session.events {
+                        await MainActor.run { self?.upsert(event) }
+                    }
+                }
+                group.addTask { [weak self] in
+                    for await probe in session.liveProbes {
+                        await MainActor.run { self?.liveProbeEvents.append(probe) }
+                    }
+                }
+                group.addTask { [weak self] in
+                    for await sample in session.resourceSamples {
+                        await MainActor.run { self?.appendResourceSample(sample) }
+                    }
+                }
+                group.addTask { [weak self] in
+                    for await notice in session.notices {
+                        await self?.handleVMNotice(notice)
+                    }
+                }
+            }
+        }
+
+        do {
+            let info = try await session.start(guestBundlePath: path)
+            self.vmConnection = .connected(hostName: info.hostName,
+                                           macOSVersion: info.macOSVersion,
+                                           guestVersion: info.guestVersion)
+        } catch {
+            let message = (error as? LocalizedError)?.errorDescription
+                ?? error.localizedDescription
+            self.lastError = message
+            // The agent went away between the test and the run — reflect that
+            // in the badge so the user isn't left thinking it's still connected.
+            if case VMGuestSession.SessionError.versionMismatch(let g, let h) = error {
+                self.vmConnection = .versionMismatch(guestVersion: g, hostVersion: h)
+            } else {
+                self.vmConnection = .unreachable(message)
+            }
+            await stopMonitoredRun()
+        }
+    }
+
+    private func appendResourceSample(_ sample: SystemResourceMonitor.Sample) {
+        resourceSamples.append(sample)
+        if resourceSamples.count > maxResourceSamples {
+            resourceSamples.removeFirst(resourceSamples.count - maxResourceSamples)
+        }
+    }
+
+    private func handleVMNotice(_ notice: VMGuestSession.Notice) async {
+        switch notice {
+        case .log(let level, let message):
+            if level == "error" { lastError = message }
+        case .targetExited:
+            if isMonitoring { await stopMonitoredRun() }
+        case .agentError(let message):
+            lastError = message
+            if isMonitoring { await stopMonitoredRun() }
+        }
+    }
+
+    /// Tear down a VM run: stop the guest session and cancel the stream
+    /// fan-out. Then persist like any other run.
+    private func stopVMRun() async {
+        isVMRun = false
+        vmStreamTask?.cancel()
+        vmStreamTask = nil
+        await vmSession?.stop()
+        vmSession = nil
+        persistCurrentReport()
+    }
+
     func stopMonitoredRun() async {
         // Flip the UI state FIRST so the toolbar / dashboard immediately
         // reflect "stopped" — the helper RPC and monitor.stop() can take
@@ -560,6 +765,21 @@ final class AnalysisCoordinator: ObservableObject {
         // continue while we wind down.
         self.isMonitoring = false
         self.endedAt = Date()
+
+        // Reset the live Resource-use card and Resources tab. Both are
+        // live-only state (never persisted), so once the run stops they'd
+        // otherwise sit frozen looking like current activity. Clearing returns
+        // them to their pre-run empty state. Done before the VM branch below so
+        // it covers VM runs too.
+        self.resourceSamples = []
+        self.openResources = []
+
+        // A VM run has none of the host-side monitors / helper / PID tree to
+        // tear down — just the guest session. Branch out early.
+        if isVMRun {
+            await stopVMRun()
+            return
+        }
 
         // Capture the tracked PID set BEFORE we tear the monitor down,
         // otherwise we'd lose the list and not be able to terminate the
@@ -748,6 +968,12 @@ final class AnalysisCoordinator: ObservableObject {
             self.eventIndices = Dictionary(
                 uniqueKeysWithValues: report.events.enumerated().map { ($1.id, $0) }
             )
+            // Historical reports don't carry live resource samples or open
+            // files/sockets; clear any left over from a prior live run so the
+            // Resource-use card and Resources tab match the loaded run rather
+            // than the last thing monitored.
+            self.resourceSamples = []
+            self.openResources = []
             self.subBundleAnalyses = [:]
             self.subBundleErrors = [:]
             self.subBundleAnalyzing = []

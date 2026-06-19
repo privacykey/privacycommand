@@ -10,6 +10,16 @@ struct NetworkView: View {
     @State private var highlightedIDs: Set<NetworkEvent.ID> = []
     @State private var showOnlyHighlighted = false
 
+    /// Binary whose static network call sites we're inspecting in a sheet.
+    @State private var inspecting: InspectTarget?
+
+    /// A binary to open in the forensic disassembly summary. Identifiable so it
+    /// can drive a `.sheet(item:)`.
+    private struct InspectTarget: Identifiable {
+        let id = UUID()
+        let url: URL
+    }
+
     /// External services a remote IP can be looked up against. Opened in the
     /// user's default browser — we never phone home ourselves.
     private static let ipLookups: [(label: String, systemImage: String, prefix: String)] = [
@@ -63,7 +73,7 @@ struct NetworkView: View {
                         .width(min: 130, ideal: 160)
                     TableColumn("Port") { e in Text(String(e.remoteEndpoint.port)).font(.callout.monospaced()) }
                     TableColumn("Proto") { e in Text(e.netProto.rawValue.uppercased()) }
-                    TableColumn("Process") { e in Text("\(e.processName) [\(e.pid)]") }
+                    TableColumn("Process") { e in processCell(for: e) }
                     TableColumn("Bytes Tx/Rx") { e in Text("\(e.bytesSent) / \(e.bytesReceived)") }
                     TableColumn("First seen") { e in Text(e.firstSeen.formatted(date: .omitted, time: .standard)).font(.caption.monospaced()) }
                     TableColumn("Last seen") { e in Text(e.lastSeen.formatted(date: .omitted, time: .standard)).font(.caption.monospaced()) }
@@ -71,9 +81,35 @@ struct NetworkView: View {
             }
         }
         .padding(20)
+        .sheet(item: $inspecting) { target in
+            DisassemblySummaryView(
+                executableURL: target.url,
+                onClose: { inspecting = nil }
+            )
+        }
     }
 
     // MARK: - Row controls
+
+    /// The Process cell. When we captured the executable path, it becomes a
+    /// link that opens the forensic disassembly summary scrolled to the
+    /// binary's static network call sites — the "what code could have made
+    /// this connection?" candidates.
+    @ViewBuilder
+    private func processCell(for e: NetworkEvent) -> some View {
+        let label = "\(e.processName) [\(e.pid)]"
+        if let path = e.processPath, !path.isEmpty {
+            Button {
+                inspecting = InspectTarget(url: URL(fileURLWithPath: path))
+            } label: {
+                Text(label)
+            }
+            .buttonStyle(.link)
+            .help("Inspect this binary's outbound network call sites")
+        } else {
+            Text(label)
+        }
+    }
 
     /// The IP cell doubles as a menu: clicking it offers external lookups,
     /// a copy action, and a highlight toggle for the row.

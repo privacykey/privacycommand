@@ -35,6 +35,12 @@ public enum DisassemblyAnalyzer {
         public var externalCalls: [ExternalCall]
         public var stringLiterals: [String]
         public var detectedPatterns: [Pattern]
+        /// Functions that contain at least one networking-capable call site.
+        /// This is the *static capability* answer to "what code could open an
+        /// outbound connection?" — it does **not** prove that any particular
+        /// runtime request originated here (the disassembler can't see the
+        /// call stack). See `NetworkCallSite`.
+        public var networkCallSites: [NetworkCallSite]
         /// One-paragraph plain-English narrative, ready for display.
         public var narrative: String
 
@@ -45,6 +51,7 @@ public enum DisassemblyAnalyzer {
                     externalCalls: [ExternalCall] = [],
                     stringLiterals: [String] = [],
                     detectedPatterns: [Pattern] = [],
+                    networkCallSites: [NetworkCallSite] = [],
                     narrative: String = "") {
             self.totalLines = totalLines
             self.totalInstructions = totalInstructions
@@ -53,8 +60,39 @@ public enum DisassemblyAnalyzer {
             self.externalCalls = externalCalls
             self.stringLiterals = stringLiterals
             self.detectedPatterns = detectedPatterns
+            self.networkCallSites = networkCallSites
             self.narrative = narrative
         }
+    }
+
+    /// One function that contains networking-capable call sites, plus any
+    /// host/URL-looking string literals that appear inside its body.
+    ///
+    /// This is intentionally a *candidate* — the static disassembly tells us
+    /// which functions are **capable** of opening a connection, and what
+    /// destinations they reference, but not which one actually serviced a
+    /// given runtime TCP request. Bridging that gap needs a captured backtrace
+    /// at `connect()` time (a future privileged-helper / interposition tier).
+    public struct NetworkCallSite: Sendable, Hashable, Codable, Identifiable {
+        public var id: String { function }
+        /// The enclosing function's symbol name as it appears in the
+        /// disassembly, e.g. `_main`, `__ZN3net6Socket7ConnectEv`.
+        public let function: String
+        /// Networking-category symbols this function calls, with call counts,
+        /// ordered most-frequent first.
+        public let calls: [ExternalCall]
+        /// Host / URL-looking string literals found inside this function's
+        /// body — best-effort candidate destinations.
+        public let hostHints: [String]
+
+        public init(function: String, calls: [ExternalCall], hostHints: [String]) {
+            self.function = function
+            self.calls = calls
+            self.hostHints = hostHints
+        }
+
+        /// Total networking call count across all symbols, used for ranking.
+        public var totalCallCount: Int { calls.reduce(0) { $0 + $1.callCount } }
     }
 
     public struct ExternalCall: Sendable, Hashable, Codable, Identifiable {
@@ -151,6 +189,16 @@ public enum DisassemblyAnalyzer {
         var literals: [String] = []
         var seenLiterals = Set<String>()
 
+        // Per-function attribution for the network call-site map. We track the
+        // function we're currently inside (set whenever a bare `_label:` line
+        // appears) and bucket networking-category stub calls + host-looking
+        // literals under it.
+        var currentFunction: String? = nil
+        var fnNetCalls: [String: [String: Int]] = [:]   // fn -> symbol -> count
+        var fnHostHints: [String: [String]] = [:]       // fn -> ordered hints
+        var fnHostSeen: [String: Set<String>] = [:]      // fn -> dedup set
+        var fnOrder: [String] = []                       // first-seen order of net fns
+
         // Cheap regex objects, compiled once per call.
         // NB: NSRegularExpression is intentionally not stored statically —
         // these patterns are very fast and the analyzer is rarely called.
@@ -181,7 +229,14 @@ public enum DisassemblyAnalyzer {
             }
             if let m = stubRE?.firstMatch(in: s, range: r),
                m.numberOfRanges > 1, let rg = Range(m.range(at: 1), in: s) {
-                stubCounts[String(s[rg]), default: 0] += 1
+                let sym = String(s[rg])
+                stubCounts[sym, default: 0] += 1
+                // Attribute networking calls to the enclosing function.
+                if let fn = currentFunction,
+                   SymbolDictionary.lookup(sym).category == .networking {
+                    if fnNetCalls[fn] == nil { fnOrder.append(fn) }
+                    fnNetCalls[fn, default: [:]][sym, default: 0] += 1
+                }
             }
             if let m = literalRE?.firstMatch(in: s, range: r),
                m.numberOfRanges > 1, let rg = Range(m.range(at: 1), in: s) {
@@ -189,8 +244,20 @@ public enum DisassemblyAnalyzer {
                 if seenLiterals.insert(lit).inserted, lit.count <= 240 {
                     literals.append(lit)
                 }
+                // Collect host/URL-looking literals against the current
+                // function regardless of whether it ends up networking — we
+                // only surface hints for functions that do.
+                if let fn = currentFunction, isHostLike(lit) {
+                    if fnHostSeen[fn, default: []].insert(lit).inserted {
+                        fnHostHints[fn, default: []].append(lit)
+                    }
+                }
             }
-            if funcRE?.firstMatch(in: s, range: r) != nil { totalFns += 1 }
+            if funcRE?.firstMatch(in: s, range: r) != nil {
+                totalFns += 1
+                // `s` is a bare `label:` line; drop the trailing colon.
+                currentFunction = String(s.trimmingCharacters(in: .whitespaces).dropLast())
+            }
             if instrRE?.firstMatch(in: s, range: r) != nil { totalInstr += 1 }
         }
 
@@ -209,6 +276,29 @@ public enum DisassemblyAnalyzer {
                 return $0.symbol < $1.symbol
             }
 
+        // Build the per-function network call-site map, ranked by how many
+        // networking calls each function makes (busiest first).
+        let netSites: [NetworkCallSite] = fnOrder.compactMap { fn -> NetworkCallSite? in
+            guard let counts = fnNetCalls[fn] else { return nil }
+            let fnCalls = counts
+                .map { (sym, count) -> ExternalCall in
+                    let info = SymbolDictionary.lookup(sym)
+                    return ExternalCall(symbol: sym, category: info.category,
+                                        callCount: count, humanLabel: info.label,
+                                        kbArticleID: info.kbArticleID)
+                }
+                .sorted {
+                    if $0.callCount != $1.callCount { return $0.callCount > $1.callCount }
+                    return $0.symbol < $1.symbol
+                }
+            return NetworkCallSite(function: fn, calls: fnCalls,
+                                   hostHints: fnHostHints[fn] ?? [])
+        }
+        .sorted {
+            if $0.totalCallCount != $1.totalCallCount { return $0.totalCallCount > $1.totalCallCount }
+            return $0.function < $1.function
+        }
+
         let patterns = PatternDetector.detect(calls: calls, literals: literals)
         let narrative = NarrativeBuilder.build(
             totalInstr: totalInstr, totalFns: totalFns,
@@ -222,8 +312,25 @@ public enum DisassemblyAnalyzer {
             externalCalls: calls,
             stringLiterals: literals,
             detectedPatterns: patterns,
+            networkCallSites: netSites,
             narrative: narrative
         )
+    }
+
+    /// True when a string literal looks like a hostname or URL — used to
+    /// surface candidate destinations next to a function's network calls.
+    /// Deliberately conservative: rejects file paths and anything with spaces.
+    static func isHostLike(_ raw: String) -> Bool {
+        let s = raw.trimmingCharacters(in: .whitespaces)
+        if s.contains("://") { return true }
+        // Bare domain: dotted labels, no path/space, ending in an alpha TLD.
+        guard !s.isEmpty, s.count <= 253, !s.contains(" "), !s.contains("/") else { return false }
+        let parts = s.split(separator: ".")
+        guard parts.count >= 2,
+              let tld = parts.last, tld.count >= 2, tld.allSatisfy(\.isLetter) else { return false }
+        return parts.allSatisfy { label in
+            !label.isEmpty && label.allSatisfy { $0.isLetter || $0.isNumber || $0 == "-" }
+        }
     }
 
     // MARK: - Symbol dictionary

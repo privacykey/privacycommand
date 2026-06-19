@@ -101,6 +101,7 @@ public actor NetworkMonitor {
                         lastSeen: now,
                         pid: existing.pid,
                         processName: existing.processName,
+                        processPath: existing.processPath,
                         netProto: existing.netProto,
                         localEndpoint: existing.localEndpoint,
                         remoteEndpoint: existing.remoteEndpoint,
@@ -120,6 +121,7 @@ public actor NetworkMonitor {
                         lastSeen: now,
                         pid: entry.pid,
                         processName: NetworkMonitor.lookupProcessName(pid: entry.pid),
+                        processPath: NetworkMonitor.lookupProcessPath(pid: entry.pid),
                         netProto: entry.proto,
                         localEndpoint: .init(address: entry.localAddress, port: entry.localPort),
                         remoteEndpoint: .init(address: entry.remoteAddress, port: entry.remotePort),
@@ -149,11 +151,18 @@ public actor NetworkMonitor {
     /// Looks up the executable basename for a PID via libproc. Sync, no actor
     /// hop needed.
     static func lookupProcessName(pid: Int32) -> String {
+        guard let path = lookupProcessPath(pid: pid) else { return String(pid) }
+        return (path as NSString).lastPathComponent
+    }
+
+    /// Full executable path for a PID via libproc, or nil if the process is
+    /// gone / inaccessible. Captured into `NetworkEvent.processPath` so the UI
+    /// can inspect the binary even after the process exits.
+    static func lookupProcessPath(pid: Int32) -> String? {
         var buf = [CChar](repeating: 0, count: Int(MAXPATHLEN))
         let r = proc_pidpath(pid, &buf, UInt32(buf.count))
-        guard r > 0 else { return String(pid) }
-        let path = String(cString: buf)
-        return (path as NSString).lastPathComponent
+        guard r > 0 else { return nil }
+        return String(cString: buf)
     }
 
     /// Parse a single line of `lsof -i -nP`. Skips lines that don't have an
