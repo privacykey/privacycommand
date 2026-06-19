@@ -21,6 +21,20 @@
     <key>com.apple.security.network.client</key>
     <true/>
 
+    <!-- Apple Events (Automation): REQUIRED to send AppleScript/Apple events
+         to other apps. The Guest-agent panel queries the installed VM
+         front-ends (VirtualBuddy, UTM, Parallels, VMware) over their
+         AppleScript dictionaries to list and start VMs. With Hardened
+         Runtime ON (see build settings) a notarized build that lacks this
+         entitlement has every outbound Apple event blocked with
+         errAEEventNotPermitted (-1743) *before* any TCC prompt is shown —
+         which surfaced as "0 VMs" even when VMs exist. The first send still
+         triggers the one-time Automation consent prompt (text comes from
+         NSAppleEventsUsageDescription in Info.plist); the user must approve
+         it under System Settings → Privacy & Security → Automation. -->
+    <key>com.apple.security.automation.apple-events</key>
+    <true/>
+
     <!-- Hardened Runtime is configured via the build settings, not via the
          entitlements plist. We deliberately do NOT set:
             com.apple.security.cs.allow-jit

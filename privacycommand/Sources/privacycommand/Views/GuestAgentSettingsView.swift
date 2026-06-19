@@ -14,7 +14,11 @@ import privacycommandCore
 struct GuestAgentSettingsView: View {
 
     @State private var detectedTools: [VMHostDetection.Tool] = []
-    @State private var vmsByTool: [VMHostDetection.Tool.Kind: [VMHostDetection.VMSummary]] = [:]
+    @State private var vmsByTool: [VMHostDetection.Tool.Kind: VMHostDetection.VMQueryOutcome] = [:]
+    /// VM name the user typed for a tool whose VM list is `.unsupported`
+    /// but that can still start a VM by name (e.g. VirtualBuddy). Keyed
+    /// by tool kind so each tool's field is independent.
+    @State private var manualVMName: [VMHostDetection.Tool.Kind: String] = [:]
     @State private var installerURL: URL? = Self.existingInstallerURL()
     @State private var isBuilding = false
     @State private var buildError: String?
@@ -33,6 +37,16 @@ struct GuestAgentSettingsView: View {
                     Text("No supported VM tools found on this Mac. Install VirtualBuddy, UTM, Parallels Desktop, or VMware Fusion first.")
                         .font(.callout).foregroundStyle(.secondary)
                 } else {
+                    HStack {
+                        Spacer()
+                        Button {
+                            refreshVMs()
+                        } label: {
+                            Label("Refresh VMs", systemImage: "arrow.clockwise")
+                        }
+                        .controlSize(.small)
+                        .help("Re-query each VM tool. Use this after granting Automation access so the lists repopulate without restarting privacycommand.")
+                    }
                     ForEach(detectedTools, id: \.kind) { tool in
                         toolSection(tool)
                     }
@@ -57,10 +71,27 @@ struct GuestAgentSettingsView: View {
         .formStyle(.grouped)
         .task {
             detectedTools = VMHostDetection.detectInstalled()
-            for tool in detectedTools {
-                vmsByTool[tool.kind] = VMHostDetection.listVMs(for: tool)
-            }
+            refreshVMs()
         }
+    }
+
+    /// Re-query every detected tool for its VM list. Called on first
+    /// appear and from the Refresh button — the latter matters because
+    /// granting Automation access mid-session won't retroactively change
+    /// an already-rendered "not authorised" state until we ask again.
+    private func refreshVMs() {
+        for tool in detectedTools {
+            vmsByTool[tool.kind] = VMHostDetection.listVMs(for: tool)
+        }
+    }
+
+    /// Deep-link into System Settings → Privacy & Security → Automation,
+    /// where the user toggles which apps privacycommand may control.
+    private func openAutomationSettings() {
+        guard let url = URL(string:
+            "x-apple.systempreferences:com.apple.preference.security?Privacy_Automation")
+        else { return }
+        NSWorkspace.shared.open(url)
     }
 
     // MARK: - Build section
@@ -122,14 +153,17 @@ struct GuestAgentSettingsView: View {
 
     @ViewBuilder
     private func toolSection(_ tool: VMHostDetection.Tool) -> some View {
-        let vms = vmsByTool[tool.kind] ?? []
+        let outcome = vmsByTool[tool.kind] ?? .ok([])
+        let vms = outcome.vms
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Image(systemName: "macwindow.badge.plus").foregroundStyle(.blue)
                 Text(tool.displayName).font(.subheadline.bold())
                 Spacer()
-                Text("\(vms.count) VM\(vms.count == 1 ? "" : "s")")
-                    .font(.caption).foregroundStyle(.secondary)
+                if case .ok = outcome {
+                    Text("\(vms.count) VM\(vms.count == 1 ? "" : "s")")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
             }
 
             // Important caveat — explained once per tool so the user
@@ -143,10 +177,46 @@ struct GuestAgentSettingsView: View {
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
-            if vms.isEmpty {
-                Text("No VMs found, or AppleScript dictionary not yet authorised. Open \(tool.displayName) once and try again.")
+            switch outcome {
+            case .notAuthorized:
+                VStack(alignment: .leading, spacing: 4) {
+                    Label("privacycommand isn't allowed to control \(tool.displayName).",
+                          systemImage: "lock.shield")
+                        .font(.caption).foregroundStyle(.orange)
+                    Text("macOS blocked the Apple event used to read the VM list. Enable **\(tool.displayName)** under **privacycommand** in System Settings → Privacy & Security → Automation, then click Refresh VMs.")
+                        .font(.caption).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Button("Open Automation settings") { openAutomationSettings() }
+                        .buttonStyle(.borderless).controlSize(.small)
+                }
+            case .scriptError(let code, let message):
+                VStack(alignment: .leading, spacing: 4) {
+                    Label("Couldn't read VMs from \(tool.displayName).",
+                          systemImage: "exclamationmark.triangle")
+                        .font(.caption).foregroundStyle(.orange)
+                    Text("\(message) (error \(code)). Open \(tool.displayName), make sure it has finished launching, then click Refresh VMs.")
+                        .font(.caption).foregroundStyle(.secondary)
+                        .textSelection(.enabled)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            case .unsupported:
+                Text("\(tool.displayName) doesn't expose a VM-list API privacycommand can read. Start the VM yourself, then drag the installer DMG onto its window.")
                     .font(.caption).foregroundStyle(.secondary)
-            } else {
+                    .fixedSize(horizontal: false, vertical: true)
+            case .ok where vms.isEmpty:
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("No VMs found for \(tool.displayName). Create or import a VM in \(tool.displayName), then click Refresh VMs.")
+                        .font(.caption).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    // For tools we can start by name even without a list
+                    // (VirtualBuddy, whose library scan may come up empty
+                    // if it's in a non-default location), let the user
+                    // start a VM by typing its exact name.
+                    if VMHostDetection.supportsStartByName(tool.kind) {
+                        manualStartField(tool)
+                    }
+                }
+            case .ok:
                 ForEach(vms, id: \.name) { vm in
                     HStack {
                         Image(systemName: "rectangle.on.rectangle")
@@ -168,6 +238,48 @@ struct GuestAgentSettingsView: View {
                 }
             }
         }
+    }
+
+    /// Text field + Start (+ Reveal-installer) for starting a VM by a
+    /// name the user types. Used as a fallback for tools we can start by
+    /// name (`supportsStartByName`) but whose VM list we couldn't
+    /// enumerate — e.g. VirtualBuddy when its library scan finds nothing.
+    @ViewBuilder
+    private func manualStartField(_ tool: VMHostDetection.Tool) -> some View {
+        let trimmed = (manualVMName[tool.kind] ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                TextField("VM name", text: Binding(
+                    get: { manualVMName[tool.kind] ?? "" },
+                    set: { manualVMName[tool.kind] = $0 }
+                ))
+                .textFieldStyle(.roundedBorder)
+                .frame(maxWidth: 220)
+                .onSubmit { startManually(name: trimmed, tool: tool) }
+                Button("Start") { startManually(name: trimmed, tool: tool) }
+                    .controlSize(.small)
+                    .disabled(trimmed.isEmpty)
+                if let url = installerURL {
+                    Button("Reveal installer") {
+                        VMHostDetection.revealInstallerInFinder(at: url)
+                    }
+                    .controlSize(.small)
+                    .help("Selects the installer DMG in Finder. Drag it onto the running \(tool.displayName) window to attach it as a shared disk inside the guest.")
+                }
+            }
+            if tool.kind == .virtualBuddy {
+                Text("The first time, VirtualBuddy asks you to allow privacycommand to control it — approve that prompt once and later starts go straight through.")
+                    .font(.caption2).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    /// Start a VM by the name the user typed, ignoring blank input.
+    private func startManually(name: String, tool: VMHostDetection.Tool) {
+        guard !name.isEmpty else { return }
+        _ = VMHostDetection.startVM(named: name, tool: tool)
     }
 
     // MARK: - Explanatory sections
