@@ -53,7 +53,7 @@ let package = Package(
         // See docs/GUEST_AGENT.md for build / deploy instructions.
         .executableTarget(
             name: "privacycommandGuestAgent",
-            dependencies: ["privacycommandGuestProtocol"],
+            dependencies: ["privacycommandGuestProtocol", "privacycommandCore"],
             path: "Sources/privacycommandGuestAgent"
         ),
         .testTarget(
