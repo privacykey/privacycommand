@@ -159,8 +159,11 @@ public enum PrivacyManifestReader {
         // Tracker domains contacted but not listed under NSPrivacyTrackingDomains
         // (host-boundary match so a sub-domain of a declared domain counts).
         let declared = manifest.trackingDomains.map { $0.lowercased() }
+        // A declared domain covers itself and its SUB-domains, never its parent:
+        // declaring `analytics.example.com` must not excuse contacting the bare
+        // tracker apex `example.com`. (No `$0.hasSuffix("." + dom)` clause.)
         let undeclared = observedTrackerDomains.map { $0.lowercased() }.filter { dom in
-            !declared.contains { dom == $0 || dom.hasSuffix("." + $0) || $0.hasSuffix("." + dom) }
+            !declared.contains { dom == $0 || dom.hasSuffix("." + $0) }
         }
         return PrivacyManifestTrackingCrossCheck(
             trackerSDKsButTrackingNotDeclared: sdkContradiction,

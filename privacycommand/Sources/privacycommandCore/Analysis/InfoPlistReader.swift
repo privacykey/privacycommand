@@ -24,7 +24,7 @@ public enum InfoPlistReader {
                 rawKey: k,
                 category: entry?.category ?? .unknown,
                 humanLabel: entry?.label ?? k,
-                purposeString: (v as? String) ?? ""
+                purposeString: Self.purposeString(from: v)
             ))
         }
         // Sort deterministically for reproducible reports.
@@ -44,6 +44,22 @@ public enum InfoPlistReader {
     /// Parse `NSAppTransportSecurity`. Returns nil when ATS is at default
     /// (not declared). When declared, returns the flag set + per-domain
     /// exception list.
+    /// Derive a purpose string from a usage-description value. Most keys hold a
+    /// String, but the dictionary form (e.g. NSLocationTemporaryUsageDescription-
+    /// Dictionary) maps purpose-keys to localized descriptions -- treating that
+    /// as an empty purpose string was a false "empty purpose" finding.
+    static func purposeString(from value: Any) -> String {
+        if let s = value as? String { return s }
+        if let dict = value as? [String: Any] {
+            return dict.values.compactMap { $0 as? String }
+                .filter { !$0.isEmpty }.sorted().joined(separator: " | ")
+        }
+        if let arr = value as? [Any] {
+            return arr.compactMap { $0 as? String }.filter { !$0.isEmpty }.joined(separator: " | ")
+        }
+        return ""
+    }
+
     private static func parseATS(plist: [String: Any]) -> ATSConfig? {
         guard let ats = plist["NSAppTransportSecurity"] as? [String: Any] else { return nil }
         let arbitrary = (ats["NSAllowsArbitraryLoads"] as? Bool) ?? false

@@ -196,7 +196,15 @@ public struct RiskScorer: Sendable {
         // debugger, sandbox temporary exceptions). Apple's own binaries hold many
         // of these legitimately, so skip platform binaries.
         if !isApple {
+            // "Distributed/release build" = clearly shipped, not a local debug
+            // build. Notarized / Developer-ID apps qualify; so does any Mac App
+            // Store app (App Review rejects get-task-allow outright, so it's a
+            // genuine anomaly there). We deliberately do NOT treat .unknown /
+            // .rejected as release: an unsigned or un-assessable LOCAL debug
+            // build lands in those states too, and flagging it would be a false
+            // positive on the normal developer workflow.
             let releaseBuild: Bool = {
+                if report.appStoreInfo.isMASApp { return true }
                 switch report.notarization { case .notarized, .developerIDOnly: return true; default: return false }
             }()
             for ne in EntitlementsReader.notableEntitlements(in: report.entitlements.raw) {

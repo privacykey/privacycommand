@@ -81,7 +81,7 @@ public enum MachOInspector {
     /// thin file, every fat arch for a universal binary. Generalises
     /// `firstThinSlice` (which the symbol/arch readers still use).
     private static func enumerateSlices(in data: Data) -> [(Int, Bool)] {
-        let magic = data.withUnsafeBytes { $0.load(as: UInt32.self) }
+        let magic = data.withUnsafeBytes { $0.loadUnaligned(as: UInt32.self) }
         if magic == mh_magic || magic == mh_cigam     { return [(0, false)] }
         if magic == mh_magic_64 || magic == mh_cigam_64 { return [(0, true)] }
         let isFat = magic == fatMagic || magic == fatMagicSwapped
@@ -90,7 +90,7 @@ public enum MachOInspector {
         let swapped = magic == fatMagicSwapped || magic == fat64MagicSwapped
         let is64 = magic == fat64Magic || magic == fat64MagicSwapped
         var nfat = data.withUnsafeBytes {
-            $0.baseAddress!.advanced(by: 4).load(as: UInt32.self)
+            $0.baseAddress!.advanced(by: 4).loadUnaligned(as: UInt32.self)
         }
         if swapped { nfat = nfat.byteSwapped }
         guard nfat >= 1, nfat <= 32 else { return [] }   // sanity bound
@@ -103,21 +103,19 @@ public enum MachOInspector {
             if is64 {
                 var raw: UInt64 = 0
                 data.withUnsafeBytes {
-                    raw = $0.baseAddress!.advanced(by: archStart + 8)
-                        .assumingMemoryBound(to: UInt64.self).pointee
+                    raw = $0.baseAddress!.advanced(by: archStart + 8).loadUnaligned(as: UInt64.self)
                 }
                 offset = swapped ? raw.byteSwapped : raw
             } else {
                 var raw: UInt32 = 0
                 data.withUnsafeBytes {
-                    raw = $0.baseAddress!.advanced(by: archStart + 8)
-                        .assumingMemoryBound(to: UInt32.self).pointee
+                    raw = $0.baseAddress!.advanced(by: archStart + 8).loadUnaligned(as: UInt32.self)
                 }
                 offset = UInt64(swapped ? raw.byteSwapped : raw)
             }
             guard offset + 4 <= UInt64(data.count) else { continue }
             let sliceMagic = data.withUnsafeBytes {
-                $0.baseAddress!.advanced(by: Int(offset)).load(as: UInt32.self)
+                $0.baseAddress!.advanced(by: Int(offset)).loadUnaligned(as: UInt32.self)
             }
             let sliceIs64 = sliceMagic == mh_magic_64 || sliceMagic == mh_cigam_64
             let isMachO = sliceMagic == mh_magic || sliceMagic == mh_cigam || sliceIs64
@@ -149,7 +147,7 @@ public enum MachOInspector {
     public static func architectures(of url: URL) throws -> [String] {
         let data = try Data(contentsOf: url, options: [.mappedIfSafe])
         guard data.count >= 4 else { return [] }
-        let magic = data.withUnsafeBytes { $0.load(as: UInt32.self) }
+        let magic = data.withUnsafeBytes { $0.loadUnaligned(as: UInt32.self) }
         // Multi-arch fat binaries
         if magic == fatMagic || magic == fatMagicSwapped || magic == fat64Magic || magic == fat64MagicSwapped {
             return try parseFat(data: data, swapped: (magic == fatMagicSwapped || magic == fat64MagicSwapped),
@@ -159,7 +157,7 @@ public enum MachOInspector {
         if let arch = thinArch(magic: magic) {
             // Thin file — read cputype from offset 4 (32-bit) or 4 (64-bit) — same offset
             let cputype = data.withUnsafeBytes {
-                $0.baseAddress!.advanced(by: 4).load(as: Int32.self)
+                $0.baseAddress!.advanced(by: 4).loadUnaligned(as: Int32.self)
             }
             return [archName(cputype: arch.cputypeOverride ?? cputype)]
         }
@@ -190,8 +188,7 @@ public enum MachOInspector {
     private static func parseFat(data: Data, swapped: Bool, is64: Bool) throws -> [String] {
         var nfat: UInt32 = 0
         data.withUnsafeBytes { rawBuffer in
-            let p = rawBuffer.baseAddress!.advanced(by: 4).assumingMemoryBound(to: UInt32.self)
-            nfat = p.pointee
+            nfat = rawBuffer.baseAddress!.advanced(by: 4).loadUnaligned(as: UInt32.self)
         }
         if swapped { nfat = nfat.byteSwapped }
 
@@ -202,8 +199,7 @@ public enum MachOInspector {
             guard data.count >= off + archSize else { break }
             var cputype: Int32 = 0
             data.withUnsafeBytes {
-                let p = $0.baseAddress!.advanced(by: off).assumingMemoryBound(to: Int32.self)
-                cputype = p.pointee
+                cputype = $0.baseAddress!.advanced(by: off).loadUnaligned(as: Int32.self)
             }
             if swapped { cputype = Int32(bitPattern: UInt32(bitPattern: cputype).byteSwapped) }
             archs.append(archName(cputype: cputype))
@@ -239,7 +235,7 @@ public enum MachOInspector {
     }
 
     private static func firstThinSlice(in data: Data) -> (Int?, Bool) {
-        let magic = data.withUnsafeBytes { $0.load(as: UInt32.self) }
+        let magic = data.withUnsafeBytes { $0.loadUnaligned(as: UInt32.self) }
         if magic == mh_magic || magic == mh_cigam     { return (0, false) }
         if magic == mh_magic_64 || magic == mh_cigam_64 { return (0, true) }
         let isFat = magic == fatMagic || magic == fatMagicSwapped
@@ -255,21 +251,19 @@ public enum MachOInspector {
         if is64 {
             var raw: UInt64 = 0
             data.withUnsafeBytes {
-                let p = $0.baseAddress!.advanced(by: offsetField).assumingMemoryBound(to: UInt64.self)
-                raw = p.pointee
+                raw = $0.baseAddress!.advanced(by: offsetField).loadUnaligned(as: UInt64.self)
             }
             offset = swapped ? raw.byteSwapped : raw
         } else {
             var raw: UInt32 = 0
             data.withUnsafeBytes {
-                let p = $0.baseAddress!.advanced(by: offsetField).assumingMemoryBound(to: UInt32.self)
-                raw = p.pointee
+                raw = $0.baseAddress!.advanced(by: offsetField).loadUnaligned(as: UInt32.self)
             }
             offset = UInt64(swapped ? raw.byteSwapped : raw)
         }
         guard offset < UInt64(data.count) else { return (nil, false) }
         let sliceMagic = data.withUnsafeBytes {
-            $0.baseAddress!.advanced(by: Int(offset)).load(as: UInt32.self)
+            $0.baseAddress!.advanced(by: Int(offset)).loadUnaligned(as: UInt32.self)
         }
         let sliceIs64 = sliceMagic == mh_magic_64 || sliceMagic == mh_cigam_64
         return (Int(offset), sliceIs64)
@@ -282,12 +276,12 @@ public enum MachOInspector {
         guard data.count >= sliceOffset + headerSize else { return .empty }
 
         let magic = data.withUnsafeBytes {
-            $0.baseAddress!.advanced(by: sliceOffset).load(as: UInt32.self)
+            $0.baseAddress!.advanced(by: sliceOffset).loadUnaligned(as: UInt32.self)
         }
         let swap = magic == mh_cigam || magic == mh_cigam_64
         func u32(_ off: Int) -> UInt32 {
             let raw = data.withUnsafeBytes {
-                $0.baseAddress!.advanced(by: off).load(as: UInt32.self)
+                $0.baseAddress!.advanced(by: off).loadUnaligned(as: UInt32.self)
             }
             return swap ? raw.byteSwapped : raw
         }
@@ -406,13 +400,13 @@ public enum MachOInspector {
         guard data.count >= sliceOffset + headerSize else { return [] }
 
         let magic = data.withUnsafeBytes {
-            $0.baseAddress!.advanced(by: sliceOffset).load(as: UInt32.self)
+            $0.baseAddress!.advanced(by: sliceOffset).loadUnaligned(as: UInt32.self)
         }
         let swap = magic == mh_cigam || magic == mh_cigam_64
         func u32(_ off: Int) -> UInt32 {
             guard off >= 0, data.count >= off + 4 else { return 0 }
             let raw = data.withUnsafeBytes {
-                $0.baseAddress!.advanced(by: off).load(as: UInt32.self)
+                $0.baseAddress!.advanced(by: off).loadUnaligned(as: UInt32.self)
             }
             return swap ? raw.byteSwapped : raw
         }

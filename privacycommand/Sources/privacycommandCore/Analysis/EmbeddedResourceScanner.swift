@@ -88,7 +88,11 @@ public enum EmbeddedResourceScanner {
                                  range: search..<text.endIndex) {
             let url = String(text[m])
             r.urls.insert(url)
-            if let host = URLComponents(string: url)?.host { r.domains.insert(host.lowercased()) }
+            // Gate the URL's host through DomainValidator too: a URL followed by
+            // in-charclass punctuation (",", ";", ")") yields a polluted host
+            // like "a.example.com)" that must not leak into the domain list.
+            if let host = URLComponents(string: url)?.host?.lowercased(),
+               DomainValidator.isLikelyDomain(host) { r.domains.insert(host) }
             search = m.upperBound
         }
         // Bare domains — tokenize on non-host characters, validate strictly.

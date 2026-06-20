@@ -70,9 +70,10 @@ public enum AppRuntimeDetector {
         if let n = anyContains([libs], "libnode") {
             return Result(flavor: .node, evidence: ["Node: \(n)"], isSecuritySensitive: true)
         }
-        // Wine / CrossOver
-        if let w = anyContains([libs, fwks], "libwine") ?? anyContains([fwks], "wine")
-            ?? (res.contains("wine") ? "wine" : nil) {
+        // Wine / CrossOver -- gate on specific dylib/resource signals only.
+        // A bare "wine" substring would mis-flag benign names like Twine.framework.
+        if let w = anyContains([libs], "libwine") ?? anyContains([libs], "crossover")
+            ?? ((res.contains("wine") || res.contains("crossover")) ? "wine/crossover resource" : nil) {
             return Result(flavor: .wine, evidence: ["Wine: \(w)"], isSecuritySensitive: true)
         }
         // JVM
