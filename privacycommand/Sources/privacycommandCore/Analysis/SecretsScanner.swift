@@ -121,6 +121,7 @@ public enum SecretsScanner {
         for rule in rules {
             guard s.count >= rule.minLength, s.count <= rule.maxLength else { continue }
             guard let m = rule.matcher(s) else { continue }
+            if rule.gated, !isPlausibleSecret(m) { continue }
             if seen.insert(m).inserted {
                 findings.append(SecretFinding(
                     kind: rule.kind, vendor: rule.vendor,
@@ -138,6 +139,10 @@ public enum SecretsScanner {
         let kbArticleID: String?
         let minLength: Int
         let maxLength: Int
+        /// When true (default), a match is dropped unless it passes the
+        /// placeholder / low-entropy gate. Structural markers (PEM headers)
+        /// set this false.
+        var gated = true
         /// Returns the matched substring, or nil if no match. Allows rules
         /// to do extra validation beyond regex (JWT json-decode, etc).
         let matcher: @Sendable (String) -> String?
@@ -148,6 +153,33 @@ public enum SecretsScanner {
     public static func maskSecret(_ s: String) -> String {
         if s.count <= 8 { return "[REDACTED]" }
         return String(s.prefix(4)) + "…" + String(s.suffix(4))
+    }
+
+    /// Reject matches that are obviously example/placeholder tokens or have
+    /// implausibly low character variety for a real high-entropy credential —
+    /// e.g. `sk_live_xxxx…`, `ghp_0000…`, `AIza…YOUR_KEY_HERE`.
+    static func isPlausibleSecret(_ s: String) -> Bool {
+        let lower = s.lowercased()
+        let placeholders = ["your", "example", "placeholder", "redacted", "changeme",
+                            "notreal", "insertkey", "apikeyhere", "yourtoken", "xxxxx"]
+        if placeholders.contains(where: { lower.contains($0) }) { return false }
+        if hasRun(s, of: 6) { return false }
+        return shannonEntropyBits(of: s) >= 2.5
+    }
+    private static func hasRun(_ s: String, of n: Int) -> Bool {
+        var last: Character? = nil, count = 0
+        for c in s {
+            if c == last { count += 1; if count >= n { return true } }
+            else { last = c; count = 1 }
+        }
+        return false
+    }
+    private static func shannonEntropyBits(of s: String) -> Double {
+        guard !s.isEmpty else { return 0 }
+        var freq: [Character: Int] = [:]
+        for c in s { freq[c, default: 0] += 1 }
+        let n = Double(s.count)
+        return freq.values.reduce(0.0) { acc, c in let p = Double(c)/n; return acc - p * log2(p) }
     }
 
     // MARK: - Rule table
@@ -209,11 +241,10 @@ public enum SecretsScanner {
             firstMatch(in: s, pattern: #"\bSG\.[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]{20,}\b"#)
         },
 
-        // Twilio account SID + auth token (combined check).
-        Rule(kind: .twilioSID, vendor: "Twilio", confidence: .high,
-             kbArticleID: "secret-twilio", minLength: 34, maxLength: 34) { s in
-            firstMatch(in: s, pattern: #"\bAC[a-f0-9]{32}\b"#)
-        },
+        // (Removed) Twilio account SID `AC<32 hex>`: an Account SID is a public
+        // identifier, not a secret, and the pattern matched any "AC"+MD5/hex
+        // blob. The Auth Token (the real secret) is 32 hex with no distinctive
+        // prefix, so it can't be detected without false alarms.
 
         // Mailchimp API key — 32 hex + `-us` + 1-2 digits.
         Rule(kind: .mailchimpKey, vendor: "Mailchimp", confidence: .high,
@@ -223,7 +254,7 @@ public enum SecretsScanner {
 
         // PEM private key markers — even just the header is enough.
         Rule(kind: .pemPrivateKey, vendor: "PEM private key", confidence: .high,
-             kbArticleID: "secret-private-key", minLength: 25, maxLength: 60) { s in
+             kbArticleID: "secret-private-key", minLength: 25, maxLength: 60, gated: false) { s in
             firstMatch(in: s, pattern: #"-----BEGIN (?:RSA |EC |OPENSSH |DSA |ENCRYPTED |PGP )?PRIVATE KEY-----"#)
         },
 
@@ -249,6 +280,15 @@ public enum SecretsScanner {
             guard let bytes = Data(base64Encoded: padded),
                   let json = String(data: bytes, encoding: .utf8),
                   json.contains("\"alg\"") else { return nil }
+            // Payload must ALSO decode to JSON — not just random base64 that
+            // happens to start with eyJ and carry two dots.
+            let payload = String(parts[1])
+            let pPad = payload.padding(toLength: ((payload.count + 3) / 4) * 4, withPad: "=", startingAt: 0)
+                .replacingOccurrences(of: "-", with: "+")
+                .replacingOccurrences(of: "_", with: "/")
+            guard let pBytes = Data(base64Encoded: pPad),
+                  let pJson = String(data: pBytes, encoding: .utf8),
+                  pJson.contains("{") else { return nil }
             return candidate
         }
     ]

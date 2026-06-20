@@ -31,7 +31,7 @@ final class SecretsScannerTests: XCTestCase {
         let exec = dir.appendingPathComponent("FakeBinary")
 
         var blob = Data(count: 8)                                // NUL padding
-        blob.append("AKIAIOSFODNN7EXAMPLE".data(using: .ascii)!) // isolated 20-char run
+        blob.append("AKIA3X7QPL9ZK2WMN4VT".data(using: .ascii)!) // isolated 20-char run
         blob.append(0)
         try blob.write(to: exec)
 
@@ -73,8 +73,8 @@ final class SecretsScannerTests: XCTestCase {
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: dir) }
 
-        let awsKey = "AKIAIOSFODNN7EXAMPLE"              // isolated 20-char run
-        let ghToken = "ghp_" + String(repeating: "a", count: 36)
+        let awsKey = "AKIA3X7QPL9ZK2WMN4VT"              // isolated 20-char run
+        let ghToken = "ghp_aB3xK9mZ2qWvL7pR4tY1nC8sD6fG0hJ5kE2Q"
 
         var a = Data(count: 4)
         a.append(awsKey.data(using: .ascii)!); a.append(0)

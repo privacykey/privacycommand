@@ -104,7 +104,7 @@ public struct DomainClassifier: Sendable {
     private static let patterns: [Entry] = [
         // ─── Ad / tracking — must come before parent vendors ────────────────
         .init(pattern: "doubleclick.net",            category: .adTech),
-        .init(pattern: "googletagmanager.com",       category: .adTech),
+        .init(pattern: "googletagmanager.com",       category: .analytics),
         .init(pattern: "googleadservices.com",       category: .adTech),
         .init(pattern: "googlesyndication.com",      category: .adTech),
         .init(pattern: "adservice.google.com",       category: .adTech),
@@ -231,7 +231,7 @@ public struct DomainClassifier: Sendable {
         .init(pattern: "office.com",                 category: .microsoft),
         .init(pattern: "office.net",                 category: .microsoft),
         .init(pattern: "outlook.com",                category: .microsoft),
-        .init(pattern: "windows.net",                category: .microsoft),
+        .init(pattern: "windows.net",                category: .cdn),
         .init(pattern: "azurewebsites.net",          category: .microsoft),
         .init(pattern: "windowsazure.com",           category: .microsoft),
 
