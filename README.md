@@ -32,14 +32,17 @@ Forensic permission audits for any macOS app — built for security teams, IT, a
 
 Drop a `.app` bundle (or a `.dmg`) onto privacycommand and it produces a full forensic report of what the app actually touches:
 
-- **Static analysis** — entitlements, code-signing, notarization deep-dive (stapler / spctl / SHA-256), URL schemes, document types, hard-coded domains and URLs, embedded launch agents and helpers, third-party SDK fingerprints (LaunchDarkly, Firebase, Mixpanel, AdMob, …), feature flags and trial-state strings, secrets and license-key names, anti-analysis signals, dylib hijacking surface, and Apple's Privacy Manifest cross-checked against what the binary actually uses.
+- **Static analysis** — entitlements, code-signing (the 10-character signing Team ID expanded to the developer's name), notarization deep-dive (stapler / spctl / SHA-256), URL schemes, document types, hard-coded domains and URLs, embedded launch agents and helpers, third-party SDK fingerprints (LaunchDarkly, Firebase, Mixpanel, AdMob, …), feature flags and trial-state strings, secrets and license-key names, anti-analysis signals, dylib hijacking surface, and Apple's Privacy Manifest cross-checked against what the binary actually uses.
+- **Forensic binary summary** — a plain-English read of what the main binary links and calls, including an **outbound network call-sites** map: which functions can open a connection, the networking symbols they reach for (BSD sockets, `getaddrinfo`, CFNetwork, Network.framework `nw_*`), and any host or URL literals sitting next to them. Any call site can be **decompiled on demand** (if you have Ghidra installed), and for relaunchable, non-hardened-runtime apps you can capture a **live call stack** that ties an actual outbound connection back to the function that opened it.
 - **App Store privacy labels** — when the bundle was installed from the Mac App Store, privacycommand fetches the developer's declared Privacy Nutrition Labels from `apps.apple.com` and shows them next to its static-analysis findings, so you can see whether the developer's claims line up with what the binary contains.
 - **Telemetry callout** — a Dashboard card flags how many analytics, advertising, and attribution SDKs the bundle ships, with a heat-graded count and per-category breakdown.
 - **Background Task Management** — every login item, launch agent, daemon, and helper the app has registered, fetched via the privileged helper so there's no admin prompt.
 - **Feature flags & trials** — the names of `isPro`, `isTrial`, `subscription_status`, `experiment_id`, and platform-specific switches (LaunchDarkly, Optimizely, Firebase Remote Config, PostHog, Statsig, Unleash) that the binary checks at runtime.
-- **Monitored runs** — launch the inspected app under privacycommand and watch its file events (via an optional privileged helper running `fs_usage`), network destinations, child processes, pasteboard / camera / microphone / screen-recording activity, USB device interactions, and resource usage in real time.
+- **Monitored runs** — launch the inspected app under privacycommand and watch its file events (via an optional privileged helper running `fs_usage`), network destinations (reverse-DNS-labelled, with click-through IP lookups, row highlighting, and a highlighted-only filter), child processes, pasteboard / camera / microphone / screen-recording activity, USB device interactions, and resource usage in real time.
 - **Network kill switch** — block the inspected app's outbound traffic system-wide via a `pf` anchor installed by the helper. Watch how the app handles being cut off.
 - **VM mode** — a guest agent that runs inside a macOS VM (VirtualBuddy / UTM / Parallels) and ships observations back to the host across the VM boundary, for analysing apps you'd rather not run on your bare-metal machine.
+- **Compare runs** — diff any two saved reports side by side from the History tab. Added and removed entitlements, domains, SDKs, login items, and findings are colour-cued, with a "show only changes" toggle — so you can see exactly what an app update introduced.
+- **Batch scan** — point privacycommand at a folder (or all of `/Applications`) and triage many apps at once in a sortable, filterable table: risk tier, warning/error counts, and headline signals per app. The same analyzer runs on each; one click opens any app in the main window for the full deep-dive.
 - **Reports** — every finding exports as JSON, HTML, or PDF.
 
 ## Install
@@ -70,6 +73,27 @@ Then in Xcode:
 3. ⌘B.
 
 The Swift Package Manager target builds with `swift build` from `privacycommand/`; tests run with `swift test`.
+
+## Command line
+
+The repo also builds `auditctl`, a small CLI over the same analyzer — handy for scripting and CI. Build it once with `swift build -c release` from `privacycommand/`, then:
+
+```sh
+# Full static report for a single app (pretty-printed; non-zero exit on parse failure)
+swift run -c release auditctl /Applications/SomeApp.app
+
+# Privacy-preview apps *before* you update them. With no arguments, preview
+# checks your outdated Homebrew casks; --all-apps scans everything installed.
+swift run -c release auditctl preview
+swift run -c release auditctl preview --all-apps --only-noteworthy --min-tier warn
+swift run -c release auditctl preview --json
+
+# --fetch downloads each incoming cask build and diffs it against the version
+# you have installed, so you can see what an update *adds* before you take it.
+swift run -c release auditctl preview --fetch firefox
+```
+
+`preview` is **inform-only**: it never runs `brew`, never blocks an update, and always exits 0. It reuses the same static analyzer and risk scoring as the app, and understands `.dmg` and `.zip` cask artifacts (`.pkg` is skipped). Heads-up: with `--fetch`, an incoming build is analyzed *before* Gatekeeper has cleared it, so a one-off "notarization" difference can just be a fresh-download artifact (the output flags this).
 
 ## Screenshots
 
