@@ -55,6 +55,29 @@ public enum BinaryStringScanner {
         return result
     }
 
+    /// Scan many Mach-Os and merge their results. Used to cover EMBEDDED code —
+    /// frameworks, XPC services, helpers, and `.appex` extensions — whose
+    /// network endpoints the main-executable scan misses (an SDK's domains
+    /// usually live in its embedded framework binary). Bounded by `maxFiles`
+    /// and a smaller per-file cap so a pathological bundle can't stall analysis;
+    /// callers get the union of whatever was scanned.
+    public static func scan(executables urls: [URL],
+                            symbols: [String] = defaultPrivacySymbols,
+                            maxBytesPerFile: Int = 16 * 1024 * 1024,
+                            timeoutSecondsPerFile: TimeInterval = 3,
+                            maxFiles: Int = 600) -> Result {
+        var merged = Result()
+        for url in urls.prefix(maxFiles) {
+            let r = scan(executable: url, symbols: symbols,
+                         maxBytes: maxBytesPerFile, timeoutSeconds: timeoutSecondsPerFile)
+            merged.foundFrameworkSymbols.formUnion(r.foundFrameworkSymbols)
+            merged.urls.formUnion(r.urls)
+            merged.domains.formUnion(r.domains)
+            merged.paths.formUnion(r.paths)
+        }
+        return merged
+    }
+
     /// Token (word-boundary) containment: `token` must not be flanked by
     /// identifier characters, so "AVCaptureDevice" matches the bare symbol or
     /// "_OBJC_CLASS_$_AVCaptureDevice" but NOT "AVCaptureDeviceInput" or

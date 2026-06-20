@@ -78,9 +78,15 @@ public struct StaticAnalyzer {
             frameworks: framework.frameworks
         )
 
-        let domains = scan.domains.sorted()
-        let urls = scan.urls.sorted()
-        let paths = scan.paths.sorted()
+        // Endpoints/strings from EVERY embedded Mach-O (frameworks, XPC
+        // services, helpers, .appex extensions) — not just the main executable.
+        // An SDK's network domains usually live in its embedded framework
+        // binary, so the main-exec-only scan missed them entirely. Capability
+        // inference deliberately still keys on the main executable's symbols.
+        let embeddedScan = BinaryStringScanner.scan(executables: embeddedMachOs)
+        let domains = scan.domains.union(embeddedScan.domains).sorted()
+        let urls = scan.urls.union(embeddedScan.urls).sorted()
+        let paths = scan.paths.union(embeddedScan.paths).sorted()
 
         // Persist the network call-site map so it's diffable across updates.
         // Size-capped + disassembler-gated so large apps aren't slowed.
