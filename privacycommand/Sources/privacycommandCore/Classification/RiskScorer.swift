@@ -139,6 +139,10 @@ public struct RiskScorer: Sendable {
     }
 
     private func scoreInferredCapabilities(_ report: StaticReport) -> [RiskContributor] {
+        // Apple platform binaries legitimately use sensitive frameworks without
+        // third-party-style usage-key declarations; never score their inferred
+        // capabilities as un/declared.
+        if report.codeSigning.isPlatformBinary { return [] }
         var out: [RiskContributor] = []
         let undeclared = report.inferredCapabilities.filter { $0.inferredButNotDeclared }
         if !undeclared.isEmpty {

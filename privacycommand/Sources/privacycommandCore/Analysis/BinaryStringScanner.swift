@@ -55,9 +55,26 @@ public enum BinaryStringScanner {
         return result
     }
 
+    /// Token (word-boundary) containment: `token` must not be flanked by
+    /// identifier characters, so "AVCaptureDevice" matches the bare symbol or
+    /// "_OBJC_CLASS_$_AVCaptureDevice" but NOT "AVCaptureDeviceInput" or
+    /// "CGDisplayStreamUpdate" — killing substring-collision false positives.
+    private static func isIdentChar(_ c: Character) -> Bool { c == "_" || c.isLetter || c.isNumber }
+    private static func containsToken(_ s: String, _ token: String) -> Bool {
+        guard !token.isEmpty else { return false }
+        var from = s.startIndex
+        while let r = s.range(of: token, range: from..<s.endIndex) {
+            let beforeOK = r.lowerBound == s.startIndex || !isIdentChar(s[s.index(before: r.lowerBound)])
+            let afterOK = r.upperBound == s.endIndex || !isIdentChar(s[r.upperBound])
+            if beforeOK && afterOK { return true }
+            from = s.index(after: r.lowerBound)
+        }
+        return false
+    }
+
     private static func ingest(_ s: String, symbols: Set<String>, into r: inout Result) {
         // Symbol hits.
-        for sym in symbols where s.contains(sym) {
+        for sym in symbols where Self.containsToken(s, sym) {
             r.foundFrameworkSymbols.insert(sym)
         }
         // URLs (very simple: starts with http(s):// or file:// up to whitespace)

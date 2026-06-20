@@ -385,7 +385,7 @@ public struct StaticAnalyzer {
 
     // MARK: - Inference
 
-    private func inferCapabilities(
+    func inferCapabilities(
         entitlements: Entitlements,
         declaredKeys: [PrivacyKey],
         scan: BinaryStringScanner.Result,
@@ -396,23 +396,25 @@ public struct StaticAnalyzer {
         var hits: [PrivacyCategory: [String]] = [:]
 
         // Symbol-based evidence
+        // NOTE: screen-recording (ScreenCaptureKit/CGDisplayStream) and
+        // accessibility (AXIsProcessTrusted) were removed — there is no
+        // matching PrivacyCategory, so they were mislabelled as
+        // desktop-folder/automation. NWConnection was removed — it is generic
+        // Network.framework usage, not a local-network signal. These need
+        // their own categories (tracked as detection gaps), not a wrong label.
         let symbolMap: [(symbol: String, category: PrivacyCategory)] = [
             ("AVCaptureDevice",          .camera),
             ("AVCaptureSession",         .microphone),
-            ("ScreenCaptureKit",         .desktopFolder),    // bucket: screen recording -> map to surprising-folder cat for now
-            ("CGDisplayStream",          .desktopFolder),
             ("PHPhotoLibrary",           .photoLibrary),
             ("CNContactStore",           .contacts),
             ("EKEventStore",             .calendar),
             ("EKReminder",               .reminders),
             ("CLLocationManager",        .location),
             ("CBCentralManager",         .bluetoothAlways),
-            ("AXIsProcessTrusted",       .automation),
             ("OSAScript",                .appleEvents),
             ("NSAppleScript",            .appleEvents),
             ("HMHome",                   .homeKit),
-            ("SFSpeechRecognizer",       .speechRecognition),
-            ("NWConnection",             .localNetwork)
+            ("SFSpeechRecognizer",       .speechRecognition)
         ]
         for entry in symbolMap where scan.foundFrameworkSymbols.contains(entry.symbol) {
             hits[entry.category, default: []].append("Binary references \(entry.symbol)")
@@ -428,25 +430,45 @@ public struct StaticAnalyzer {
             case "com.apple.CoreLocation":      hits[.location, default: []].append("Links CoreLocation.framework")
             case "com.apple.CoreBluetooth":     hits[.bluetoothAlways, default: []].append("Links CoreBluetooth.framework")
             case "com.apple.EventKit":          hits[.calendar, default: []].append("Links EventKit.framework")
-            case "com.apple.ScreenCaptureKit":  hits[.desktopFolder, default: []].append("Links ScreenCaptureKit.framework")
             default: break
             }
         }
 
+        // `.bluetooth` (peripheral) and `.bluetoothAlways` share one
+        // CoreBluetooth surface; a usage key of either justifies a CoreBluetooth
+        // inference and vice-versa, so treat them as one for both checks.
+        func declaredFor(_ cat: PrivacyCategory) -> Bool {
+            if declaredCategories.contains(cat) { return true }
+            if Self.isBluetooth(cat) && declaredCategories.contains(where: Self.isBluetooth) { return true }
+            return categoryDeclaredViaEntitlement(cat, entitlements: entitlements)
+        }
+        func inferredFor(_ cat: PrivacyCategory) -> Bool {
+            if hits[cat] != nil { return true }
+            if Self.isBluetooth(cat) && hits.keys.contains(where: Self.isBluetooth) { return true }
+            return false
+        }
+
         var out: [InferredCapability] = []
         for (cat, evidence) in hits {
-            let declared = declaredCategories.contains(cat) || categoryDeclaredViaEntitlement(cat, entitlements: entitlements)
+            // "Used but not declared" only means something for categories that
+            // HAVE a static declaration channel (a usage key or entitlement).
+            // Categories without one were the source of the permanent false
+            // flags — surface them, never score them as undeclared.
+            let undeclared = Self.declarableCategories.contains(cat) && !declaredFor(cat)
             out.append(InferredCapability(
                 category: cat,
                 confidence: evidence.count >= 2 ? .high : .medium,
                 evidence: evidence,
                 declaredButNotJustified: false,
-                inferredButNotDeclared: !declared
+                inferredButNotDeclared: undeclared
             ))
         }
-        // Declared-but-not-justified: privacy keys with no symbol/framework hit
-        for k in declaredKeys {
-            if hits[k.category] == nil {
+        // Declared-but-not-justified: a declared usage key whose API we can
+        // actually detect but found no trace of. Restricted to categories the
+        // inference map COVERS — otherwise categories we simply can't see
+        // (motion, tracking, …) would all look "unused".
+        for k in declaredKeys where Self.coverableCategories.contains(k.category) {
+            if !inferredFor(k.category) {
                 out.append(InferredCapability(
                     category: k.category,
                     confidence: .low,
@@ -458,6 +480,22 @@ public struct StaticAnalyzer {
         }
         return out.sorted { $0.category.rawValue < $1.category.rawValue }
     }
+
+    // Categories with a real static declaration channel (Info.plist usage key
+    // and/or entitlement) — only these can meaningfully be "used but not declared".
+    static let declarableCategories: Set<PrivacyCategory> = [
+        .camera, .microphone, .contacts, .calendar, .reminders, .photoLibrary,
+        .photoLibraryAdd, .location, .bluetooth, .bluetoothAlways, .homeKit,
+        .motion, .speechRecognition, .mediaLibrary, .appleEvents, .automation,
+        .localNetwork, .userTrackingTransparency, .focusStatus, .faceID
+    ]
+    // Categories the inference map can actually detect — only these can be
+    // "declared but not justified".
+    static let coverableCategories: Set<PrivacyCategory> = [
+        .camera, .microphone, .photoLibrary, .contacts, .calendar, .reminders,
+        .location, .bluetooth, .bluetoothAlways, .appleEvents, .homeKit, .speechRecognition
+    ]
+    static func isBluetooth(_ c: PrivacyCategory) -> Bool { c == .bluetooth || c == .bluetoothAlways }
 
     private func categoryDeclaredViaEntitlement(_ cat: PrivacyCategory, entitlements: Entitlements) -> Bool {
         switch cat {
