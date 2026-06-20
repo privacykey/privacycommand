@@ -164,6 +164,18 @@ public struct StaticAnalyzer {
             }
         }
 
+        // High-trust / sandbox-escape entitlements. (Skip Apple's own binaries,
+        // which legitimately hold many of these.)
+        if !signing.isPlatformBinary {
+            for ne in EntitlementsReader.notableEntitlements(in: entitlements.raw) {
+                warnings.append(Finding(
+                    severity: ne.severity == .high ? .warn : .info,
+                    message: ne.title,
+                    evidence: [ne.key, ne.detail],
+                    kbArticleID: "entitlement-notable"))
+            }
+        }
+
         // Surface ATS-derived findings so the risk scorer + UI pick them up.
         if let ats = plistResult.atsConfig {
             if ats.allowsArbitraryLoads {

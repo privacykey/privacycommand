@@ -191,6 +191,27 @@ public struct RiskScorer: Sendable {
                              detail: "App holds the Endpoint Security entitlement (can monitor other processes).",
                              impact: 10))
         }
+        // High-trust / sandbox-escape entitlements (system-extension, DriverKit,
+        // debugger, sandbox temporary exceptions). Apple's own binaries hold many
+        // of these legitimately, so skip platform binaries.
+        if !isApple {
+            let releaseBuild: Bool = {
+                switch report.notarization { case .notarized, .developerIDOnly: return true; default: return false }
+            }()
+            for ne in EntitlementsReader.notableEntitlements(in: report.entitlements.raw) {
+                if ne.key == "com.apple.security.get-task-allow" {
+                    // Only a real concern in a distributed/release build.
+                    if releaseBuild {
+                        out.append(.init(source: .staticAnalysis, category: "get-task-allow",
+                            detail: "Debuggable (get-task-allow) in a distributed build — weakens the process against inspection/injection.",
+                            impact: 8))
+                    }
+                    continue
+                }
+                out.append(.init(source: .staticAnalysis, category: "high-trust-entitlement",
+                    detail: ne.title + " — " + ne.detail, impact: ne.severity == .high ? 10 : 5))
+            }
+        }
         return out
     }
 

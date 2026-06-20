@@ -18,7 +18,7 @@ public enum InfoPlistReader {
         }
 
         var keys: [PrivacyKey] = []
-        for (k, v) in plist where k.hasPrefix("NS") && k.hasSuffix("UsageDescription") {
+        for (k, v) in plist where k.contains("UsageDescription") {  // NS*UsageDescription, NFCReaderUsageDescription, *UsageDescriptionDictionary
             let entry = db.entry(forKey: k)
             keys.append(PrivacyKey(
                 rawKey: k,

@@ -106,3 +106,61 @@ public enum EntitlementsReader {
         )
     }
 }
+
+// MARK: - Notable entitlements
+
+/// A high-trust or sandbox-escape entitlement worth surfacing on its own.
+public struct NotableEntitlement: Codable, Hashable, Sendable, Identifiable {
+    public var id: String { key }
+    public let key: String
+    public let title: String
+    public let detail: String
+    public let severity: Severity
+    public enum Severity: String, Codable, Hashable, Sendable { case low, medium, high }
+    public init(key: String, title: String, detail: String, severity: Severity) {
+        self.key = key; self.title = title; self.detail = detail; self.severity = severity
+    }
+}
+
+public extension EntitlementsReader {
+    /// High-trust / sandbox-escape entitlements worth surfacing. Pure + testable;
+    /// inspects the raw entitlement dict only. (get-task-allow's release-build
+    /// escalation needs signing context, so it lives in the risk scorer.)
+    static func notableEntitlements(in raw: [String: PlistValue]) -> [NotableEntitlement] {
+        var out: [NotableEntitlement] = []
+        func isOn(_ k: String) -> Bool { raw[k]?.asBool == true }
+
+        if isOn("com.apple.developer.system-extension.install") {
+            out.append(.init(key: "com.apple.developer.system-extension.install",
+                title: "Installs a System Extension",
+                detail: "Can install a system extension (network/endpoint/driver) that runs with elevated privileges outside the app sandbox.",
+                severity: .high))
+        }
+        if raw.keys.contains(where: { $0.hasPrefix("com.apple.developer.driverkit") }) {
+            out.append(.init(key: "com.apple.developer.driverkit",
+                title: "Ships a DriverKit driver",
+                detail: "Runs in a privileged system context to talk to hardware.",
+                severity: .high))
+        }
+        if isOn("com.apple.security.cs.debugger") {
+            out.append(.init(key: "com.apple.security.cs.debugger",
+                title: "Debugging-tool entitlement",
+                detail: "Can attach to and inspect other processes (task_for_pid). Legitimate for debuggers/profilers; powerful otherwise.",
+                severity: .high))
+        }
+        if isOn("com.apple.security.get-task-allow") {
+            out.append(.init(key: "com.apple.security.get-task-allow",
+                title: "Debuggable (get-task-allow)",
+                detail: "Allows a debugger to attach. Expected in debug builds; in a distributed/release build it weakens the process against inspection and injection.",
+                severity: .medium))
+        }
+        for k in raw.keys where k.hasPrefix("com.apple.security.temporary-exception") {
+            let broad = k.contains("files.") || k.contains("sbpl") || k.contains("global-name")
+            out.append(.init(key: k,
+                title: "Sandbox temporary exception",
+                detail: "Punches a hole in the App Sandbox: " + k.replacingOccurrences(of: "com.apple.security.temporary-exception.", with: ""),
+                severity: broad ? .high : .medium))
+        }
+        return out.sorted { $0.key < $1.key }
+    }
+}
