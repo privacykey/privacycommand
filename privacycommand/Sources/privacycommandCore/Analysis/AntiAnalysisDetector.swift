@@ -30,80 +30,121 @@ public enum AntiAnalysisDetector {
         }
     }
 
-    /// Run the detector against an executable on disk plus the cheap
-    /// pre-extracted `BinaryStringScanner` result we already produce.
-    public static func analyse(executable url: URL,
-                               scan: BinaryStringScanner.Result) -> Result {
-        var findings: [Result.Finding] = []
-        let machO = MachOInspector.loadCommands(of: url)
+    /// Symbol/string tokens this detector needs the `BinaryStringScanner` pass
+    /// to capture. `StaticAnalyzer` unions these into the scan symbol set so the
+    /// ptrace/sysctl detectors actually have data. (PT_DENY_ATTACH, KERN_PROC
+    /// and P_TRACED are numeric macros — they only appear if used as string
+    /// literals; the reliable ptrace signal is the imported `_ptrace` symbol.)
+    public static let scanSymbols: [String] = [
+        "_ptrace", "ptrace", "KERN_PROC", "P_TRACED", "DYLD_INSERT_LIBRARIES"
+    ]
 
-        // 1. ptrace(PT_DENY_ATTACH) — searched by symbol presence in scan.
-        // The most reliable signal is the literal symbol name `_ptrace`
-        // PLUS a sibling literal `PT_DENY_ATTACH`. We also accept `_sysctl`
-        // for the alternate technique below.
-        if scan.foundFrameworkSymbols.contains("ptrace")
-            || scan.foundFrameworkSymbols.contains("PT_DENY_ATTACH") {
-            findings.append(.init(
+    /// Run the detector against an executable on disk plus the cheap
+    /// pre-extracted `BinaryStringScanner` result we already produce. `isMASApp`
+    /// gates the encrypted-segment signal: FairPlay encryption is expected for
+    /// App Store apps and is not an anti-analysis signal there.
+    public static func analyse(executable url: URL,
+                               scan: BinaryStringScanner.Result,
+                               isMASApp: Bool = false) -> Result {
+        let machO = MachOInspector.loadCommands(of: url)
+        return Result(findings: findings(
+            symbols: scan.foundFrameworkSymbols,
+            hasEncryptedSegment: machO.hasEncryptedSegment,
+            isStripped: machO.isStripped,
+            isMASApp: isMASApp))
+    }
+
+    /// Pure gating logic, split out so it is testable without a Mach-O on disk.
+    ///
+    /// The KB's guidance: a *lone* anti-analysis signal is rarely meaningful —
+    /// the combination is. So deliberate signals (intentional anti-debug /
+    /// injection awareness / non-App-Store encryption) are separated from
+    /// ambient artefacts (a stripped binary; expected App-Store encryption).
+    /// Two+ deliberate signals corroborate and are raised to high; a stripped
+    /// binary is surfaced only when a deliberate signal gives it meaning;
+    /// App-Store encryption is always shown but flagged low/expected.
+    static func findings(symbols syms: Set<String>,
+                         hasEncryptedSegment: Bool,
+                         isStripped: Bool,
+                         isMASApp: Bool) -> [Result.Finding] {
+        var deliberate: [Result.Finding] = []
+        var info: [Result.Finding] = []
+        var corroborationOnly: [Result.Finding] = []
+
+        // ptrace(PT_DENY_ATTACH): the static signal is the imported `_ptrace`
+        // symbol (the PT_DENY_ATTACH argument is a numeric macro, not a string).
+        if syms.contains("_ptrace") || syms.contains("ptrace") {
+            deliberate.append(.init(
                 kind: .ptraceDenyAttach,
-                summary: "References `ptrace` — possibly used with PT_DENY_ATTACH to refuse debugger attachment.",
-                detail: "macOS's `ptrace(PT_DENY_ATTACH)` is the canonical anti-debug call: a process invokes it on itself, and from then on any attempt to attach a debugger fails with EPERM. The code remains debuggable through Apple's get-task-allow workaround (used by Xcode's debug builds) but denies attachment in production. Legitimate uses include DRM and game anti-cheat; concerning when the app has no obvious reason to refuse inspection.",
+                summary: "Imports `ptrace` — likely used with PT_DENY_ATTACH to refuse debugger attachment.",
+                detail: "macOS's `ptrace(PT_DENY_ATTACH)` is the canonical anti-debug call: a process invokes it on itself and any later debugger attach fails with EPERM. Legitimate uses include DRM and game anti-cheat; concerning when the app has no obvious reason to refuse inspection.",
                 kbArticleID: "antianalysis-ptrace",
                 confidence: .medium))
         }
 
-        // 2. sysctl-based debug detection — signature is reading
-        // KERN_PROC + checking the P_TRACED flag on the bsdinfo struct.
-        // Detected via the literal "P_TRACED" or repeated `sysctl` symbol
-        // refs combined with `KERN_PROC`. These rarely appear together by
-        // accident.
-        let strings = scan.paths.map { $0.lowercased() }   // cheap haystack
-            + scan.urls.map { $0.lowercased() }
-        let mentionsKernProc = strings.contains(where: { $0.contains("kern_proc") })
-            || scan.foundFrameworkSymbols.contains("KERN_PROC")
-        let mentionsPTraced = strings.contains(where: { $0.contains("p_traced") })
-            || scan.foundFrameworkSymbols.contains("P_TRACED")
-        if mentionsKernProc && mentionsPTraced {
-            findings.append(.init(
+        // sysctl P_TRACED check: only fires when the distinguishing constants
+        // appear as string literals (rare). Bare `sysctl` is far too common to
+        // flag — almost every app reads sysctl for system info.
+        if syms.contains("KERN_PROC") && syms.contains("P_TRACED") {
+            deliberate.append(.init(
                 kind: .sysctlDebugCheck,
                 summary: "Looks for the P_TRACED flag via sysctl — alternate anti-debug pattern.",
-                detail: "Some apps detect a debugger by calling `sysctl(KERN_PROC, KERN_PROC_PID, …)` and checking whether the returned `kp_proc.p_flag` has the `P_TRACED` bit set. This is the second-most-common anti-debug technique on macOS after `PT_DENY_ATTACH`.",
+                detail: "Some apps detect a debugger by calling sysctl(KERN_PROC, KERN_PROC_PID, …) and checking the P_TRACED bit on kp_proc.p_flag. The second-most-common macOS anti-debug technique after PT_DENY_ATTACH.",
                 kbArticleID: "antianalysis-sysctl",
-                confidence: .high))
+                confidence: .medium))
         }
 
-        // 3. Encrypted segment — Mac App Store apps and some DRM-protected
-        // apps ship LC_ENCRYPTION_INFO with cryptid != 0. Static analysis
-        // is impossible until decrypted by dyld at launch.
-        if machO.hasEncryptedSegment {
-            findings.append(.init(
-                kind: .encryptedSegment,
-                summary: "Mach-O contains an encrypted segment (LC_ENCRYPTION_INFO).",
-                detail: "Encrypted at rest; dyld decrypts at launch. Common in Mac App Store apps shipped through Apple's FairPlay DRM. Outside the App Store this is unusual and suggests a custom DRM scheme — disassembly tools won't see the real code without a memory dump from a running instance.",
-                kbArticleID: "antianalysis-encrypted",
-                confidence: .high))
-        }
-
-        // 4. Stripped — heuristic via SYMTAB string-table size.
-        if machO.isStripped {
-            findings.append(.init(
-                kind: .stripped,
-                summary: "Symbol table is unusually small — binary appears stripped.",
-                detail: "Local-symbol stripping is a normal release-build optimisation; many production apps ship stripped. We surface it here because stripped binaries are noticeably harder to reverse-engineer, which compounds with other anti-analysis signals.",
-                kbArticleID: "antianalysis-stripped",
-                confidence: .low))
-        }
-
-        // 5. DYLD_INSERT_LIBRARIES references in the binary's literals —
-        // strong injection-tooling signal.
-        if scan.foundFrameworkSymbols.contains("DYLD_INSERT_LIBRARIES") {
-            findings.append(.init(
+        // DYLD_INSERT_LIBRARIES literal.
+        if syms.contains("DYLD_INSERT_LIBRARIES") {
+            deliberate.append(.init(
                 kind: .dyldInsertReference,
                 summary: "References the DYLD_INSERT_LIBRARIES environment variable.",
-                detail: "This env var injects a dylib into a process at launch; legitimate uses include debuggers, profilers, and testing harnesses, but it is also the standard injection vector for malware. The reference alone doesn't prove malicious intent — it just tells us the code knows about the mechanism.",
+                detail: "This env var injects a dylib into a process at launch; legitimate for debuggers/profilers/tests but also the standard injection vector for malware. The reference alone doesn't prove intent — it shows the code knows the mechanism.",
                 kbArticleID: "antianalysis-dyld-insert",
                 confidence: .medium))
         }
 
-        return Result(findings: findings)
+        // Encrypted segment — expected (FairPlay) for App Store apps, notable
+        // outside it (custom DRM).
+        if hasEncryptedSegment {
+            if isMASApp {
+                info.append(.init(
+                    kind: .encryptedSegment,
+                    summary: "Encrypted segment (LC_ENCRYPTION_INFO) — expected for a Mac App Store app.",
+                    detail: "App Store apps ship FairPlay-encrypted and dyld decrypts at launch. Normal for App Store distribution; not an anti-analysis signal here.",
+                    kbArticleID: "antianalysis-encrypted",
+                    confidence: .low))
+            } else {
+                deliberate.append(.init(
+                    kind: .encryptedSegment,
+                    summary: "Mach-O has an encrypted segment outside the App Store (LC_ENCRYPTION_INFO).",
+                    detail: "Encrypted at rest; dyld decrypts at launch. Outside the App Store this suggests a custom DRM scheme — disassembly won't see the real code without a memory dump from a running instance.",
+                    kbArticleID: "antianalysis-encrypted",
+                    confidence: .medium))
+            }
+        }
+
+        // Stripped — a normal release-build optimisation. Surfaced only when
+        // corroborated by a deliberate signal.
+        if isStripped {
+            corroborationOnly.append(.init(
+                kind: .stripped,
+                summary: "Symbol table is unusually small — binary appears stripped.",
+                detail: "Local-symbol stripping is a normal release optimisation; most production apps ship stripped. Surfaced here only because it compounds with other anti-analysis signals.",
+                kbArticleID: "antianalysis-stripped",
+                confidence: .low))
+        }
+
+        // The combination is what matters: >= 2 deliberate signals corroborate
+        // and rise to high; a lone deliberate signal stays medium.
+        let corroborated = deliberate.count >= 2
+        var out = deliberate.map { f -> Result.Finding in
+            guard corroborated, f.confidence != .low else { return f }
+            return .init(kind: f.kind, summary: f.summary, detail: f.detail,
+                         kbArticleID: f.kbArticleID, confidence: .high)
+        }
+        out += info
+        if !deliberate.isEmpty { out += corroborationOnly }
+        return out
     }
 }

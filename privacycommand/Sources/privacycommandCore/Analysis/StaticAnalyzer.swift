@@ -22,7 +22,9 @@ public struct StaticAnalyzer {
         let signing = CodesignWrapper.info(for: bundle)
         let notarization = CodesignWrapper.notarization(for: bundle)
         let framework = FrameworkScanner.scan(bundle: bundle)
-        let scan = BinaryStringScanner.scan(executable: bundle.executableURL)
+        let scan = BinaryStringScanner.scan(
+            executable: bundle.executableURL,
+            symbols: BinaryStringScanner.defaultPrivacySymbols + AntiAnalysisDetector.scanSymbols)
         let provenance = ProvenanceReader.read(for: bundle)
         let updateMechanism = UpdateMechanismDetector.detect(
             in: bundle, plist: plistResult.raw, scan: scan)
@@ -50,19 +52,20 @@ public struct StaticAnalyzer {
             .map { (url: $0, label: bundleRelative($0)) }
         let secrets = SecretsScanner.scan(files: secretFiles).findings
         let bundleSigning = BundleSigningAuditor.audit(bundle: bundle)
+        // MAS receipt drives the anti-analysis encrypted-segment gate (FairPlay
+        // is expected for App Store apps); AppStoreInfo below reuses it.
+        let masReceipt = MASReceiptDetector.detect(for: bundle)
         let antiAnalysis = AntiAnalysisDetector.analyse(
-            executable: bundle.executableURL, scan: scan).findings
+            executable: bundle.executableURL, scan: scan, isMASApp: masReceipt.isMASApp).findings
         let rpathAudit = RPathAuditor.audit(executable: bundle.executableURL)
         let embeddedAssets = EmbeddedAssetScanner.scan(bundle: bundle)
         let privacyManifest = PrivacyManifestReader.read(for: bundle)
         let notarizationDeep = NotarizationDeepDive.analyse(bundle: bundle)
         let flagFindings = FlagsScanner.scan(executable: bundle.executableURL).findings
 
-        // Mac App Store detection runs in microseconds (one filesystem
-        // attribute lookup) so it lives inline. The actual iTunes
-        // Lookup + privacy-label fetch are async and live in the
+        // `masReceipt` is computed above (the anti-analysis MAS gate needs it).
+        // The iTunes Lookup + privacy-label fetch are async and live in the
         // coordinator — they call back to update this struct in place.
-        let masReceipt = MASReceiptDetector.detect(for: bundle)
         let appStoreInfo = AppStoreInfo(
             isMASApp: masReceipt.isMASApp,
             bundleID: masReceipt.bundleID
