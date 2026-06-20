@@ -97,11 +97,14 @@ public enum BundleSigningAuditor {
 
     // MARK: - Summary
 
-    private static func summarize(entries: [BundleSigningAudit.Entry]) -> BundleSigningAudit {
+    static func summarize(entries: [BundleSigningAudit.Entry]) -> BundleSigningAudit {
         let teamIDs = Set(entries.compactMap(\.teamID))
         let mainTeamID = entries.first(where: { $0.role == .mainApp })?.teamID
         let unsigned = entries.filter { $0.teamID == nil && !$0.isPlatformBinary && !$0.isAdhocSigned }
-        let adhocOuter = entries.filter { $0.isAdhocSigned && $0.role != .other }
+        // Ad-hoc signing of embedded frameworks/dylibs/tools is routine and benign
+        // (Gatekeeper/notarization carry the trust). Only note ad-hoc *separate-
+        // process* components (XPC services, login items, helpers).
+        let adhocComponents = entries.filter { $0.isAdhocSigned && [.xpcService, .loginItem, .helper].contains($0.role) }
         // Mismatch detection requires a baseline. If we never identified
         // the main app's team ID, every signed component would
         // (incorrectly) compare unequal to nil and get flagged as
@@ -141,11 +144,13 @@ public enum BundleSigningAuditor {
                 summary: "\(unsigned.count) inner Mach-O\(unsigned.count == 1 ? "" : "s") unsigned.",
                 detail: "Components without a code signature aren't subject to library validation. Examples: " + unsigned.prefix(5).map(\.url.lastPathComponent).joined(separator: ", ")))
         }
-        if !adhocOuter.isEmpty {
+        // Only mildly notable in an otherwise properly-signed (distributed) app;
+        // in a local/ad-hoc build everything is ad-hoc, so it means nothing.
+        if mainTeamID != nil, !adhocComponents.isEmpty {
             verdicts.append(.init(
                 severity: .info,
-                summary: "\(adhocOuter.count) component\(adhocOuter.count == 1 ? " is" : "s are") ad-hoc signed.",
-                detail: "Ad-hoc signing is fine for local development but unusual in distributed software. Examples: " + adhocOuter.prefix(5).map(\.url.lastPathComponent).joined(separator: ", ")))
+                summary: "\(adhocComponents.count) helper component\(adhocComponents.count == 1 ? " is" : "s are") ad-hoc signed.",
+                detail: "These run as separate processes without a developer identity. Usually fine, but worth a look in distributed software. Examples: " + adhocComponents.prefix(5).map(\.url.lastPathComponent).joined(separator: ", ")))
         }
 
         if verdicts.isEmpty {

@@ -26,7 +26,7 @@ public enum RPathAuditor {
             entries.append(RPathAudit.Entry(
                 raw: raw, resolvedPath: resolved?.path,
                 isUserWritable: writable,
-                kind: classify(raw: raw, resolved: resolved, writable: writable)
+                kind: classify(raw: raw, resolved: resolved, writable: writable, bundleRoot: bundleRoot)
             ))
         }
         return RPathAudit(entries: entries, dylibs: machO.dylibs)
@@ -64,11 +64,26 @@ public enum RPathAuditor {
             && !path.hasPrefix("/usr/lib/")
     }
 
-    private static func classify(raw: String, resolved: URL?, writable: Bool) -> RPathAudit.Entry.Kind {
-        if writable { return .hijackable }
-        if raw.hasPrefix("/Users/") || raw.contains("$HOME") { return .hijackable }
+    static func classify(raw: String, resolved: URL?, writable: Bool, bundleRoot: URL?) -> RPathAudit.Entry.Kind {
+        // An rpath resolving INSIDE the app's own bundle is the app's own code
+        // location. The owner being able to write their own app directory is
+        // normal, not a hijack vector — an attacker who can write the bundle has
+        // already replaced the app. So never flag in-bundle rpaths as hijackable.
+        if let resolved, let bundleRoot,
+           resolved.path == bundleRoot.path || resolved.path.hasPrefix(bundleRoot.path + "/") {
+            return .relative
+        }
         if raw.hasPrefix("@executable_path/") || raw.hasPrefix("@loader_path/") { return .relative }
         if raw.hasPrefix("/usr/lib") || raw.hasPrefix("/System/") { return .system }
+        // Standard package-manager prefixes (Homebrew, MacPorts, /usr/local) are
+        // admin-managed shared locations — treat them uniformly as external
+        // dependencies, not per-app "hijackable" alarms.
+        let p = resolved?.path ?? raw
+        for pfx in ["/usr/local/", "/opt/homebrew/", "/opt/local/"] where p.hasPrefix(pfx) || raw.hasPrefix(pfx) {
+            return .absolute
+        }
+        if writable { return .hijackable }
+        if raw.hasPrefix("/Users/") || raw.contains("$HOME") { return .hijackable }
         return .absolute
     }
 

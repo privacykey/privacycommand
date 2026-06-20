@@ -39,18 +39,22 @@ public enum NotarizationDeepDive {
             arguments: ["stapler", "validate", "-q", bundleURL.path],
             timeout: 10)
         let combined = (result.stdout + "\n" + result.stderr).lowercased()
-        let verdict: NotarizationDeepDiveReport.Verdict
-        if combined.contains("the validate action worked") || result.exitCode == 0 {
-            verdict = .ok
-        } else if combined.contains("does not have a ticket")
-                  || combined.contains("could not validate")
-                  || combined.contains("65") {  // stapler's "no ticket" exit code
-            verdict = .noTicket
-        } else {
-            verdict = .failed
-        }
+        let verdict = staplerVerdict(combined: combined, exitCode: result.exitCode)
         let raw = (result.stdout + "\n" + result.stderr).trimmingCharacters(in: .whitespacesAndNewlines)
         return .init(rawText: raw.isEmpty ? "(no output)" : raw, verdict: verdict)
+    }
+
+    /// Decide the stapler verdict from its (lowercased) combined output + exit
+    /// code. Exit-code-based so a literal "65" in the bundle path or a version
+    /// string can't be mistaken for stapler's no-ticket exit code 65.
+    static func staplerVerdict(combined: String, exitCode: Int32) -> NotarizationDeepDiveReport.Verdict {
+        if combined.contains("the validate action worked") || exitCode == 0 { return .ok }
+        if combined.contains("does not have a ticket")
+            || combined.contains("could not validate")
+            || exitCode == 65 {            // stapler's no-ticket exit code
+            return .noTicket
+        }
+        return .failed
     }
 
     private static func spctlAssess(bundleURL: URL) -> NotarizationDeepDiveReport.ToolOutput {
