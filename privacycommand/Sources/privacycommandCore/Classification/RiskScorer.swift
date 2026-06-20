@@ -74,6 +74,7 @@ public struct RiskScorer: Sendable {
         contributors += scoreDeclarations(staticReport)
         contributors += scoreInferredCapabilities(staticReport)
         contributors += scoreEntitlements(staticReport)
+        contributors += scoreManifestConsistency(staticReport)
         contributors += scoreFileEvents(events)
         contributors += scoreNetworkEvents(events)
 
@@ -216,6 +217,25 @@ public struct RiskScorer: Sendable {
     }
 
     // MARK: - Dynamic contributors
+
+    private func scoreManifestConsistency(_ report: StaticReport) -> [RiskContributor] {
+        guard let manifest = report.privacyManifest else { return [] }
+        let trackerSDKs = report.sdkHits.filter { $0.isTrackerLike }.map { $0.fingerprint.displayName }
+        let classifier = DomainClassifier()
+        let observed = report.hardcodedDomains.filter {
+            switch classifier.classify($0).category {
+            case .adTech, .analytics, .telemetry: return true
+            default: return false
+            }
+        }
+        let tx = PrivacyManifestReader.trackingCrossCheck(
+            manifest: manifest, trackerSDKNames: trackerSDKs, observedTrackerDomains: observed)
+        guard !tx.trackerSDKsButTrackingNotDeclared.isEmpty else { return [] }
+        return [.init(source: .staticAnalysis, category: "manifest-tracking-mismatch",
+                      detail: "Privacy manifest declares no tracking, but the app embeds tracking SDK(s): "
+                            + tx.trackerSDKsButTrackingNotDeclared.prefix(3).joined(separator: ", ") + ".",
+                      impact: 8)]
+    }
 
     private func scoreFileEvents(_ events: [DynamicEvent]) -> [RiskContributor] {
         let fileEvents = events.compactMap { e -> FileEvent? in

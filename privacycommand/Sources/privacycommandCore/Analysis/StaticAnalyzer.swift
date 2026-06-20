@@ -320,6 +320,33 @@ public struct StaticAnalyzer {
                     evidence: xc.usedButUndeclared.map { "\($0.category.rawValue): \($0.evidence.joined(separator: ", "))" },
                     kbArticleID: "privacy-manifest"))
             }
+
+            // Tracking consistency: the manifest's stated tracking vs what the
+            // binary actually embeds (tracker SDKs) and contacts (tracker domains).
+            let trackerSDKs = sdkHits.filter { $0.isTrackerLike }.map { $0.fingerprint.displayName }
+            let domainClassifier = DomainClassifier()
+            let observedTrackerDomains = domains.filter {
+                switch domainClassifier.classify($0).category {
+                case .adTech, .analytics, .telemetry: return true
+                default: return false
+                }
+            }
+            let tx = PrivacyManifestReader.trackingCrossCheck(
+                manifest: manifest, trackerSDKNames: trackerSDKs, observedTrackerDomains: observedTrackerDomains)
+            if !tx.trackerSDKsButTrackingNotDeclared.isEmpty {
+                enrichedWarnings.append(Finding(
+                    severity: .warn,
+                    message: "Privacy manifest declares no tracking, but the app embeds tracking SDK(s).",
+                    evidence: tx.trackerSDKsButTrackingNotDeclared,
+                    kbArticleID: "privacy-manifest"))
+            }
+            if !tx.undeclaredTrackingDomains.isEmpty {
+                enrichedWarnings.append(Finding(
+                    severity: .info,
+                    message: "\(tx.undeclaredTrackingDomains.count) tracker domain(s) contacted but not listed in NSPrivacyTrackingDomains.",
+                    evidence: Array(tx.undeclaredTrackingDomains.prefix(12)),
+                    kbArticleID: "privacy-manifest"))
+            }
         } else if signing.teamIdentifier != nil && !signing.isPlatformBinary {
             // Apple-platform binaries don't ship a manifest. Third-party
             // notarized apps generally should.

@@ -145,6 +145,27 @@ public enum PrivacyManifestReader {
                     category: $0, evidence: symbolEvidenceByCategory[$0] ?? []) }
         )
     }
+
+    /// Consistency between the manifest's *stated* tracking and what the binary
+    /// actually embeds (tracker SDKs) and contacts (tracker domains). Pure +
+    /// testable; the caller supplies the observed signals.
+    public static func trackingCrossCheck(manifest: PrivacyManifest,
+                                          trackerSDKNames: [String],
+                                          observedTrackerDomains: [String]) -> PrivacyManifestTrackingCrossCheck {
+        let declaresTracking = manifest.isTrackingDeclared
+            || manifest.collectedDataTypes.contains { $0.usedForTracking }
+        // Embeds tracker SDKs while declaring no tracking → a real contradiction.
+        let sdkContradiction = declaresTracking ? [] : trackerSDKNames.sorted()
+        // Tracker domains contacted but not listed under NSPrivacyTrackingDomains
+        // (host-boundary match so a sub-domain of a declared domain counts).
+        let declared = manifest.trackingDomains.map { $0.lowercased() }
+        let undeclared = observedTrackerDomains.map { $0.lowercased() }.filter { dom in
+            !declared.contains { dom == $0 || dom.hasSuffix("." + $0) || $0.hasSuffix("." + dom) }
+        }
+        return PrivacyManifestTrackingCrossCheck(
+            trackerSDKsButTrackingNotDeclared: sdkContradiction,
+            undeclaredTrackingDomains: Array(Set(undeclared)).sorted())
+    }
 }
 
 // MARK: - Public types
@@ -266,5 +287,18 @@ public struct PrivacyManifestCrossCheck: Sendable, Hashable {
 
     public var isClean: Bool {
         declaredButUnused.isEmpty && usedButUndeclared.isEmpty
+    }
+}
+
+/// Result of comparing the manifest's stated tracking against observed signals.
+public struct PrivacyManifestTrackingCrossCheck: Sendable, Hashable {
+    /// Tracker SDK display names embedded while the manifest declares no tracking.
+    public let trackerSDKsButTrackingNotDeclared: [String]
+    /// Tracker domains the binary contacts that aren't in NSPrivacyTrackingDomains.
+    public let undeclaredTrackingDomains: [String]
+    public var isClean: Bool { trackerSDKsButTrackingNotDeclared.isEmpty && undeclaredTrackingDomains.isEmpty }
+    public init(trackerSDKsButTrackingNotDeclared: [String], undeclaredTrackingDomains: [String]) {
+        self.trackerSDKsButTrackingNotDeclared = trackerSDKsButTrackingNotDeclared
+        self.undeclaredTrackingDomains = undeclaredTrackingDomains
     }
 }
