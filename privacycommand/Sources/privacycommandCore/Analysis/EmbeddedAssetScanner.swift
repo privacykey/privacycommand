@@ -39,7 +39,7 @@ public enum EmbeddedAssetScanner {
             // installed under one of the Library/Launch{Agents,Daemons}
             // directories at install time.
             if url.pathExtension.lowercased() == "plist" {
-                if let lp = parseLaunchPlist(at: url) {
+                if let lp = parseLaunchPlist(at: url, mainBundle: bundle.url) {
                     launchPlists.append(lp)
                 }
             }
@@ -116,7 +116,7 @@ public enum EmbeddedAssetScanner {
 
     // MARK: - Launch plists
 
-    private static func parseLaunchPlist(at url: URL) -> EmbeddedAssets.LaunchPlist? {
+    private static func parseLaunchPlist(at url: URL, mainBundle: URL) -> EmbeddedAssets.LaunchPlist? {
         guard let data = try? Data(contentsOf: url),
               let plist = try? PropertyListSerialization.propertyList(
                 from: data, options: [], format: nil) as? [String: Any]
@@ -150,7 +150,26 @@ public enum EmbeddedAssetScanner {
             runAtLoad: runAtLoad,
             keepAlive: keepAlive,
             machServices: machServices.sorted(),
-            kind: classifyLaunchPlist(at: url))
+            kind: classifyLaunchPlist(at: url),
+            enclosingBundleName: enclosingVendorBundle(of: url, mainBundle: mainBundle))
+    }
+
+    /// The nearest enclosing sub-bundle (framework/xpc/appex/bundle/app) that
+    /// is NOT the main app -- i.e. provenance for a vendored launchd plist.
+    /// Returns nil when the plist lives directly in the app's own bundle.
+    static func enclosingVendorBundle(of url: URL, mainBundle: URL) -> String? {
+        let bundleExts: Set<String> = ["framework", "xpc", "appex", "bundle", "app"]
+        let mainPath = mainBundle.standardizedFileURL.path
+        var dir = url.deletingLastPathComponent()
+        while dir.path.count > 1 {
+            if bundleExts.contains(dir.pathExtension.lowercased()) {
+                return dir.standardizedFileURL.path == mainPath ? nil : dir.lastPathComponent
+            }
+            let parent = dir.deletingLastPathComponent()
+            if parent.path == dir.path { break }
+            dir = parent
+        }
+        return nil
     }
 
     private static func classifyLaunchPlist(at url: URL) -> EmbeddedAssets.LaunchPlist.Kind {
@@ -213,6 +232,11 @@ public struct EmbeddedAssets: Sendable, Hashable, Codable {
         public let keepAlive: Bool
         public let machServices: [String]
         public let kind: Kind
+        /// If this launchd plist ships *inside* a sub-bundle (a vendored
+        /// framework / xpc / appex such as Sparkle), the sub-bundle's name;
+        /// nil when it's the app's own. Distinguishes "the app installs a
+        /// daemon" from "a dependency happens to bundle a sample/agent plist".
+        public let enclosingBundleName: String?
 
         public enum Kind: String, Sendable, Hashable, Codable {
             case daemon    = "Launch daemon"   // root, /Library/LaunchDaemons

