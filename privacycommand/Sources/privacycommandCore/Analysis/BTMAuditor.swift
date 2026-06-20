@@ -127,9 +127,12 @@ public enum BTMAuditor {
             let url: URL? = (fields["URL"] ?? fields["File URL"]).flatMap {
                 URL(string: $0)
             }
-            // Disposition strings often look like "[enabled, allowed, visible, notified]".
-            let isEnabled = dispo.contains("enabled")
-            let isAllowed = dispo.contains("allowed")
+            // Disposition looks like "[enabled, allowed, visible, notified]".
+            // Tokenize and match exactly so "disabled" / "disallowed" don't read
+            // as enabled / allowed (substring matching inverted them).
+            let dispoTokens = Set(dispo.lowercased().split(whereSeparator: { !$0.isLetter }).map(String.init))
+            let isEnabled = dispoTokens.contains("enabled")
+            let isAllowed = dispoTokens.contains("allowed")
 
             records.append(BTMRecord(
                 kind: BTMRecord.Kind(raw: typeRaw),

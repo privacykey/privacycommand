@@ -56,7 +56,7 @@ struct EmbeddedAssetsView: View {
     private func launchPlistRow(_ lp: EmbeddedAssets.LaunchPlist) -> some View {
         HStack(alignment: .top, spacing: 8) {
             Image(systemName: lp.kind == .daemon ? "shield.lefthalf.filled" : "person.crop.circle")
-                .foregroundStyle(lp.kind == .daemon ? .red : .orange)
+                .foregroundStyle(.orange)   // embedded launch declarations are "notable, review", not confirmed threats
                 .padding(.top, 2)
             VStack(alignment: .leading, spacing: 1) {
                 HStack(spacing: 6) {
