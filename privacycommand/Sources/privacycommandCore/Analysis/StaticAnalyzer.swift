@@ -84,8 +84,11 @@ public struct StaticAnalyzer {
         // binary, so the main-exec-only scan missed them entirely. Capability
         // inference deliberately still keys on the main executable's symbols.
         let embeddedScan = BinaryStringScanner.scan(executables: embeddedMachOs)
-        let domains = scan.domains.union(embeddedScan.domains).sorted()
-        let urls = scan.urls.union(embeddedScan.urls).sorted()
+        // Endpoints also live in bundled config/resource files (Settings
+        // bundles, config.json, SDK plists), which the binary scan never reads.
+        let resourceScan = EmbeddedResourceScanner.scan(bundle: bundle)
+        let domains = scan.domains.union(embeddedScan.domains).union(resourceScan.domains).sorted()
+        let urls = scan.urls.union(embeddedScan.urls).union(resourceScan.urls).sorted()
         let paths = scan.paths.union(embeddedScan.paths).sorted()
 
         // Persist the network call-site map so it's diffable across updates.

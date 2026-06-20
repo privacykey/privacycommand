@@ -98,6 +98,7 @@
 		0BBBBBBB000000000000C113 /* EmbeddedAssetScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C113 /* EmbeddedAssetScanner.swift */; };
 		0BBBBBBB000000000000C114 /* BehaviorAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C114 /* BehaviorAnalyzer.swift */; };
 		0BBBBBBB000000000000C115 /* PrivacyManifestReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C115 /* PrivacyManifestReader.swift */; };
+		0BBBBBBB000000000000C150 /* EmbeddedResourceScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C150 /* EmbeddedResourceScanner.swift */; };
 		0BBBBBBB000000000000C116 /* SandboxContainerInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C116 /* SandboxContainerInspector.swift */; };
 		0BBBBBBB000000000000C117 /* BTMAuditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C117 /* BTMAuditor.swift */; };
 		0BBBBBBB000000000000C118 /* NotarizationDeepDive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C118 /* NotarizationDeepDive.swift */; };
@@ -315,6 +316,7 @@
 		0FFFFFFF000000000000C113 /* EmbeddedAssetScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbeddedAssetScanner.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C114 /* BehaviorAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BehaviorAnalyzer.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C115 /* PrivacyManifestReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyManifestReader.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C150 /* EmbeddedResourceScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbeddedResourceScanner.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C116 /* SandboxContainerInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SandboxContainerInspector.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C117 /* BTMAuditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BTMAuditor.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C118 /* NotarizationDeepDive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotarizationDeepDive.swift; sourceTree = "<group>"; };
@@ -600,6 +602,7 @@
 				0FFFFFFF000000000000C113 /* EmbeddedAssetScanner.swift */,
 				0FFFFFFF000000000000C114 /* BehaviorAnalyzer.swift */,
 				0FFFFFFF000000000000C115 /* PrivacyManifestReader.swift */,
+				0FFFFFFF000000000000C150 /* EmbeddedResourceScanner.swift */,
 				0FFFFFFF000000000000C116 /* SandboxContainerInspector.swift */,
 				0FFFFFFF000000000000C117 /* BTMAuditor.swift */,
 				0FFFFFFF000000000000C118 /* NotarizationDeepDive.swift */,
@@ -955,6 +958,7 @@
 				0BBBBBBB000000000000A11D /* PrivacyClaimsView.swift in Sources */,
 				0BBBBBBB000000000000A11E /* AnomaliesView.swift in Sources */,
 				0BBBBBBB000000000000C115 /* PrivacyManifestReader.swift in Sources */,
+				0BBBBBBB000000000000C150 /* EmbeddedResourceScanner.swift in Sources */,
 				0BBBBBBB000000000000C116 /* SandboxContainerInspector.swift in Sources */,
 				0BBBBBBB000000000000C117 /* BTMAuditor.swift in Sources */,
 				0BBBBBBB000000000000C118 /* NotarizationDeepDive.swift in Sources */,
