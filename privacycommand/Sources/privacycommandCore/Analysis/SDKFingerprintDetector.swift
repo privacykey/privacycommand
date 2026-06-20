@@ -31,6 +31,10 @@ public enum SDKFingerprintDetector {
         // framework- and bundle-ID evidence. Those require an actual linked
         // dependency, so a genuine third-party SDK ever added to
         // privacycommand would still be reported.
+        // Apple platform binaries are Apple's own code — they never embed
+        // third-party SDKs, so any "match" is noise from system frameworks.
+        if report.codeSigning.isPlatformBinary { return [] }
+
         let isSelfAnalysis = report.bundle.bundleID == analyzerBundleID
 
         // Pre-compute lowercased haystacks once for every fingerprint to test.
@@ -44,6 +48,9 @@ public enum SDKFingerprintDetector {
         ).map { $0.lowercased() }
         let urls = report.hardcodedURLs.map { $0.lowercased() }
         let domains = report.hardcodedDomains.map { $0.lowercased() }
+        // Host set for domain matching: declared domains plus the hosts parsed
+        // out of any hard-coded full URLs.
+        let hosts = Set(domains + urls.compactMap { URLComponents(string: $0)?.host?.lowercased() })
         // Symbols are case-sensitive — many SDKs use mixed case (e.g. FIRApp).
         let symbols = extraSymbols
 
@@ -51,18 +58,24 @@ public enum SDKFingerprintDetector {
         for fp in SDKFingerprintDatabase.all {
             var evidence: [SDKHit.Evidence] = []
 
-            // Frameworks (case-insensitive substring of "FirebaseAnalytics" etc.)
+            // Frameworks — exact (case-insensitive) match on the framework
+            // directory name. A fingerprint's frameworkPatterns ARE the SDK's
+            // framework names, so equality is correct; substring matching is
+            // what made the generic "Analytics" token hit every
+            // *Analytics.framework (e.g. FirebaseAnalytics -> false Segment).
             for pat in fp.frameworkPatterns {
                 let needle = pat.lowercased()
-                if let match = frameworkNames.first(where: { $0.contains(needle) }) {
+                if let match = frameworkNames.first(where: { $0 == needle }) {
                     evidence.append(.framework(match))
                     break  // one per source is plenty
                 }
             }
 
+            // Bundle IDs — exact or dotted-prefix, so "com.segment" matches
+            // com.segment.analytics but not com.example.segmentation.
             for pat in fp.bundleIDPatterns {
                 let needle = pat.lowercased()
-                if let match = bundleIDs.first(where: { $0.contains(needle) }) {
+                if let match = bundleIDs.first(where: { $0 == needle || $0.hasPrefix(needle + ".") }) {
                     evidence.append(.bundleID(match))
                     break
                 }
@@ -73,15 +86,17 @@ public enum SDKFingerprintDetector {
             // so they're skipped for self-analysis (see `isSelfAnalysis`).
             if !isSelfAnalysis {
                 // URLs / domains: combine and search once per fingerprint pattern.
+                // URLs / domains — host-boundary match (registrable-domain
+                // suffix), so "adjust.com" matches app.adjust.com but NOT
+                // myadjust.com. Path-bearing patterns fall back to substring.
                 for pat in fp.urlPatterns {
                     let needle = pat.lowercased()
-                    if let match = urls.first(where: { $0.contains(needle) }) {
-                        evidence.append(.url(match))
-                        break
-                    }
-                    if let match = domains.first(where: { $0.contains(needle) }) {
-                        evidence.append(.url(match))
-                        break
+                    if needle.contains("/") {
+                        if let match = urls.first(where: { $0.contains(needle) }) {
+                            evidence.append(.url(match)); break
+                        }
+                    } else if let match = hosts.first(where: { hostMatches($0, needle) }) {
+                        evidence.append(.url(match)); break
                     }
                 }
 
@@ -110,6 +125,12 @@ public enum SDKFingerprintDetector {
             if l != r { return l < r }
             return lhs.fingerprint.displayName.localizedCaseInsensitiveCompare(rhs.fingerprint.displayName) == .orderedAscending
         }
+    }
+
+    /// True when `host` equals `needle` or is a sub-domain of it (boundary at a
+    /// dot), so "adjust.com" matches "app.adjust.com" but not "myadjust.com".
+    private static func hostMatches(_ host: String, _ needle: String) -> Bool {
+        host == needle || host.hasSuffix("." + needle)
     }
 }
 

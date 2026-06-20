@@ -67,4 +67,64 @@ final class SDKFingerprintDetectorTests: XCTestCase {
         } ?? false
         XCTAssertFalse(hasStringEvidence, "URL/string evidence should be suppressed for self-analysis.")
     }
+
+    // MARK: - Anchored matching (Wave 1: kill the substring false-positive class)
+
+    private func framework(_ name: String, bundleID: String? = nil) -> FrameworkRef {
+        FrameworkRef(url: URL(fileURLWithPath: "/tmp/x/Frameworks/\(name).framework"),
+                     bundleID: bundleID, version: nil, teamID: nil, isAppleSigned: false)
+    }
+    private func sdkIDs(_ report: StaticReport) -> Set<String> {
+        Set(SDKFingerprintDetector.detect(in: report).map { $0.fingerprint.id })
+    }
+
+    func testGenericAnalyticsFrameworkIsNotSegment() {
+        let r = Fix.report(bundle: Fix.bundle(bundleID: "com.example.app"),
+                           frameworks: [framework("FirebaseAnalytics", bundleID: "com.google.firebase.analytics")])
+        let hit = sdkIDs(r)
+        XCTAssertTrue(hit.contains("firebase-analytics"), "FirebaseAnalytics.framework is Firebase")
+        XCTAssertFalse(hit.contains("segment"), "FirebaseAnalytics must NOT be attributed to Segment")
+    }
+
+    func testRealSegmentStillDetectedEveryWay() {
+        XCTAssertTrue(sdkIDs(Fix.report(bundle: Fix.bundle(bundleID: "com.example.app"),
+            frameworks: [framework("Segment")])).contains("segment"))
+        XCTAssertTrue(sdkIDs(Fix.report(bundle: Fix.bundle(bundleID: "com.example.app"),
+            frameworks: [framework("X", bundleID: "com.segment.analytics")])).contains("segment"))
+        XCTAssertTrue(sdkIDs(Fix.report(bundle: Fix.bundle(bundleID: "com.example.app"),
+            hardcodedDomains: ["api.segment.io"])).contains("segment"))
+    }
+
+    func testCommonWordFrameworksNoLongerOvermatch() {
+        let r = Fix.report(bundle: Fix.bundle(bundleID: "com.example.app"),
+            frameworks: [framework("ColorAdjust"), framework("GitBranch"), framework("MinHeap")])
+        let hit = sdkIDs(r)
+        for id in ["adjust","branch","heap"] {
+            XCTAssertFalse(hit.contains(id), "generic-word framework must not flag \(id)")
+        }
+        XCTAssertTrue(sdkIDs(Fix.report(bundle: Fix.bundle(bundleID: "com.example.app"),
+            frameworks: [framework("Adjust")])).contains("adjust"), "the real Adjust.framework still flags")
+    }
+
+    func testDomainMatchingIsHostBoundary() {
+        XCTAssertFalse(sdkIDs(Fix.report(bundle: Fix.bundle(bundleID: "com.example.app"),
+            hardcodedDomains: ["myadjust.com"])).contains("adjust"), "myadjust.com != adjust.com")
+        XCTAssertTrue(sdkIDs(Fix.report(bundle: Fix.bundle(bundleID: "com.example.app"),
+            hardcodedDomains: ["app.adjust.com"])).contains("adjust"), "app.adjust.com is a sub-domain")
+    }
+
+    func testBundleIDMatchingIsDotBoundary() {
+        XCTAssertFalse(sdkIDs(Fix.report(bundle: Fix.bundle(bundleID: "com.example.app"),
+            frameworks: [framework("X", bundleID: "com.example.segmentation")])).contains("segment"))
+        XCTAssertTrue(sdkIDs(Fix.report(bundle: Fix.bundle(bundleID: "com.example.app"),
+            frameworks: [framework("X", bundleID: "com.segment.analytics")])).contains("segment"))
+    }
+
+    func testApplePlatformBinaryGetsNoSDKHits() {
+        let r = Fix.report(bundle: Fix.bundle(bundleID: "com.apple.something"),
+            codeSigning: Fix.signing(platform: true),
+            frameworks: [framework("FirebaseAnalytics", bundleID: "com.google.firebase.analytics")],
+            hardcodedDomains: ["api.segment.io"])
+        XCTAssertTrue(sdkIDs(r).isEmpty, "Apple platform binaries never carry third-party SDKs")
+    }
 }
