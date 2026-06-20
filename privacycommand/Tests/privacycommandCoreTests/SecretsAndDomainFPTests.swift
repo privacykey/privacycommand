@@ -34,8 +34,16 @@ final class SecretsAndDomainFPTests: XCTestCase {
         XCTAssertTrue(secretKinds(sk("9zT2mK7pQ4wR1nB8xL5vC3dF")).contains(.stripeKey))
     }
 
-    func testTwilioAccountSIDNoLongerFlagged() {
-        XCTAssertFalse(secretKinds(ac("0123456789abcdef0123456789abcdef")).contains(.twilioSID))
+    func testTwilioAccountSIDProducesNoFindingAtAll() {
+        // Non-vacuous: assert zero findings of ANY kind (guards re-introduction
+        // under any kind, not just the now-unreachable .twilioSID).
+        XCTAssertTrue(SecretsScanner.scan(data: Data(ac("0123456789abcdef0123456789abcdef").utf8)).findings.isEmpty)
+    }
+
+    func testRealPrefixedTokenWithRepeatedRunStillDetected() {
+        // A genuine high-entropy GitHub PAT that happens to contain a 6-char run
+        // must NOT be suppressed (the old hasRun gate wrongly dropped these).
+        XCTAssertTrue(secretKinds(gh("aaaaaaK9mZ2qWvL7pR4tY1nC8sD6fG0hJ5kE2QpT9w")).contains(.githubToken))
     }
 
     func testJWTRequiresValidJSONPayload() {

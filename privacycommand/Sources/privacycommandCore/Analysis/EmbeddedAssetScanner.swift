@@ -28,7 +28,7 @@ public enum EmbeddedAssetScanner {
             // RUN: executable, or carrying a shebang. Inert resources (bundled
             // web .js, library .py, …) are neither and were heavy FP noise.
             let isExec = fm.isExecutableFile(atPath: path)
-            if let kind = scriptKind(forURL: url, isExecutable: isExec, probeSize: size) {
+            if let kind = scriptKind(forURL: url, isExecutable: isExec) {
                 scripts.append(EmbeddedAssets.Script(
                     url: url, kind: kind, sizeBytes: size, isExecutable: isExec))
                 continue
@@ -54,12 +54,13 @@ public enum EmbeddedAssetScanner {
     /// Classify a candidate script. Returns `nil` unless the file is actually
     /// prepared to run — executable, or carrying a shebang — so inert resource
     /// files (bundled web `.js`, library `.py`, …) are not reported.
-    private static func scriptKind(forURL url: URL, isExecutable: Bool, probeSize: Int) -> EmbeddedAssets.Script.Kind? {
-        // The shebang interpreter is authoritative when present. Probe small
-        // files and anything executable (a shebang is ~the first line).
-        let shebang = (isExecutable || probeSize < 65_536) ? shebangInterpreter(at: url) : nil
+    private static func scriptKind(forURL url: URL, isExecutable: Bool) -> EmbeddedAssets.Script.Kind? {
+        // Always probe the shebang — only the first ~128 bytes via a FileHandle
+        // (constant cost), so even a large non-executable script keeps its signal.
+        let shebang = shebangInterpreter(at: url)
+        let ext = url.pathExtension.lowercased()
         let extKind: EmbeddedAssets.Script.Kind?
-        switch url.pathExtension.lowercased() {
+        switch ext {
         case "sh", "bash", "zsh", "command": extKind = .shell
         case "py":                           extKind = .python
         case "rb":                           extKind = .ruby
@@ -69,8 +70,14 @@ public enum EmbeddedAssetScanner {
         case "swift":                        extKind = .swift
         default:                             extKind = nil
         }
-        // "Prepared to run" = executable or shebang-declared. Extension alone
-        // (no +x, no shebang) is an inert resource, not a runnable script.
+        // Shell and AppleScript files are bundled to be RUN, essentially never as
+        // inert libraries, so surface them by extension — this covers the "app
+        // runs it via `bash x.sh`" case even with no +x and no shebang. Other
+        // recognised types (py/rb/pl/js/swift) are commonly bundled as libraries
+        // or web assets, so only surface those when actually runnable (executable
+        // or shebang-declared) — that is what suppresses bundled web .js / .py.
+        let alwaysSurface: Set<String> = ["sh", "bash", "zsh", "command", "applescript", "scpt"]
+        if alwaysSurface.contains(ext) { return shebang ?? extKind }
         guard isExecutable || shebang != nil else { return nil }
         return shebang ?? extKind
     }
@@ -85,8 +92,8 @@ public enum EmbeddedAssetScanner {
         let bytes = [UInt8](head)
         guard bytes[0] == 0x23, bytes[1] == 0x21 else { return nil }   // "#!"
         let firstLine = String(decoding: head, as: UTF8.self)
-            .split(separator: "\n", maxSplits: 1, omittingEmptySubsequences: false).first.map(String.init) ?? ""
-        let afterBang = firstLine.dropFirst(2).trimmingCharacters(in: .whitespaces)
+            .split(maxSplits: 1, omittingEmptySubsequences: false, whereSeparator: { $0.isNewline }).first.map(String.init) ?? ""
+        let afterBang = firstLine.dropFirst(2).trimmingCharacters(in: .whitespacesAndNewlines)  // also strips trailing CR (CRLF)
         var tokens = afterBang.split(whereSeparator: { $0 == " " || $0 == "\t" }).map(String.init)
         guard let first = tokens.first else { return nil }
         var interp = (first as NSString).lastPathComponent

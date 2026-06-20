@@ -82,7 +82,11 @@ public enum BinaryStringScanner {
     /// identifier characters, so "AVCaptureDevice" matches the bare symbol or
     /// "_OBJC_CLASS_$_AVCaptureDevice" but NOT "AVCaptureDeviceInput" or
     /// "CGDisplayStreamUpdate" — killing substring-collision false positives.
-    private static func isIdentChar(_ c: Character) -> Bool { c == "_" || c.isLetter || c.isNumber }
+    // NOTE: only letters/digits break the boundary. Underscores must NOT — the
+    // dominant Mach-O symbol forms are _OBJC_CLASS_$_AVCaptureDevice and _ptrace,
+    // where the token is preceded by "_"; counting "_" as identifier silently
+    // missed nearly every symbol (camera/mic/location/bluetooth/ptrace/...).
+    private static func isIdentChar(_ c: Character) -> Bool { c.isLetter || c.isNumber }
     private static func containsToken(_ s: String, _ token: String) -> Bool {
         guard !token.isEmpty else { return false }
         var from = s.startIndex

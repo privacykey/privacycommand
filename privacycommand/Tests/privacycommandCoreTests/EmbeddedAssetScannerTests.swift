@@ -72,4 +72,23 @@ final class EmbeddedAssetScannerTests: XCTestCase {
         XCTAssertFalse(labels.contains("com.x.config"),
                        "Label + RunAtLoad with no Program/ProgramArguments is not a launchd job")
     }
+
+    func testNonExecutableShellScriptIsSurfaced() throws {
+        // A 0644 shell script with no shebang is still something the app can run
+        // via `bash x.sh` — it must be surfaced (the audit's false-negative case).
+        try write("install.sh", "echo installing")
+        let names = Set(EmbeddedAssetScanner.scan(bundle: bundle()).scripts.map { $0.url.lastPathComponent })
+        XCTAssertTrue(names.contains("install.sh"))
+        // But a non-exec, no-shebang Python LIBRARY stays suppressed (could be an
+        // imported module / web asset, not a runnable entry point).
+        try write("lib.py", "import os")
+        let names2 = Set(EmbeddedAssetScanner.scan(bundle: bundle()).scripts.map { $0.url.lastPathComponent })
+        XCTAssertFalse(names2.contains("lib.py"))
+    }
+
+    func testCRLFShebangClassifiedAsShell() throws {
+        try write("run", "#!/bin/bash\r\necho hi", executable: true)
+        let s = EmbeddedAssetScanner.scan(bundle: bundle()).scripts.first { $0.url.lastPathComponent == "run" }
+        XCTAssertEqual(s?.kind, .shell, "a CRLF shebang must resolve to .shell, not .other(bash\\r)")
+    }
 }

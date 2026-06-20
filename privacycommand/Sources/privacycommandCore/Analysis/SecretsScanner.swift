@@ -163,16 +163,10 @@ public enum SecretsScanner {
         let placeholders = ["your", "example", "placeholder", "redacted", "changeme",
                             "notreal", "insertkey", "apikeyhere", "yourtoken", "xxxxx"]
         if placeholders.contains(where: { lower.contains($0) }) { return false }
-        if hasRun(s, of: 6) { return false }
+        // No repeated-run check: a real high-entropy credential can legitimately
+        // contain a short run (e.g. a Slack token with "...000000..."). Entropy +
+        // the placeholder vocabulary already catch all-repeated / worded fakes.
         return shannonEntropyBits(of: s) >= 2.5
-    }
-    private static func hasRun(_ s: String, of n: Int) -> Bool {
-        var last: Character? = nil, count = 0
-        for c in s {
-            if c == last { count += 1; if count >= n { return true } }
-            else { last = c; count = 1 }
-        }
-        return false
     }
     private static func shannonEntropyBits(of s: String) -> Double {
         guard !s.isEmpty else { return 0 }

@@ -19,11 +19,13 @@ final class SigningRPathFPTests: XCTestCase {
                        .relative)
     }
 
-    func testHomebrewAndUsrLocalTreatedConsistentlyAsExternal() {
+    func testPackagePrefixExternalWhenNotWritableHijackableWhenWritable() {
         for p in ["/opt/homebrew/lib", "/usr/local/lib", "/opt/local/lib"] {
-            XCTAssertEqual(RPathAuditor.classify(raw: p, resolved: URL(fileURLWithPath: p),
-                                                 writable: true, bundleRoot: nil),
-                           .absolute, "\(p) is a standard package prefix, not a per-app hijack alarm")
+            let u = URL(fileURLWithPath: p)
+            XCTAssertEqual(RPathAuditor.classify(raw: p, resolved: u, writable: false, bundleRoot: nil),
+                           .absolute, "\(p) when NOT writable is a normal external dependency")
+            XCTAssertEqual(RPathAuditor.classify(raw: p, resolved: u, writable: true, bundleRoot: nil),
+                           .hijackable, "\(p) when WRITABLE is a genuine dylib-hijack vector and must flag")
         }
     }
 

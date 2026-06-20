@@ -45,6 +45,19 @@ final class ExtendedCoverageTests: XCTestCase {
         XCTAssertTrue(ids(report(frameworks: [framework("Batch")])).contains("batch"))
     }
 
+    func testOneSignalModularSliceDetected() {
+        // OneSignal 5.x ships modular slices (OneSignalFramework, OneSignalCore...).
+        XCTAssertTrue(ids(report(frameworks: [framework("OneSignalFramework")])).contains("onesignal"))
+        XCTAssertTrue(ids(report(frameworks: [framework("OneSignalCore")])).contains("onesignal"))
+    }
+
+    func testGenericBundleIDAbbreviationDropped() {
+        // "com.mtg" was too generic and is dropped; a benign com.mtga.* must not
+        // be attributed to Mintegral, while com.mintegral.* still is.
+        XCTAssertFalse(ids(report(frameworks: [framework("X", bundleID: "com.mtga.core")])).contains("mintegral"))
+        XCTAssertTrue(ids(report(frameworks: [framework("X", bundleID: "com.mintegral.sdk")])).contains("mintegral"))
+    }
+
     func testNewTrackerDomainsClassified() {
         let c = DomainClassifier()
         XCTAssertEqual(c.classify("connect.facebook.net").category, .adTech)

@@ -18,7 +18,7 @@ public enum RPathAuditor {
 
     public static func audit(executable url: URL) -> RPathAudit {
         let machO = MachOInspector.loadCommands(of: url)
-        let bundleRoot = bundleRootFromExecutable(url)
+        let bundleRoot = bundleRootFromExecutable(url)?.standardizedFileURL
         var entries: [RPathAudit.Entry] = []
         for raw in machO.rpaths {
             let resolved = resolveRPath(raw, executableURL: url, bundleRoot: bundleRoot)
@@ -75,13 +75,11 @@ public enum RPathAuditor {
         }
         if raw.hasPrefix("@executable_path/") || raw.hasPrefix("@loader_path/") { return .relative }
         if raw.hasPrefix("/usr/lib") || raw.hasPrefix("/System/") { return .system }
-        // Standard package-manager prefixes (Homebrew, MacPorts, /usr/local) are
-        // admin-managed shared locations — treat them uniformly as external
-        // dependencies, not per-app "hijackable" alarms.
-        let p = resolved?.path ?? raw
-        for pfx in ["/usr/local/", "/opt/homebrew/", "/opt/local/"] where p.hasPrefix(pfx) || raw.hasPrefix(pfx) {
-            return .absolute
-        }
+        // A genuinely user-writable EXTERNAL path is a real dylib-hijack vector —
+        // including writable package-manager prefixes (Homebrew on Apple Silicon
+        // is group-admin-writable by the console user). Writability is checked
+        // FIRST so a writable /opt/homebrew or /usr/local still flags; only a
+        // NON-writable shared prefix falls through to a plain external dep.
         if writable { return .hijackable }
         if raw.hasPrefix("/Users/") || raw.contains("$HOME") { return .hijackable }
         return .absolute

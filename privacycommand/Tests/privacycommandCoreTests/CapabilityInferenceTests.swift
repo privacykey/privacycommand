@@ -103,5 +103,15 @@ final class CapabilityInferenceTests: XCTestCase {
         let rExact = BinaryStringScanner.scan(executable: exact, symbols: ["AVCaptureDevice"])
         XCTAssertTrue(rExact.foundFrameworkSymbols.contains("AVCaptureDevice"),
                       "the exact symbol must still match")
+
+        // Regression guard: the dominant Mach-O symbol-table form is the
+        // underscore-prefixed ObjC class symbol. It MUST match (word boundary
+        // must not treat the leading "_" as part of an identifier).
+        let mangled = dir.appendingPathComponent("wb-mangled-\(UUID().uuidString).bin")
+        defer { try? FileManager.default.removeItem(at: mangled) }
+        try Data("_OBJC_CLASS_$_AVCaptureDevice\u{0}padding".utf8).write(to: mangled)
+        let rMangled = BinaryStringScanner.scan(executable: mangled, symbols: ["AVCaptureDevice"])
+        XCTAssertTrue(rMangled.foundFrameworkSymbols.contains("AVCaptureDevice"),
+                      "_OBJC_CLASS_$_AVCaptureDevice must match the token AVCaptureDevice")
     }
 }

@@ -110,7 +110,6 @@ public struct DomainClassifier: Sendable {
         .init(pattern: "adservice.google.com",       category: .adTech),
         .init(pattern: "adsystem.amazon.com",        category: .adTech),
         .init(pattern: "amazon-adsystem.com",        category: .adTech),
-        .init(pattern: "facebook.com/tr",            category: .adTech), // simplified; suffix-match treats this as a literal host
         .init(pattern: "connect.facebook.net",       category: .adTech),      // Meta Pixel loader (the real host)
         .init(pattern: "app-measurement.com",        category: .analytics),   // Firebase / GA4 ingestion
         .init(pattern: "crashlytics.com",            category: .errorReporting),
