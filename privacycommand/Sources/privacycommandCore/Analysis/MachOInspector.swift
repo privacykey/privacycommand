@@ -19,10 +19,24 @@ public enum MachOInspector {
         /// True if the binary appears to have been stripped (no __LINKEDIT
         /// symbol table strings). Heuristic.
         public var isStripped: Bool
+        /// Linker-stated minimum OS (LC_BUILD_VERSION.minos or an
+        /// LC_VERSION_MIN_* command) -- the binary's own floor, which can
+        /// differ from Info.plist's LSMinimumSystemVersion.
+        public var minOSVersion: String?
+        /// SDK the binary was built against (LC_BUILD_VERSION.sdk).
+        public var sdkVersion: String?
+        /// Build platform: "macOS", "macCatalyst", "iOS", ... (nil if unknown).
+        public var buildPlatform: String?
+        /// How many Mach-O arch slices we actually parsed (1 for a thin
+        /// binary; >1 means we covered every slice of a fat binary, not just
+        /// the first -- load commands can differ between slices).
+        public var sliceCount: Int
 
         public static let empty = LoadCommandsSummary(rpaths: [], dylibs: [],
                                                       hasEncryptedSegment: false,
-                                                      isStripped: false)
+                                                      isStripped: false,
+                                                      minOSVersion: nil, sdkVersion: nil,
+                                                      buildPlatform: nil, sliceCount: 0)
     }
 
     /// Best-effort parse of the first thin slice (or first arch of a fat
@@ -32,9 +46,84 @@ public enum MachOInspector {
     public static func loadCommands(of url: URL) -> LoadCommandsSummary {
         guard let data = try? Data(contentsOf: url, options: [.mappedIfSafe]),
               data.count >= 32 else { return .empty }
-        let (sliceOffset, is64) = firstThinSlice(in: data)
-        guard let sliceOffset else { return .empty }
-        return parseThinLoadCommands(in: data, at: sliceOffset, is64: is64)
+        // Parse EVERY arch slice, not just the first -- a fat binary's second
+        // slice can carry dylibs/rpaths/encryption the first slice doesn't, and
+        // inspecting only slice 1 lets that linkage hide from analysis.
+        let slices = enumerateSlices(in: data)
+        guard !slices.isEmpty else { return .empty }
+
+        var rpaths = Set<String>(), dylibs = Set<String>()
+        var encrypted = false
+        var strippedAll = true
+        var minOS: String?, sdk: String?, platform: String?
+        var parsed = 0
+        for (offset, is64) in slices {
+            let s = parseThinLoadCommands(in: data, at: offset, is64: is64)
+            guard s.sliceCount > 0 else { continue }
+            parsed += 1
+            rpaths.formUnion(s.rpaths)
+            dylibs.formUnion(s.dylibs)
+            encrypted = encrypted || s.hasEncryptedSegment
+            strippedAll = strippedAll && s.isStripped
+            if minOS == nil { minOS = s.minOSVersion }
+            if sdk == nil { sdk = s.sdkVersion }
+            if platform == nil { platform = s.buildPlatform }
+        }
+        guard parsed > 0 else { return .empty }
+        return LoadCommandsSummary(
+            rpaths: rpaths.sorted(), dylibs: dylibs.sorted(),
+            hasEncryptedSegment: encrypted, isStripped: strippedAll,
+            minOSVersion: minOS, sdkVersion: sdk, buildPlatform: platform,
+            sliceCount: parsed)
+    }
+
+    /// Enumerate the (offset, is64) of every Mach-O slice -- one entry for a
+    /// thin file, every fat arch for a universal binary. Generalises
+    /// `firstThinSlice` (which the symbol/arch readers still use).
+    private static func enumerateSlices(in data: Data) -> [(Int, Bool)] {
+        let magic = data.withUnsafeBytes { $0.load(as: UInt32.self) }
+        if magic == mh_magic || magic == mh_cigam     { return [(0, false)] }
+        if magic == mh_magic_64 || magic == mh_cigam_64 { return [(0, true)] }
+        let isFat = magic == fatMagic || magic == fatMagicSwapped
+            || magic == fat64Magic || magic == fat64MagicSwapped
+        guard isFat, data.count >= 8 else { return [] }
+        let swapped = magic == fatMagicSwapped || magic == fat64MagicSwapped
+        let is64 = magic == fat64Magic || magic == fat64MagicSwapped
+        var nfat = data.withUnsafeBytes {
+            $0.baseAddress!.advanced(by: 4).load(as: UInt32.self)
+        }
+        if swapped { nfat = nfat.byteSwapped }
+        guard nfat >= 1, nfat <= 32 else { return [] }   // sanity bound
+        let archSize = is64 ? 32 : 20
+        var out: [(Int, Bool)] = []
+        for i in 0..<Int(nfat) {
+            let archStart = 8 + i * archSize
+            guard data.count >= archStart + archSize else { break }
+            let offset: UInt64
+            if is64 {
+                var raw: UInt64 = 0
+                data.withUnsafeBytes {
+                    raw = $0.baseAddress!.advanced(by: archStart + 8)
+                        .assumingMemoryBound(to: UInt64.self).pointee
+                }
+                offset = swapped ? raw.byteSwapped : raw
+            } else {
+                var raw: UInt32 = 0
+                data.withUnsafeBytes {
+                    raw = $0.baseAddress!.advanced(by: archStart + 8)
+                        .assumingMemoryBound(to: UInt32.self).pointee
+                }
+                offset = UInt64(swapped ? raw.byteSwapped : raw)
+            }
+            guard offset + 4 <= UInt64(data.count) else { continue }
+            let sliceMagic = data.withUnsafeBytes {
+                $0.baseAddress!.advanced(by: Int(offset)).load(as: UInt32.self)
+            }
+            let sliceIs64 = sliceMagic == mh_magic_64 || sliceMagic == mh_cigam_64
+            let isMachO = sliceMagic == mh_magic || sliceMagic == mh_cigam || sliceIs64
+            if isMachO { out.append((Int(offset), sliceIs64)) }
+        }
+        return out
     }
 
     /// The undefined **external** symbols a Mach-O imports — i.e. the
@@ -126,6 +215,29 @@ public enum MachOInspector {
 
     /// Locate the start of the first thin Mach-O slice. For a thin binary
     /// the offset is 0; for a fat binary we read the first arch's offset.
+    /// Decode a Mach-O nibble-packed version (X.Y.Z in bits xxxx.yy.zz).
+    static func decodeVersion(_ v: UInt32) -> String {
+        let x = (v >> 16) & 0xFFFF, y = (v >> 8) & 0xFF, z = v & 0xFF
+        return z == 0 ? "\(x).\(y)" : "\(x).\(y).\(z)"
+    }
+
+    /// LC_BUILD_VERSION platform id -> name.
+    static func platformName(_ p: UInt32) -> String? {
+        switch p {
+        case 1: return "macOS"
+        case 2: return "iOS"
+        case 3: return "tvOS"
+        case 4: return "watchOS"
+        case 5: return "bridgeOS"
+        case 6: return "macCatalyst"
+        case 7: return "iOS Simulator"
+        case 8: return "tvOS Simulator"
+        case 9: return "watchOS Simulator"
+        case 10: return "DriverKit"
+        default: return nil
+        }
+    }
+
     private static func firstThinSlice(in data: Data) -> (Int?, Bool) {
         let magic = data.withUnsafeBytes { $0.load(as: UInt32.self) }
         if magic == mh_magic || magic == mh_cigam     { return (0, false) }
@@ -193,12 +305,20 @@ public enum MachOInspector {
         let LC_ENCRYPTION_INFO: UInt32    = 0x21
         let LC_ENCRYPTION_INFO_64: UInt32 = 0x2C
         let LC_SYMTAB: UInt32         = 0x2
+        let LC_VERSION_MIN_MACOSX: UInt32   = 0x24
+        let LC_VERSION_MIN_IPHONEOS: UInt32 = 0x25
+        let LC_VERSION_MIN_TVOS: UInt32     = 0x2F
+        let LC_VERSION_MIN_WATCHOS: UInt32  = 0x30
+        let LC_BUILD_VERSION: UInt32        = 0x32
 
         var rpaths: [String] = []
         var dylibs: [String] = []
         var hasEncryptedSegment = false
         var hasSymtab = false
         var symStringCount: UInt32 = 0
+        var minOSVersion: String?
+        var sdkVersion: String?
+        var buildPlatform: String?
 
         for _ in 0..<Int(ncmds) {
             guard data.count >= cursor + 8 else { break }
@@ -235,6 +355,28 @@ public enum MachOInspector {
                     hasSymtab = true
                     symStringCount = u32(cursor + 20)
                 }
+            case LC_BUILD_VERSION:
+                // build_version_command: cmd cmdsize platform(4) minos(4) sdk(4) ntools(4)
+                if cmdSize >= 24 {
+                    buildPlatform = Self.platformName(u32(cursor + 8))
+                    minOSVersion = Self.decodeVersion(u32(cursor + 12))
+                    let sdk = u32(cursor + 16)
+                    if sdk != 0 { sdkVersion = Self.decodeVersion(sdk) }
+                }
+            case LC_VERSION_MIN_MACOSX, LC_VERSION_MIN_IPHONEOS,
+                 LC_VERSION_MIN_TVOS, LC_VERSION_MIN_WATCHOS:
+                // version_min_command: cmd cmdsize version(4) sdk(4) -- older form.
+                if cmdSize >= 16, minOSVersion == nil {
+                    minOSVersion = Self.decodeVersion(u32(cursor + 8))
+                    let sdk = u32(cursor + 12)
+                    if sdk != 0 { sdkVersion = Self.decodeVersion(sdk) }
+                    switch cmd {
+                    case LC_VERSION_MIN_MACOSX:   buildPlatform = buildPlatform ?? "macOS"
+                    case LC_VERSION_MIN_IPHONEOS: buildPlatform = buildPlatform ?? "iOS"
+                    case LC_VERSION_MIN_TVOS:     buildPlatform = buildPlatform ?? "tvOS"
+                    default:                      buildPlatform = buildPlatform ?? "watchOS"
+                    }
+                }
             default:
                 break
             }
@@ -250,7 +392,9 @@ public enum MachOInspector {
         return LoadCommandsSummary(
             rpaths: rpaths, dylibs: dylibs,
             hasEncryptedSegment: hasEncryptedSegment,
-            isStripped: isStripped)
+            isStripped: isStripped,
+            minOSVersion: minOSVersion, sdkVersion: sdkVersion,
+            buildPlatform: buildPlatform, sliceCount: 1)
     }
 
     /// Locate `LC_SYMTAB`, walk the nlist table and collect the names of all

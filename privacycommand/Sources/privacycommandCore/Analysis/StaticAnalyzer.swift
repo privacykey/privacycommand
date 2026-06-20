@@ -306,6 +306,25 @@ public struct StaticAnalyzer {
                 kbArticleID: "embedded-launch-plist"))
         }
 
+        // App runtime / packaging -- native vs Electron / Node / Catalyst / etc.
+        // Electron & friends bundle a web/script engine and load remote
+        // content, a materially larger attack surface than a native app.
+        let mainLoadCmds = MachOInspector.loadCommands(of: bundle.executableURL)
+        let frameworkNames = framework.frameworks.map { $0.url.lastPathComponent }
+        let resourceNames = (try? FileManager.default.contentsOfDirectory(
+            atPath: bundle.resourcesURL.path)) ?? []
+        let runtime = AppRuntimeDetector.detect(
+            dylibs: mainLoadCmds.dylibs, frameworkNames: frameworkNames, resourceNames: resourceNames)
+        if runtime.flavor != .native && runtime.flavor != .unknown {
+            enrichedWarnings.append(Finding(
+                severity: runtime.isSecuritySensitive ? .warn : .info,
+                message: "App runtime: \(runtime.flavor.rawValue).",
+                evidence: runtime.evidence + (runtime.isSecuritySensitive
+                    ? ["Bundles a web/script engine -- review remote-content loading and any nodeIntegration / IPC surface."]
+                    : []),
+                kbArticleID: "app-runtime"))
+        }
+
         // Privacy-manifest cross-check.
         if let manifest = privacyManifest {
             let xc = PrivacyManifestReader.crossCheck(manifest: manifest, scan: scan)
