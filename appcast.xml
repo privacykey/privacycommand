@@ -3,12 +3,12 @@
     <channel>
         <title>privacycommand</title>
         <item>
-            <title>0.1.4</title>
-            <pubDate>Wed, 29 Apr 2026 15:28:57 +0000</pubDate>
-            <sparkle:version>25</sparkle:version>
-            <sparkle:shortVersionString>0.1.4</sparkle:shortVersionString>
+            <title>0.1.5</title>
+            <pubDate>Sun, 21 Jun 2026 07:01:05 +0000</pubDate>
+            <sparkle:version>73</sparkle:version>
+            <sparkle:shortVersionString>0.1.5</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/privacykey/privacycommand/releases/download/v0.1.4/privacycommand-0.1.4.dmg" length="5768091" type="application/octet-stream" sparkle:edSignature="1OXdzrKJShfAPNwu4lVQdVES3MumTKJNorUx4yOWav9vXt6IiiJJPYS2DKoqWifdZFAk3pYAdmijoUJoqT7jDg=="/>
+            <enclosure url="https://github.com/privacykey/privacycommand/releases/download/v0.1.5/privacycommand-0.1.5.dmg" length="8574663" type="application/octet-stream" sparkle:edSignature="mRjpJSGWRIP4C95xYzUZoG2oPAWzM07+d+TJKMyI/Nt8n42FutALCBdTrrxtIWkHvYe0qo7YdfmexrRmJoLaBA=="/>
         </item>
     </channel>
 </rss>
