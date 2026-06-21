@@ -40,12 +40,14 @@ private struct GeneralSettingsView: View {
     @AppStorage("watchModeIconStyle") private var watchModeIconRaw = WatchModeIconStyle.shield.rawValue
     @EnvironmentObject var coordinator: AnalysisCoordinator
     @State private var showingClearConfirm = false
+    @State private var cachedCount = 0
+    @State private var cachedSizeBytes: Int64 = 0
 
     var body: some View {
         Form {
             Section("Run history") {
                 Toggle("Save runs to history automatically", isOn: $autoSaveRuns)
-                    .help("When off, only Export menu actions persist runs to disk.")
+                    .help("When off, runs are only written to disk via the Export menu actions.")
                 LabeledContent("Saved runs") {
                     HStack(spacing: 8) {
                         Text("\(coordinator.recentRuns.count)")
@@ -58,6 +60,27 @@ private struct GeneralSettingsView: View {
                         }
                     }
                 }
+            }
+            Section("Analysis cache") {
+                LabeledContent("Cached app analyses") {
+                    HStack(spacing: 8) {
+                        Text("\(cachedCount)").monospacedDigit()
+                        if cachedCount > 0 {
+                            Text("·").foregroundStyle(.secondary)
+                            Text(cacheSizeLabel).foregroundStyle(.secondary).monospacedDigit()
+                        }
+                        Button("Show in Finder") {
+                            NSWorkspace.shared.activateFileViewerSelecting([StaticReportCache.shared.baseURL])
+                        }
+                        Button("Clear cache") {
+                            StaticReportCache.shared.clear()
+                            cachedCount = 0
+                            cachedSizeBytes = 0
+                        }
+                        .disabled(cachedCount == 0)
+                    }
+                }
+                .help("Lets re-opening an already-scanned app skip re-analysis. Safe to clear — apps are simply re-analysed on next open.")
             }
             Section("Watch mode") {
                 LabeledContent("Menu-bar icon") {
@@ -96,7 +119,14 @@ private struct GeneralSettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .task { coordinator.refreshRecents() }
+        .task {
+            coordinator.refreshRecents()
+            let stats = await Task.detached {
+                (count: StaticReportCache.shared.count, size: StaticReportCache.shared.sizeBytes)
+            }.value
+            cachedCount = stats.count
+            cachedSizeBytes = stats.size
+        }
         .confirmationDialog(
             "Delete all saved runs?",
             isPresented: $showingClearConfirm,
@@ -109,6 +139,10 @@ private struct GeneralSettingsView: View {
         } message: {
             Text("This permanently removes the saved JSON reports for every run. You can't undo this.")
         }
+    }
+
+    private var cacheSizeLabel: String {
+        ByteCountFormatter.string(fromByteCount: cachedSizeBytes, countStyle: .file)
     }
 
     private func clearAll() {

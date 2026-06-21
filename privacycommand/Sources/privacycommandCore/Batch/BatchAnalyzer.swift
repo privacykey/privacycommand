@@ -91,8 +91,17 @@ public struct BatchAnalyzer: Sendable {
     /// A fresh `StaticAnalyzer` per call keeps this free of shared mutable
     /// state across the task group.
     static func analyzeOne(_ url: URL) -> BatchAppResult {
+        let auditorVersion = RunReport.currentAuditorVersion
+        // Reuse a cached report for an unchanged app (e.g. a re-scan), and seed
+        // the cache otherwise so a later single-app drill-in is instant rather
+        // than re-paying for the analysis we're doing right now.
+        if let cached = StaticReportCache.shared.load(for: url, auditorVersion: auditorVersion) {
+            let risk = RiskScorer().score(staticReport: cached)
+            return BatchAppResult.derive(url: url, report: cached, risk: risk)
+        }
         do {
             let report = try StaticAnalyzer().analyze(bundleAt: url)
+            StaticReportCache.shared.store(report, for: url, auditorVersion: auditorVersion)
             let risk = RiskScorer().score(staticReport: report)
             return BatchAppResult.derive(url: url, report: report, risk: risk)
         } catch {

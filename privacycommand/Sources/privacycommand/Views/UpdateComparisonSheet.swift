@@ -374,7 +374,7 @@ struct UpdateComparisonSheet: View {
 
     private func wrap(_ report: StaticReport, label: String) -> RunReport {
         RunReport(
-            auditorVersion: "0.1.0",
+            auditorVersion: RunReport.currentAuditorVersion,
             startedAt: Date(),
             endedAt: Date(),
             bundle: report.bundle,

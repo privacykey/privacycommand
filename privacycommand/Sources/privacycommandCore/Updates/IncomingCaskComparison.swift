@@ -37,11 +37,11 @@ public enum IncomingCaskComparison {
     }
 
     /// Static-only `RunReport` wrapper. Kept consistent with the GUI's
-    /// `UpdateComparisonSheet.wrap` (`auditorVersion "0.1.0"`, zeroed event
-    /// counts, risk score from `RiskScorer`).
+    /// `UpdateComparisonSheet.wrap` (`RunReport.currentAuditorVersion`, zeroed
+    /// event counts, risk score from `RiskScorer`).
     static func wrap(_ report: StaticReport, label: String) -> RunReport {
         RunReport(
-            auditorVersion: "0.1.0",
+            auditorVersion: RunReport.currentAuditorVersion,
             startedAt: Date(),
             endedAt: Date(),
             bundle: report.bundle,

@@ -43,6 +43,17 @@ public struct RunReport: Codable, Hashable, Sendable {
         self.liveProbeEvents = liveProbeEvents
     }
 
+    /// The auditor's own version, read from the running app's bundle
+    /// (`CFBundleShortVersionString`, fed by the `MARKETING_VERSION` build
+    /// setting). This is the single source of truth for the version stamped
+    /// into every `RunReport` — don't hardcode the literal at call sites or it
+    /// drifts out of date (it was stuck at "0.1.0" while the app shipped 0.1.4).
+    /// Falls back to `"0.0.0-dev"` only outside the app — e.g. unit tests or the
+    /// SwiftPM CLI, where `Bundle.main` is the test runner, not the .app bundle.
+    public static var currentAuditorVersion: String {
+        (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "0.0.0-dev"
+    }
+
     private enum CodingKeys: String, CodingKey {
         case id, auditorVersion, startedAt, endedAt, bundle, staticReport
         case events, summary, fidelityNotes, behavior, liveProbeEvents

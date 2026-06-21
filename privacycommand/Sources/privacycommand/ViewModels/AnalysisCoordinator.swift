@@ -213,8 +213,21 @@ final class AnalysisCoordinator: ObservableObject {
             // — the analyzer is a stateless value type, and avoiding the
             // capture sidesteps Sendable-checking for class-isolated state.
             let result: Result<StaticReport, Error> = await Task.detached(priority: .userInitiated) {
-                do { return .success(try StaticAnalyzer().analyze(bundleAt: url)) }
-                catch { return .failure(error) }
+                let auditorVersion = RunReport.currentAuditorVersion
+                // Reuse the report from a prior scan of this exact build (e.g. a
+                // "Scan all apps" pass) instead of re-running the identical,
+                // expensive static analysis. A miss — or a changed app — falls
+                // through to a fresh scan, whose result seeds the cache.
+                if let cached = StaticReportCache.shared.load(
+                    for: url, auditorVersion: auditorVersion) {
+                    return .success(cached)
+                }
+                do {
+                    let report = try StaticAnalyzer().analyze(bundleAt: url)
+                    StaticReportCache.shared.store(
+                        report, for: url, auditorVersion: auditorVersion)
+                    return .success(report)
+                } catch { return .failure(error) }
             }.value
 
             // Back on MainActor (this Task inherits the @MainActor isolation
@@ -1046,8 +1059,17 @@ final class AnalysisCoordinator: ObservableObject {
         // detached task; we return to MainActor after `await .value`.
         Task {
             let outcome: Result<StaticReport, Error> = await Task.detached(priority: .userInitiated) {
-                do { return .success(try StaticAnalyzer().analyze(bundleAt: url)) }
-                catch { return .failure(error) }
+                let auditorVersion = RunReport.currentAuditorVersion
+                if let cached = StaticReportCache.shared.load(
+                    for: url, auditorVersion: auditorVersion) {
+                    return .success(cached)
+                }
+                do {
+                    let report = try StaticAnalyzer().analyze(bundleAt: url)
+                    StaticReportCache.shared.store(
+                        report, for: url, auditorVersion: auditorVersion)
+                    return .success(report)
+                } catch { return .failure(error) }
             }.value
 
             subBundleAnalyzing.remove(url)
@@ -1075,6 +1097,11 @@ final class AnalysisCoordinator: ObservableObject {
     /// Save the current state to the run store under `currentRunID`.
     /// Called automatically after select() and stopMonitoredRun().
     private func persistCurrentReport() {
+        // Respect the "Save runs to history automatically" setting. When off,
+        // runs are only written to disk via explicit Export actions. Unset
+        // defaults to on (matches the @AppStorage default in Settings).
+        let autoSave = UserDefaults.standard.object(forKey: "autoSaveRuns") as? Bool ?? true
+        guard autoSave else { return }
         guard let report = currentRunReport() else { return }
         Task {
             // Save off-main. Errors are logged but not surfaced — persistence
@@ -1181,7 +1208,7 @@ final class AnalysisCoordinator: ObservableObject {
             events: events, staticReport: staticReport)
         return RunReport(
             id: currentRunID,
-            auditorVersion: "0.1.0",
+            auditorVersion: RunReport.currentAuditorVersion,
             startedAt: startedAt ?? Date(),
             endedAt: endedAt ?? Date(),
             bundle: bundle,
