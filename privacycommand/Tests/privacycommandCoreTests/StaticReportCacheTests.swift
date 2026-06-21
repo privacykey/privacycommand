@@ -76,10 +76,14 @@ final class StaticReportCacheTests: XCTestCase {
     func testNewerAuditorVersionInvalidatesEntry() throws {
         let cache = StaticReportCache(baseURL: tmp.appendingPathComponent("cache"))
         let app = try makeAppBundle(version: "1.0", execBytes: Data([0x01, 0x02, 0x03]))
-        cache.store(Fix.report(), for: app, auditorVersion: "0.1.4")
+        // The auditor version is an injected parameter, not read from the app's
+        // real MARKETING_VERSION, so any two distinct strings prove the point —
+        // these are intentionally not real version numbers and never need to
+        // track a release.
+        cache.store(Fix.report(), for: app, auditorVersion: "older-auditor")
 
-        XCTAssertNotNil(cache.load(for: app, auditorVersion: "0.1.4"))
-        XCTAssertNil(cache.load(for: app, auditorVersion: "0.1.5"),
+        XCTAssertNotNil(cache.load(for: app, auditorVersion: "older-auditor"))
+        XCTAssertNil(cache.load(for: app, auditorVersion: "newer-auditor"),
                      "a report from an older auditor build must not be served to a newer one")
     }
 
