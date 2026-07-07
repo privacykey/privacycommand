@@ -1,0 +1,60 @@
+name: CI
+
+# Runs only for pull requests targeting main — never on push. This puts the
+# fast feedback loop (build every SPM target + the full test suite + a CLI
+# smoke test) on the review boundary, and leaves release.yml as the only
+# tag-triggered workflow.
+on:
+  pull_request:
+    branches: [main]
+
+# A new push to the same PR cancels an in-flight run.
+concurrency:
+  group: ci-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: build + test (SPM)
+    runs-on: macos-15
+    timeout-minutes: 30
+    defaults:
+      run:
+        # Package.swift lives in privacycommand/, not the repo root.
+        working-directory: privacycommand
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Select Xcode
+        # Same convention as release.yml — a full Xcode (not CommandLineTools)
+        # is what makes `swift test` find XCTest.
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Swift toolchain
+        run: swift --version
+
+      - name: Build all targets
+        # Compiles Core, auditctlKit, auditctl, the guest agent and the shared
+        # protocol — catches breakage the test targets don't cover.
+        run: swift build
+
+      - name: Run tests
+        run: swift test
+
+      - name: CLI smoke test (auditctl exit-code contract)
+        # Exercises the built executable end-to-end: a parseable system app must
+        # analyze cleanly and exit 0. Skipped if the runner image lacks it.
+        run: |
+          BIN=.build/debug/auditctl
+          if [ -d /System/Applications/Calculator.app ]; then
+            "$BIN" /System/Applications/Calculator.app > /dev/null
+            echo "auditctl analyzed Calculator and exited 0 ✓"
+          else
+            echo "Calculator.app not present on runner — skipping CLI smoke test"
+          fi
