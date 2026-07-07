@@ -11,16 +11,25 @@ public struct StaticAnalyzer {
         self.privacyDB = privacyDB
     }
 
-    public func analyze(bundleAt url: URL) throws -> StaticReport {
+    public func analyze(bundleAt url: URL,
+                        progress: ((String) -> Void)? = nil) throws -> StaticReport {
         let bundle = try AppBundle.resolve(bundleURL: url)
-        return analyze(bundle: bundle)
+        return analyze(bundle: bundle, progress: progress)
     }
 
-    public func analyze(bundle: AppBundle) -> StaticReport {
+    /// `progress`, when supplied, is called on the calling thread before each
+    /// major pass with a short human-readable phase label (e.g. for a CLI
+    /// spinner or a GUI progress line). Passing `nil` — the default — keeps the
+    /// analyzer's behaviour identical for every existing caller.
+    public func analyze(bundle: AppBundle,
+                        progress: ((String) -> Void)? = nil) -> StaticReport {
+        progress?("Reading Info.plist & entitlements")
         let plistResult = InfoPlistReader.read(for: bundle, db: privacyDB)
         let entitlements = EntitlementsReader.read(for: bundle)
+        progress?("Checking code signature & notarization")
         let signing = CodesignWrapper.info(for: bundle)
         let notarization = CodesignWrapper.notarization(for: bundle)
+        progress?("Scanning frameworks & binary strings")
         let framework = FrameworkScanner.scan(bundle: bundle)
         let scan = BinaryStringScanner.scan(
             executable: bundle.executableURL,
@@ -38,6 +47,7 @@ public struct StaticAnalyzer {
         // path relative to the .app ("Contents/MacOS/AppName"). The main
         // executable goes first so it wins attribution when the same secret
         // appears in more than one file.
+        progress?("Scanning embedded binaries for secrets")
         let bundleRoot = bundle.url.path
         func bundleRelative(_ url: URL) -> String {
             let p = url.standardizedFileURL.path
@@ -51,6 +61,7 @@ public struct StaticAnalyzer {
         let secretFiles = ([mainExec] + embeddedMachOs)
             .map { (url: $0, label: bundleRelative($0)) }
         let secrets = SecretsScanner.scan(files: secretFiles).findings
+        progress?("Auditing embedded signatures")
         let bundleSigning = BundleSigningAuditor.audit(bundle: bundle)
         // MAS receipt drives the anti-analysis encrypted-segment gate (FairPlay
         // is expected for App Store apps); AppStoreInfo below reuses it.
@@ -58,6 +69,7 @@ public struct StaticAnalyzer {
         let antiAnalysis = AntiAnalysisDetector.analyse(
             executable: bundle.executableURL, scan: scan, isMASApp: masReceipt.isMASApp).findings
         let rpathAudit = RPathAuditor.audit(executable: bundle.executableURL)
+        progress?("Scanning embedded assets & manifests")
         let embeddedAssets = EmbeddedAssetScanner.scan(bundle: bundle)
         let privacyManifest = PrivacyManifestReader.read(for: bundle)
         let notarizationDeep = NotarizationDeepDive.analyse(bundle: bundle)
@@ -83,6 +95,7 @@ public struct StaticAnalyzer {
         // An SDK's network domains usually live in its embedded framework
         // binary, so the main-exec-only scan missed them entirely. Capability
         // inference deliberately still keys on the main executable's symbols.
+        progress?("Extracting endpoints from embedded binaries")
         let embeddedScan = BinaryStringScanner.scan(executables: embeddedMachOs)
         // Endpoints also live in bundled config/resource files (Settings
         // bundles, config.json, SDK plists), which the binary scan never reads.
@@ -93,8 +106,10 @@ public struct StaticAnalyzer {
 
         // Persist the network call-site map so it's diffable across updates.
         // Size-capped + disassembler-gated so large apps aren't slowed.
+        progress?("Disassembling for network call-sites")
         let netCallSites = StaticAnalyzer.networkCallSites(for: bundle.executableURL)
 
+        progress?("Finalizing report")
         var warnings: [Finding] = []
         // iPhone/iPad apps run on Apple Silicon from a wrapped, flat bundle.
         // Flag that up front so the reader knows why some macOS-only checks

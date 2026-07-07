@@ -99,10 +99,16 @@ enum AuditCommand {
             exit(4)
         }
 
-        // 2. Analyze.
+        // 2. Analyze — with a progress spinner on stderr so a slow app (Chrome
+        //    can take 30s+) doesn't look like a hang. The spinner only draws
+        //    when stderr is a TTY and never touches stdout, so `--json` and
+        //    piped output stay clean.
         let report: StaticReport
         do {
-            report = try StaticAnalyzer().analyze(bundleAt: url)
+            let spinner = Spinner(message: "Analyzing \(url.deletingPathExtension().lastPathComponent)…")
+            spinner.start()
+            defer { spinner.stop() }
+            report = try StaticAnalyzer().analyze(bundleAt: url, progress: { spinner.update($0) })
         } catch {
             die("failed to analyze \(url.path): \(error.localizedDescription)", code: 1)
         }

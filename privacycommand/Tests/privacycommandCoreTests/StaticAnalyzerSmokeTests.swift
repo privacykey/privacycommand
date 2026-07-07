@@ -46,6 +46,27 @@ final class StaticAnalyzerSmokeTests: XCTestCase {
         #endif
     }
 
+    func testAnalyzeReportsProgressPhases() throws {
+        #if !os(macOS)
+        throw XCTSkip("macOS-only smoke test")
+        #else
+        let path = "/System/Applications/Calculator.app"
+        guard FileManager.default.fileExists(atPath: path) else {
+            throw XCTSkip("Calculator.app not present on this runner")
+        }
+        var phases: [String] = []
+        _ = try StaticAnalyzer().analyze(bundleAt: URL(fileURLWithPath: path)) { phases.append($0) }
+
+        XCTAssertFalse(phases.isEmpty, "the progress callback should fire")
+        XCTAssertTrue(phases.allSatisfy { !$0.isEmpty }, "phase labels should be non-empty")
+        XCTAssertEqual(phases.first, "Reading Info.plist & entitlements")
+        XCTAssertTrue(phases.contains("Finalizing report"))
+        XCTAssertLessThan(phases.firstIndex(of: "Reading Info.plist & entitlements")!,
+                          phases.firstIndex(of: "Finalizing report")!,
+                          "phases should arrive in order")
+        #endif
+    }
+
     func testLSOFLineParserHandlesIPv4AndIPv6() {
         let v4 = "Slack 41212 alice 27u IPv4 0x123 0t0 TCP 192.168.1.5:51212->17.253.144.10:443 (ESTABLISHED)"
         let v6 = "Slack 41212 alice 28u IPv6 0xdef 0t0 TCP [fe80::1]:51213->[2606:4700:10::6816:30]:443 (ESTABLISHED)"
