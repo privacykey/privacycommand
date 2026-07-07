@@ -14,6 +14,11 @@ struct DisassemblerLauncher: View {
 
     @State private var detectedTools: [Tool] = []
     @State private var showingForensicSheet = false
+    @State private var showingDecompileSheet = false
+    @State private var ghidraAvailable = false
+    @State private var importedMalimiteIndex: DecompilationIndex?
+    @State private var showingMalimiteSheet = false
+    @State private var malimiteError: String?
 
     /// One detected disassembler / RE tool.
     struct Tool: Identifiable, Hashable {
@@ -60,6 +65,28 @@ struct DisassemblerLauncher: View {
                     }
                     .help("Plain-English explanation of what this binary can do, derived from its imports and linked frameworks.")
 
+                    // Whole-app decompilation via a local Ghidra install. Shown
+                    // only when Ghidra is present (like the single-function
+                    // decompile in the forensic summary).
+                    if ghidraAvailable {
+                        Button {
+                            showingDecompileSheet = true
+                        } label: {
+                            Label("Decompile whole app", systemImage: "curlybraces.square")
+                        }
+                        .help("Reconstruct the app's classes and functions with your local Ghidra install. First run analyses the binary; results are cached.")
+                    }
+
+                    // Import a decompilation produced by Malimite (which has no
+                    // headless mode) and browse it here. Always available — it's
+                    // just a database read, no tool required.
+                    Button {
+                        importMalimiteDatabase()
+                    } label: {
+                        Label("Import Malimite DB…", systemImage: "square.and.arrow.down")
+                    }
+                    .help("Open a Malimite project database and browse its decompiled classes in the same viewer.")
+
                     if detectedTools.isEmpty {
                         Text("No reverse-engineering tools detected on PATH or /Applications.")
                             .font(.caption).foregroundStyle(.secondary)
@@ -78,15 +105,64 @@ struct DisassemblerLauncher: View {
                     Text("These open the app's main executable in your local installation. Auditor never modifies the bundle.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
+
+                DisclosureGroup("Further reverse-engineering tools") {
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(ToolCatalog.tools(in: .reverseEngineering)) { tool in
+                            toolRow(tool)
+                        }
+                        HStack(spacing: 4) {
+                            Text("Curated list").font(.caption2).foregroundStyle(.secondary)
+                            InfoButton(articleID: "further-tools")
+                        }
+                        .padding(.top, 2)
+                    }
+                    .padding(.top, 4)
+                }
+                .font(.callout)
             }
             .padding(8)
         }
-        .task { detectedTools = Self.detectInstalledTools() }
+        .task {
+            detectedTools = Self.detectInstalledTools()
+            ghidraAvailable = GhidraProgramDump.isAvailable()
+        }
         .sheet(isPresented: $showingForensicSheet) {
             DisassemblySummaryView(
                 executableURL: executableURL,
                 onClose: { showingForensicSheet = false }
             )
+        }
+        .sheet(isPresented: $showingDecompileSheet) {
+            DecompiledClassesView(
+                executableURL: executableURL,
+                onClose: { showingDecompileSheet = false }
+            )
+        }
+        .sheet(isPresented: $showingMalimiteSheet) {
+            if let index = importedMalimiteIndex {
+                VStack(spacing: 0) {
+                    HStack {
+                        HStack(spacing: 6) {
+                            Text("Malimite import").font(.headline)
+                            InfoButton(articleID: "decompile-whole-app")
+                        }
+                        Spacer()
+                        Button("Close") { showingMalimiteSheet = false }
+                    }
+                    .padding(12)
+                    Divider()
+                    DecompilationBrowser(index: index)
+                }
+                .frame(minWidth: 900, minHeight: 560)
+            }
+        }
+        .alert("Couldn't import Malimite database",
+               isPresented: Binding(get: { malimiteError != nil },
+                                    set: { if !$0 { malimiteError = nil } })) {
+            Button("OK", role: .cancel) { malimiteError = nil }
+        } message: {
+            Text(malimiteError ?? "")
         }
     }
 
@@ -137,6 +213,39 @@ struct DisassemblerLauncher: View {
         task.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
         task.arguments = ["-e", script]
         try? task.run()
+    }
+
+    // MARK: - Further tools
+
+    private func toolRow(_ tool: AnalysisTool) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            if let url = tool.url {
+                Link(tool.name, destination: url).font(.callout)
+            } else {
+                Text(tool.name).font(.callout)
+            }
+            Text(tool.blurb).font(.caption).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer()
+        }
+    }
+
+    // MARK: - Malimite import
+
+    private func importMalimiteDatabase() {
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.message = "Choose a Malimite project database"
+        panel.prompt = "Import"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            importedMalimiteIndex = try MalimiteImporter.importDatabase(at: url)
+            showingMalimiteSheet = true
+        } catch {
+            malimiteError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        }
     }
 
     // MARK: - Detection

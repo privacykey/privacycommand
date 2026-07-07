@@ -26,6 +26,22 @@ apart from anything you also run on the host).
 You do **not** need a second copy of the privacycommand app inside
 the VM. The agent has no UI; it's just a TCP daemon.
 
+## Decompiling in the VM (optional — needs Ghidra in the guest)
+
+Besides monitored runs, the agent can **decompile a whole app inside
+the guest** and stream the reconstructed classes back to the host
+(Settings → VM → "Decompile in VM"). This offloads the CPU-heavy Ghidra
+analysis onto the VM so it never touches your real Mac.
+
+For this to work the **guest VM must have Ghidra installed** — the agent
+looks for `support/analyzeHeadless` inside any `ghidra*` folder under
+`/Applications`, `~/Applications`, `/opt`, `/usr/local`, or `~/Tools`
+(same locations the host uses). If Ghidra isn't present in the guest,
+"Decompile in VM" returns a clear "Ghidra isn't installed" message and
+nothing else happens. Results are streamed one class per protocol frame
+(so no single message approaches the 16 MB wire limit) and reassembled
+on the host into the same class browser the local decompiler uses.
+
 ## How you actually run an inspection in VM mode
 
 1. **One-time setup.** Build the installer DMG from Settings → VM

@@ -19,6 +19,11 @@ struct StaticAnalysisView: View {
     @State private var btmRunning = false
     @EnvironmentObject private var helperInstaller: HelperInstaller
 
+    /// Requested-vs-granted-vs-used reconciliation. Machine/run state like the
+    /// two above — recomputed per bundle, never persisted into StaticReport.
+    @State private var reconciliation: PermissionReconciliation?
+    @State private var reconciliationLoading = false
+
     /// Anchor IDs for the Jump-to-section popover. Each section is
     /// `.id(SectionAnchor.<case>.rawValue)`-tagged inside the scroll view
     /// so ScrollViewReader can scroll directly to it.
@@ -27,7 +32,7 @@ struct StaticAnalysisView: View {
         case entitlements, urlSchemes, ats, docTypes, notarizationDeep
         case privacyManifest, sandboxContainer, btm
         case secrets, bundleSigning, antiAnalysis, rpath
-        case privacyClaims, embeddedAssets, helpers
+        case permissionMatrix, privacyClaims, embeddedAssets, helpers
         case sdks, flags, domains, paths
         var id: String { rawValue }
         var label: String {
@@ -49,6 +54,7 @@ struct StaticAnalysisView: View {
             case .bundleSigning:    return "Whole-bundle signing audit"
             case .antiAnalysis:     return "Anti-analysis signals"
             case .rpath:            return "Dynamic linking surface"
+            case .permissionMatrix: return "Permissions (requested vs granted vs used)"
             case .privacyClaims:    return "Privacy claims vs. usage"
             case .embeddedAssets:   return "Embedded scripts & launchd"
             case .helpers:          return "Helpers / XPC services"
@@ -113,6 +119,9 @@ struct StaticAnalysisView: View {
                             .id(SectionAnchor.antiAnalysis.rawValue)
                         RPathAuditView(audit: report.rpathAudit)
                             .id(SectionAnchor.rpath.rawValue)
+                        PermissionMatrixView(reconciliation: reconciliation,
+                                             loading: reconciliationLoading)
+                            .id(SectionAnchor.permissionMatrix.rawValue)
                         PrivacyClaimsView(inferred: report.inferredCapabilities)
                             .id(SectionAnchor.privacyClaims.rawValue)
                         EmbeddedAssetsView(assets: report.embeddedAssets)
@@ -150,6 +159,12 @@ struct StaticAnalysisView: View {
                 if helperInstaller.status == .installed {
                     await runBTMViaHelper(bundle: bundle)
                 }
+
+                // Permission reconciliation: requested (static) × granted (TCC)
+                // × used (this run's live probes). TCC needs Full Disk Access;
+                // an unreadable read drives the FDA card in the matrix view.
+                reconciliation = nil
+                await computeReconciliation(report: report)
             }
         } else {
             Text("No bundle selected").foregroundStyle(.secondary)
@@ -200,6 +215,34 @@ struct StaticAnalysisView: View {
                 btmRunning = false
             }
         }
+    }
+
+    /// Compute the requested-vs-granted-vs-used matrix for `report`. The TCC
+    /// read happens off the main thread (it opens two SQLite databases and
+    /// needs Full Disk Access); an unreadable result yields `tccReadable ==
+    /// false`, which the matrix surfaces as the FDA-remediation card.
+    private func computeReconciliation(report: StaticReport) async {
+        reconciliationLoading = true
+        defer { reconciliationLoading = false }
+
+        let declaredKeys = report.declaredPrivacyKeys
+        let entitlements = report.entitlements
+        let inferred = report.inferredCapabilities
+        let bundleID = report.bundle.bundleID
+        let execPath = report.bundle.executableURL.path
+        let bundlePath = report.bundle.url.path
+        let observed = PermissionReconciler.observedCategories(from: coordinator.liveProbeEvents)
+
+        reconciliation = await Task.detached(priority: .userInitiated) {
+            let tcc = TCCAuditor.audit()
+            let mine = tcc.grants.matching(bundleID: bundleID,
+                                           executablePath: execPath,
+                                           bundlePath: bundlePath)
+            return PermissionReconciler.reconcile(
+                declaredKeys: declaredKeys, entitlements: entitlements,
+                inferredCapabilities: inferred, grants: mine,
+                tccReadable: tcc.anyReadable, observedUsage: observed)
+        }.value
     }
 
     /// Sticky bar with a Jump-to picker and a hint about how many sections

@@ -528,7 +528,7 @@ public struct StaticAnalyzer {
         func declaredFor(_ cat: PrivacyCategory) -> Bool {
             if declaredCategories.contains(cat) { return true }
             if Self.isBluetooth(cat) && declaredCategories.contains(where: Self.isBluetooth) { return true }
-            return categoryDeclaredViaEntitlement(cat, entitlements: entitlements)
+            return Self.categoryDeclaredViaEntitlement(cat, entitlements: entitlements)
         }
         func inferredFor(_ cat: PrivacyCategory) -> Bool {
             if hits[cat] != nil { return true }
@@ -585,7 +585,11 @@ public struct StaticAnalyzer {
     ]
     static func isBluetooth(_ c: PrivacyCategory) -> Bool { c == .bluetooth || c == .bluetoothAlways }
 
-    private func categoryDeclaredViaEntitlement(_ cat: PrivacyCategory, entitlements: Entitlements) -> Bool {
+    /// Whether `cat` has a *declaration channel via an entitlement* (as opposed
+    /// to an Info.plist usage key). Shared with `PermissionReconciler` so the
+    /// "requested" axis of the permission matrix and capability inference agree
+    /// on what counts as declared.
+    static func categoryDeclaredViaEntitlement(_ cat: PrivacyCategory, entitlements: Entitlements) -> Bool {
         switch cat {
         case .appleEvents, .automation:
             return entitlements.appleEvents != nil
