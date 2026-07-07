@@ -61,6 +61,7 @@ public actor VMGuestSession {
         case versionMismatch(guestVersion: Int, hostVersion: Int)
         case handshakeTimeout
         case notConnected
+        case decompileFailed(String)
 
         public var errorDescription: String? {
             switch self {
@@ -72,6 +73,8 @@ public actor VMGuestSession {
                 return "The guest agent didn't answer the handshake in time."
             case .notConnected:
                 return "Not connected to a guest agent."
+            case .decompileFailed(let why):
+                return "Decompilation in the VM failed: \(why)"
             }
         }
     }
@@ -103,6 +106,14 @@ public actor VMGuestSession {
     /// Pending handshake waiter — resolved by the first `.agentReady`
     /// (or an early `.agentError`) after we send `.handshake`.
     private var handshakeCont: CheckedContinuation<AgentInfo, Error>?
+
+    /// Pending whole-app decompile — resolved by `.decompileComplete` (which
+    /// assembles the streamed per-class results into an index) or by
+    /// `.decompileFailed` / a disconnect.
+    private var decompileCont: CheckedContinuation<DecompilationIndex, Error>?
+    private var decompileClasses: [DecompiledClass] = []
+    private var decompileScope: DecompileScope?
+    private var decompileBinaryPath: String?
 
     private static let queue = DispatchQueue(label: "com.privacycommand.vmguest")
 
@@ -172,6 +183,35 @@ public actor VMGuestSession {
         let info = try await connectAndHandshake(timeout: handshakeTimeout)
         try send(.command(.launchAndMonitor(bundlePathInGuest: guestBundlePath)))
         return info
+    }
+
+    /// Handshake, then ask the guest to decompile the bundle at
+    /// `guestBundlePath` with a Ghidra installed *inside the guest*. Collects
+    /// the streamed per-class results and returns a `DecompilationIndex` on
+    /// `.decompileComplete`, or throws on `.decompileFailed` / disconnect.
+    /// Cancelling the awaiting task stops the session.
+    public func decompile(guestBundlePath: String,
+                          scope: DecompileScope,
+                          handshakeTimeout: TimeInterval = 5) async throws -> DecompilationIndex {
+        _ = try await connectAndHandshake(timeout: handshakeTimeout)
+        decompileClasses = []
+        decompileScope = scope
+        decompileBinaryPath = guestBundlePath
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { (cont: CheckedContinuation<DecompilationIndex, Error>) in
+                self.decompileCont = cont
+                do {
+                    try send(.command(.decompileBundle(bundlePathInGuest: guestBundlePath,
+                                                       scopeKind: scope.kind.rawValue,
+                                                       cap: scope.cap)))
+                } catch {
+                    self.decompileCont = nil
+                    cont.resume(throwing: error)
+                }
+            }
+        } onCancel: {
+            Task { await self.stop() }
+        }
     }
 
     /// Tell the agent to stop the run and close the socket. Idempotent.
@@ -373,6 +413,29 @@ public actor VMGuestSession {
         case .targetExited(let exitCode, let signal):
             deliver(.targetExited(exitCode: exitCode, signal: signal))
 
+        case .decompiledClass(let json):
+            if let data = json.data(using: .utf8),
+               let cls = try? decoder.decode(DecompiledClass.self, from: data) {
+                decompileClasses.append(cls)
+            }
+
+        case .decompileComplete(let truncated, let functionCount):
+            let index = DecompilationIndex(
+                source: .ghidra,
+                binaryPath: decompileBinaryPath ?? "",
+                scope: decompileScope?.key ?? "",
+                classes: decompileClasses.sorted {
+                    $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
+                },
+                functionCount: functionCount,
+                truncated: truncated,
+                note: truncated ? "Capped — some functions were not decompiled." : nil)
+            decompileCont?.resume(returning: index)
+            decompileCont = nil
+
+        case .decompileFailed(let message):
+            failDecompileIfPending(SessionError.decompileFailed(message))
+
         case .agentError(let message):
             deliver(.agentError(message))
         }
@@ -428,6 +491,11 @@ public actor VMGuestSession {
         handshakeCont = nil
     }
 
+    private func failDecompileIfPending(_ error: Error) {
+        decompileCont?.resume(throwing: error)
+        decompileCont = nil
+    }
+
     private func deliver(_ notice: Notice) {
         noticesCont.yield(notice)
     }
@@ -435,6 +503,9 @@ public actor VMGuestSession {
     private func finishStreams() {
         guard !didFinish else { return }
         didFinish = true
+        // A drop mid-decompile must surface to the awaiting caller (a normal
+        // `.decompileComplete` already resolved + cleared this continuation).
+        failDecompileIfPending(SessionError.notConnected)
         eventsCont.finish()
         liveProbesCont.finish()
         resourceCont.finish()

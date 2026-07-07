@@ -27,6 +27,10 @@ struct GuestAgentSettingsView: View {
     @State private var isBuilding = false
     @State private var buildError: String?
     @State private var buildLog: String = ""
+    /// Scope for a VM-offloaded whole-app decompilation, and whether the
+    /// result browser sheet is open.
+    @State private var vmDecompileScopeKind: DecompileScope.Kind = .namedClasses
+    @State private var showingVMDecompileResult = false
 
     var body: some View {
         Form {
@@ -347,6 +351,73 @@ struct GuestAgentSettingsView: View {
                 && !(coordinator.isVMRun && coordinator.isMonitoring) {
                 Text("Test the connection first — “Run in VM” enables once the guest agent answers.")
                     .font(.caption2).foregroundStyle(.secondary)
+            }
+
+            Divider().padding(.vertical, 2)
+            vmDecompileControls
+        }
+    }
+
+    /// Offload a whole-app decompilation to the guest VM (needs Ghidra in the
+    /// guest). Reuses the same guest bundle path + connection as a VM run, and
+    /// shows the result in the shared `DecompilationBrowser`.
+    @ViewBuilder
+    private var vmDecompileControls: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Or decompile the app **inside the VM** (needs Ghidra installed in the guest):")
+                .font(.caption).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack {
+                Picker("Scope", selection: $vmDecompileScopeKind) {
+                    Text("Named classes").tag(DecompileScope.Kind.namedClasses)
+                    Text("Everything").tag(DecompileScope.Kind.everything)
+                }
+                .pickerStyle(.segmented).fixedSize()
+                .disabled(coordinator.vmDecompiling)
+
+                if coordinator.vmDecompiling {
+                    HStack(spacing: 6) {
+                        ProgressView().controlSize(.small)
+                        Text("Decompiling in VM…").font(.caption).foregroundStyle(.secondary)
+                    }
+                } else {
+                    Button("Decompile in VM") {
+                        Task {
+                            await coordinator.decompileInVM(
+                                guestBundlePath: guestBundlePath,
+                                scope: DecompileScope(kind: vmDecompileScopeKind))
+                            if coordinator.vmDecompileResult != nil { showingVMDecompileResult = true }
+                        }
+                    }
+                    .controlSize(.small)
+                    .disabled(!coordinator.canStartVMRun
+                              || guestBundlePath.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+
+                if let result = coordinator.vmDecompileResult {
+                    Button("View \(result.classCount) classes") { showingVMDecompileResult = true }
+                        .controlSize(.small)
+                }
+            }
+            if let error = coordinator.vmDecompileError {
+                Text(error).font(.caption2).foregroundStyle(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .sheet(isPresented: $showingVMDecompileResult) {
+            if let index = coordinator.vmDecompileResult {
+                VStack(spacing: 0) {
+                    HStack {
+                        Text("Decompiled in VM — \(guestBundlePath)")
+                            .font(.headline).lineLimit(1).truncationMode(.middle)
+                        Spacer()
+                        Button("Close") { showingVMDecompileResult = false }
+                    }
+                    .padding(12)
+                    Divider()
+                    DecompilationBrowser(index: index)
+                }
+                .frame(minWidth: 900, minHeight: 560)
             }
         }
     }

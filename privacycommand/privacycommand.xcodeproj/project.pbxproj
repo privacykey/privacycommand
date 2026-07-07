@@ -103,6 +103,19 @@
 		0BBBBBBB000000000000C150 /* EmbeddedResourceScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C150 /* EmbeddedResourceScanner.swift */; };
 		0BBBBBBB000000000000C116 /* SandboxContainerInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C116 /* SandboxContainerInspector.swift */; };
 		0BBBBBBB000000000000C117 /* BTMAuditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C117 /* BTMAuditor.swift */; };
+		0BBBBBBB000000000000C125 /* MalimiteImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C125 /* MalimiteImporter.swift */; };
+		0BBBBBBB000000000000C126 /* MacAptImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C126 /* MacAptImporter.swift */; };
+		0BBBBBBB000000000000C702 /* ToolCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C702 /* ToolCatalog.swift */; };
+		0BBBBBBB000000000000C124 /* GhidraProgramDump.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C124 /* GhidraProgramDump.swift */; };
+		0BBBBBBB000000000000C00B /* DecompilationIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C00B /* DecompilationIndex.swift */; };
+		0BBBBBBB000000000000C602 /* DecompilationIndexStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C602 /* DecompilationIndexStore.swift */; };
+		0BBBBBBB000000000000A133 /* DecompiledClassesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A133 /* DecompiledClassesView.swift */; };
+		0BBBBBBB000000000000C121 /* SQLiteReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C121 /* SQLiteReader.swift */; };
+		0BBBBBBB000000000000C122 /* TCCAuditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C122 /* TCCAuditor.swift */; };
+		0BBBBBBB000000000000C123 /* PermissionReconciler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C123 /* PermissionReconciler.swift */; };
+		0BBBBBBB000000000000C009 /* TCCGrant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C009 /* TCCGrant.swift */; };
+		0BBBBBBB000000000000C00A /* PermissionReconciliation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C00A /* PermissionReconciliation.swift */; };
+		0BBBBBBB000000000000A132 /* PermissionMatrixView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A132 /* PermissionMatrixView.swift */; };
 		0BBBBBBB000000000000C118 /* NotarizationDeepDive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C118 /* NotarizationDeepDive.swift */; };
 		0BBBBBBB000000000000C119 /* DMGMounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C119 /* DMGMounter.swift */; };
 		0BBBBBBB000000000000C11A /* FlagsScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C11A /* FlagsScanner.swift */; };
@@ -323,6 +336,19 @@
 		0FFFFFFF000000000000C150 /* EmbeddedResourceScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbeddedResourceScanner.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C116 /* SandboxContainerInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SandboxContainerInspector.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C117 /* BTMAuditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BTMAuditor.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C125 /* MalimiteImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MalimiteImporter.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C126 /* MacAptImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacAptImporter.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C702 /* ToolCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolCatalog.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C124 /* GhidraProgramDump.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhidraProgramDump.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C00B /* DecompilationIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecompilationIndex.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C602 /* DecompilationIndexStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecompilationIndexStore.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A133 /* DecompiledClassesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecompiledClassesView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C121 /* SQLiteReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteReader.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C122 /* TCCAuditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCCAuditor.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C123 /* PermissionReconciler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionReconciler.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C009 /* TCCGrant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCCGrant.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C00A /* PermissionReconciliation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionReconciliation.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A132 /* PermissionMatrixView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionMatrixView.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C118 /* NotarizationDeepDive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotarizationDeepDive.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C119 /* DMGMounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DMGMounter.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C11A /* FlagsScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlagsScanner.swift; sourceTree = "<group>"; };
@@ -498,6 +524,8 @@
 				0FFFFFFF000000000000A12F /* PrivacyLabelsCard.swift */,
 				0FFFFFFF000000000000A130 /* UpdatesSettingsView.swift */,
 				0FFFFFFF000000000000A131 /* BatchScanView.swift */,
+				0FFFFFFF000000000000A133 /* DecompiledClassesView.swift */,
+				0FFFFFFF000000000000A132 /* PermissionMatrixView.swift */,
 				0CCCCCCC0000000000000A03 /* Onboarding */,
 			);
 			path = Views;
@@ -575,6 +603,9 @@
 				0FFFFFFF000000000000C006 /* OpenResource.swift */,
 				0FFFFFFF000000000000C007 /* LiveProbeEvent.swift */,
 				0FFFFFFF000000000000C008 /* AppStoreInfo.swift */,
+				0FFFFFFF000000000000C00B /* DecompilationIndex.swift */,
+				0FFFFFFF000000000000C009 /* TCCGrant.swift */,
+				0FFFFFFF000000000000C00A /* PermissionReconciliation.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -617,6 +648,12 @@
 				0FFFFFFF000000000000C11B /* MASReceiptDetector.swift */,
 				0FFFFFFF000000000000C11C /* AppStoreLookup.swift */,
 				0FFFFFFF000000000000C11D /* AppStorePrivacyLabelFetcher.swift */,
+				0FFFFFFF000000000000C125 /* MalimiteImporter.swift */,
+				0FFFFFFF000000000000C126 /* MacAptImporter.swift */,
+				0FFFFFFF000000000000C124 /* GhidraProgramDump.swift */,
+				0FFFFFFF000000000000C121 /* SQLiteReader.swift */,
+				0FFFFFFF000000000000C122 /* TCCAuditor.swift */,
+				0FFFFFFF000000000000C123 /* PermissionReconciler.swift */,
 			);
 			path = Analysis;
 			sourceTree = "<group>";
@@ -676,6 +713,7 @@
 			isa = PBXGroup;
 			children = (
 				0FFFFFFF000000000000C601 /* RunStore.swift */,
+				0FFFFFFF000000000000C602 /* DecompilationIndexStore.swift */,
 			);
 			path = Persistence;
 			sourceTree = "<group>";
@@ -684,6 +722,7 @@
 			isa = PBXGroup;
 			children = (
 				0FFFFFFF000000000000C701 /* KnowledgeBase.swift */,
+				0FFFFFFF000000000000C702 /* ToolCatalog.swift */,
 			);
 			path = KnowledgeBase;
 			sourceTree = "<group>";
@@ -969,6 +1008,19 @@
 				0BBBBBBB000000000000C150 /* EmbeddedResourceScanner.swift in Sources */,
 				0BBBBBBB000000000000C116 /* SandboxContainerInspector.swift in Sources */,
 				0BBBBBBB000000000000C117 /* BTMAuditor.swift in Sources */,
+				0BBBBBBB000000000000C125 /* MalimiteImporter.swift in Sources */,
+				0BBBBBBB000000000000C126 /* MacAptImporter.swift in Sources */,
+				0BBBBBBB000000000000C702 /* ToolCatalog.swift in Sources */,
+				0BBBBBBB000000000000C124 /* GhidraProgramDump.swift in Sources */,
+				0BBBBBBB000000000000C00B /* DecompilationIndex.swift in Sources */,
+				0BBBBBBB000000000000C602 /* DecompilationIndexStore.swift in Sources */,
+				0BBBBBBB000000000000A133 /* DecompiledClassesView.swift in Sources */,
+				0BBBBBBB000000000000C121 /* SQLiteReader.swift in Sources */,
+				0BBBBBBB000000000000C122 /* TCCAuditor.swift in Sources */,
+				0BBBBBBB000000000000C123 /* PermissionReconciler.swift in Sources */,
+				0BBBBBBB000000000000C009 /* TCCGrant.swift in Sources */,
+				0BBBBBBB000000000000C00A /* PermissionReconciliation.swift in Sources */,
+				0BBBBBBB000000000000A132 /* PermissionMatrixView.swift in Sources */,
 				0BBBBBBB000000000000C118 /* NotarizationDeepDive.swift in Sources */,
 				0BBBBBBB000000000000A11F /* PrivacyManifestView.swift in Sources */,
 				0BBBBBBB000000000000A120 /* SandboxContainerView.swift in Sources */,
@@ -1108,6 +1160,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 0.1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = org.privacykey.privacycommand;
+				OTHER_LDFLAGS = "-lsqlite3";
 				PRODUCT_NAME = privacycommand;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -1137,6 +1190,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 0.1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = org.privacykey.privacycommand;
+				OTHER_LDFLAGS = "-lsqlite3";
 				PRODUCT_NAME = privacycommand;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;

@@ -78,6 +78,13 @@ final class AnalysisCoordinator: ObservableObject {
     /// rather than on the host. Lets `stopMonitoredRun` take the VM path.
     @Published private(set) var isVMRun = false
 
+    /// Whole-app decompilation offloaded to the guest VM (Phase 3) — distinct
+    /// from a monitored VM run; it drives a Ghidra dump inside the guest and
+    /// collects the streamed classes into `vmDecompileResult`.
+    @Published var vmDecompiling = false
+    @Published var vmDecompileResult: DecompilationIndex?
+    @Published var vmDecompileError: String?
+
     private static let vmHostKey = "privacycommand.vm.host"
     private static let vmPortKey = "privacycommand.vm.port"
 
@@ -691,6 +698,34 @@ final class AnalysisCoordinator: ObservableObject {
         case .unreachable(let why):
             vmConnection = .unreachable(why)
         }
+    }
+
+    /// Offload a whole-app decompilation to the guest VM: connect to the agent,
+    /// ask it to run Ghidra on the bundle at `guestBundlePath` (a path inside
+    /// the guest), and collect the streamed classes into `vmDecompileResult`.
+    /// The guest VM image must have Ghidra installed (see docs/GUEST_AGENT.md).
+    func decompileInVM(guestBundlePath: String, scope: DecompileScope) async {
+        let host = vmHost.trimmingCharacters(in: .whitespacesAndNewlines)
+        let path = guestBundlePath.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !host.isEmpty, let port = UInt16(exactly: vmPort), port > 0 else {
+            vmDecompileError = "Set the VM IP and port, then test the connection first."
+            return
+        }
+        guard !path.isEmpty else {
+            vmDecompileError = "Enter the path to the .app inside the VM."
+            return
+        }
+        vmDecompiling = true
+        vmDecompileError = nil
+        vmDecompileResult = nil
+        let session = VMGuestSession(host: host, port: port)
+        do {
+            vmDecompileResult = try await session.decompile(guestBundlePath: path, scope: scope)
+        } catch {
+            vmDecompileError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        }
+        await session.stop()
+        vmDecompiling = false
     }
 
     /// Start a monitored run *inside the VM*: connect to the guest agent and

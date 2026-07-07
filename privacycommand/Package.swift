@@ -41,6 +41,15 @@ let package = Package(
                 .copy("../../Resources/PrivacyKeyDatabase.json"),
                 .copy("../../Resources/PathClassifier.json"),
                 .copy("../../Resources/RiskRules.json")
+            ],
+            // macOS ships libsqlite3; we link it to read external
+            // SQLite databases (TCC.db, Malimite / mac_apt exports)
+            // through the read-only `SQLiteReader`. No SwiftPM package
+            // dependency — `import SQLite3` resolves against the SDK's
+            // system module. The Xcode app target needs the same link
+            // flag (see privacycommand.xcodeproj).
+            linkerSettings: [
+                .linkedLibrary("sqlite3")
             ]
         ),
         // Pure, testable CLI/TUI logic (input decoding, browser state, frame
@@ -67,7 +76,7 @@ let package = Package(
         ),
         .testTarget(
             name: "privacycommandCoreTests",
-            dependencies: ["privacycommandCore"],
+            dependencies: ["privacycommandCore", "privacycommandGuestProtocol"],
             path: "Tests/privacycommandCoreTests"
         ),
         .testTarget(

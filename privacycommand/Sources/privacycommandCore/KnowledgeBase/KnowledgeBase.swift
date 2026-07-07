@@ -161,6 +161,74 @@ public enum KnowledgeBase {
     /// with this raw storage.
     private static let _allArticles: [KnowledgeArticle] = [
 
+        // ─── Permission matrix (requested vs granted vs used) ───────────────
+
+        .init(
+            id: "permission-matrix",
+            title: "Requested vs granted vs used",
+            summary: "Cross-references what the app declares it wants (Info.plist usage keys / entitlements), what macOS has actually granted it (TCC), and what a monitored run saw it use.",
+            detail: "Three independent signals rarely line up perfectly:\n\n• Requested — the app declared a usage string or a declaring entitlement.\n• Granted — the OS's TCC database says the user allowed (or denied) it.\n• Used — a live probe observed it in a monitored run. Only camera, microphone, and screen recording are observable this way, so other rows show “—”.\n\nThe interesting rows are the mismatches: a grant with no declaration, a declared capability the binary never uses, or an API the binary calls without ever declaring it.",
+            learnMoreURL: URL(string: "https://developer.apple.com/documentation/bundleresources/information_property_list/protected_resources")
+        ),
+
+        .init(
+            id: "granted-not-requested",
+            title: "Granted, but never requested",
+            summary: "macOS has granted this app access to a resource for which it declares no Info.plist usage string or entitlement.",
+            detail: "An app normally must ship a usage-description string to even prompt for a permission. A grant with no matching declaration can mean the string was added then removed across versions, the grant was inherited from a helper or an older build, or the entry was written by another process. Worth a closer look — it's access the app holds without a visible reason.",
+            learnMoreURL: nil
+        ),
+
+        .init(
+            id: "requested-denied",
+            title: "Requested, then denied",
+            summary: "The app asked for this permission and the user denied it in TCC. The app does not currently have access.",
+            detail: "Not a problem in itself — it's the system working as intended. Shown so you can see the full picture of what the app has tried to obtain versus what it holds.",
+            learnMoreURL: nil
+        ),
+
+        .init(
+            id: "used-not-declared",
+            title: "Used in binary, not declared",
+            summary: "The binary references a privacy-sensitive API but the bundle declares no usage string for it.",
+            detail: "On a sandboxed or hardened app this would normally fail at runtime, but it can indicate a capability the developer didn't disclose, dead code linked from a dependency, or a framework pulled in for an unrelated reason. Cross-check against the grant and usage columns to judge whether it's actually exercised.",
+            learnMoreURL: nil
+        ),
+
+        .init(
+            id: "tcc-needs-fda",
+            title: "Reading TCC needs Full Disk Access",
+            summary: "The permission-grant databases are protected by macOS. privacycommand needs Full Disk Access to read what the OS has granted other apps.",
+            detail: "The “granted” column comes from the system's TCC databases, which are readable only by a process that itself holds Full Disk Access. Grant it in System Settings › Privacy & Security › Full Disk Access, then reopen the app. Without it, privacycommand still shows what the app requested and (during a monitored run) used — just not what the OS granted.",
+            learnMoreURL: URL(string: "https://support.apple.com/guide/mac-help/control-access-to-files-and-folders-on-mac-mchld5a35146/mac")
+        ),
+
+        .init(
+            id: "full-disk-access-grant",
+            title: "System-access grant held",
+            summary: "This app holds a powerful system-access grant — Full Disk Access, Screen Recording, Accessibility, or Input Monitoring — granted by hand in System Settings.",
+            detail: "These aren't requested via an Info.plist key; a user grants them explicitly, and they're broad: Full Disk Access reads every user file, Accessibility and Input Monitoring can observe and drive other apps, Screen Recording captures the display. Confirm the app genuinely needs the capability it holds.",
+            learnMoreURL: nil
+        ),
+
+        // ─── Reverse engineering ────────────────────────────────────────────
+
+        .init(
+            id: "decompile-whole-app",
+            title: "Whole-app decompilation",
+            summary: "Reconstructs the app's classes and functions as readable pseudo-C using a local Ghidra install, so you can see how the app actually works.",
+            detail: "This drives Ghidra's headless analyzer over the main binary, groups the recovered functions by class, and decompiles each to C. The first run analyses the binary (which can take a few minutes) and is cached afterwards; it reuses the same analysis as the single-function decompile in the forensic summary. Ghidra isn't bundled — install a release yourself. “Named classes” scope skips compiler-generated helpers; “Everything” includes them, up to a cap.",
+            learnMoreURL: URL(string: "https://ghidra-sre.org")
+        ),
+
+        .init(
+            id: "further-tools",
+            title: "Further analysis tools",
+            summary: "A curated shortlist of external tools for digging deeper — reverse engineering, dynamic analysis, forensics, and network inspection.",
+            detail: "privacycommand does a lot on its own, but sometimes a dedicated tool is the right next step. These are current, vetted picks distilled from the community “awesome” list for macOS/iOS security (stale entries pruned). Reverse-engineering tools appear next to the disassembler; forensic tools like mac_apt sit by the permission matrix, where you can import their output.",
+            learnMoreURL: URL(string: "https://github.com/ashishb/osx-and-ios-security-awesome")
+        ),
+
         // ─── Signing posture ────────────────────────────────────────────────
 
         .init(

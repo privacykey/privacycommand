@@ -1,5 +1,6 @@
 import Foundation
 import privacycommandGuestProtocol
+import privacycommandCore
 
 // MARK: - Entry point
 //
@@ -218,10 +219,47 @@ final class GuestAgent: @unchecked Sendable {
             send(.acknowledge(commandID: env.id))
         case .stopLiveProbes:
             send(.acknowledge(commandID: env.id))
+        case .decompileBundle(let path, let scopeKind, let cap):
+            send(.acknowledge(commandID: env.id))
+            Task { await self.runDecompile(path: path, scopeKind: scopeKind, cap: cap) }
         case .shutdown:
             send(.acknowledge(commandID: env.id))
             log(.info, "shutdown requested; exiting")
             exit(0)
+        }
+    }
+
+    // MARK: - Decompilation (offloaded from the host)
+
+    /// Run a whole-app decompilation inside the guest and stream the classes
+    /// back one per observation, then a completion. Reuses the same
+    /// `GhidraProgramDump` the host uses locally, so the guest VM image just
+    /// needs a Ghidra install (see docs/GUEST_AGENT.md).
+    private func runDecompile(path: String, scopeKind: String, cap: Int) async {
+        guard GhidraProgramDump.isAvailable() else {
+            send(.decompileFailed(
+                message: GhidraProgramDump.DumpError.ghidraNotInstalled.errorDescription
+                    ?? "Ghidra isn't installed in the guest VM."))
+            return
+        }
+        let scope = DecompileScope(
+            kind: DecompileScope.Kind(rawValue: scopeKind) ?? .namedClasses, cap: cap)
+        do {
+            let index = try await GhidraProgramDump().dump(
+                binary: URL(fileURLWithPath: path), scope: scope)
+            // One envelope per class keeps every frame well under the 16 MB
+            // wire ceiling; the host reassembles them into a DecompilationIndex.
+            for cls in index.classes {
+                if let data = try? encoder.encode(cls),
+                   let json = String(data: data, encoding: .utf8) {
+                    send(.decompiledClass(json: json))
+                }
+            }
+            send(.decompileComplete(truncated: index.truncated,
+                                    functionCount: index.functionCount))
+        } catch {
+            let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+            send(.decompileFailed(message: message))
         }
     }
 

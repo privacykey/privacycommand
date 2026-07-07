@@ -6,7 +6,8 @@ import Foundation
 /// rejects connections from older / newer hosts to avoid
 /// mis-decoding a freshly-deployed wire change.
 public enum GuestProtocolVersion {
-    public static let current: Int = 1
+    /// v2 (2026-07): added the decompile-in-guest command + observations.
+    public static let current: Int = 2
 }
 
 // MARK: - Envelope
@@ -63,6 +64,14 @@ public enum GuestCommand: Codable, Hashable, Sendable {
     case startLiveProbes
 
     case stopLiveProbes
+
+    /// Decompile the `.app`/binary at `bundlePathInGuest` with a local
+    /// Ghidra *inside the guest*, streaming results back. `scopeKind`
+    /// mirrors `DecompileScope.Kind` ("namedClasses" / "everything");
+    /// `cap` bounds the number of functions. The guest replies with a
+    /// series of `.decompiledClass` observations then `.decompileComplete`,
+    /// or a single `.decompileFailed`.
+    case decompileBundle(bundlePathInGuest: String, scopeKind: String, cap: Int)
 
     /// Politely shut the agent down. Caller should close the socket
     /// after sending this.
@@ -123,6 +132,20 @@ public enum GuestObservation: Codable, Hashable, Sendable {
 
     /// The inspected target inside the guest exited. Run is over.
     case targetExited(exitCode: Int32, signal: Int32?)
+
+    /// One decompiled class, as a JSON-encoded `DecompiledClass`. Kept
+    /// opaque here so this wire target stays dependency-free — the host
+    /// decodes it against `privacycommandCore`. Emitted one-per-class so
+    /// no single frame approaches the 16 MB `GuestWireCodec` ceiling.
+    case decompiledClass(json: String)
+
+    /// The whole-app decompilation finished. `functionCount` counts what
+    /// was emitted; `truncated` is true if a scope cap stopped it early.
+    case decompileComplete(truncated: Bool, functionCount: Int)
+
+    /// The decompilation couldn't run (e.g. Ghidra isn't installed in the
+    /// guest) or failed. Non-fatal to the connection.
+    case decompileFailed(message: String)
 
     /// A fatal error happened inside the agent. The connection
     /// should be considered finished after this.
