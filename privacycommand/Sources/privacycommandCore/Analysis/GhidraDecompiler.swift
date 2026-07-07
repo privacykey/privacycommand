@@ -162,6 +162,35 @@ public actor GhidraDecompiler {
          fm.homeDirectoryForCurrentUser.appendingPathComponent("Tools")]
     }
 
+    /// Locate a JDK home to hand Ghidra. Ghidra's `analyzeHeadless` needs a JDK,
+    /// but a Finder-launched app has no `JAVA_HOME` and no TTY, so Ghidra can't
+    /// find or prompt for one and dies with "Unable to locate a Java Runtime".
+    /// We look it up ourselves and set `JAVA_HOME` on the process (see
+    /// `runHeadless`). Returns `nil` if no JDK is found — Ghidra then fails with
+    /// its own message, surfaced as a `headlessError`.
+    nonisolated static func locateJDKHome(fileManager fm: FileManager = .default) -> String? {
+        // 1. The canonical macOS locator — finds a system / Oracle / Temurin JDK.
+        let javaHome = ProcessRunner.runSync(
+            launchPath: "/usr/libexec/java_home", arguments: [], timeout: 5)
+        if javaHome.exitCode == 0 {
+            let path = javaHome.stdout.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !path.isEmpty, fm.isExecutableFile(atPath: path + "/bin/java") { return path }
+        }
+        // 2. Homebrew's openjdk is keg-only — not on PATH, invisible to
+        //    java_home — so check its opt prefixes directly, newest first.
+        for root in ["/opt/homebrew/opt", "/usr/local/opt"] {
+            guard let entries = try? fm.contentsOfDirectory(atPath: root) else { continue }
+            let candidates = entries
+                .filter { $0 == "openjdk" || $0.hasPrefix("openjdk@") }
+                .sorted().reversed()
+            for name in candidates {
+                let home = "\(root)/\(name)/libexec/openjdk.jdk/Contents/Home"
+                if fm.isExecutableFile(atPath: home + "/bin/java") { return home }
+            }
+        }
+        return nil
+    }
+
     // MARK: - Output parsing (deterministic — unit-tested)
 
     /// Turn the post-script's output file into a `Decompilation` or a typed
@@ -231,6 +260,15 @@ public actor GhidraDecompiler {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: launchPath)
         process.arguments = arguments
+        // Ghidra needs a JDK. If the app wasn't launched with JAVA_HOME set
+        // (the usual case for a Finder-launched .app), discover one and hand it
+        // over — otherwise Ghidra can't find Java and can't prompt (no TTY).
+        if ProcessInfo.processInfo.environment["JAVA_HOME"] == nil,
+           let jdkHome = locateJDKHome() {
+            var environment = ProcessInfo.processInfo.environment
+            environment["JAVA_HOME"] = jdkHome
+            process.environment = environment
+        }
         let outPipe = Pipe()
         let errPipe = Pipe()
         process.standardOutput = outPipe
