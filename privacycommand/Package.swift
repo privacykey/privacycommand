@@ -43,9 +43,18 @@ let package = Package(
                 .copy("../../Resources/RiskRules.json")
             ]
         ),
+        // Pure, testable CLI/TUI logic (input decoding, browser state, frame
+        // rendering, ANSI styling). Split out of the executable so
+        // `auditctlKitTests` can cover it — the executable stays a thin
+        // termios / poll-loop / IO shell around this.
+        .target(
+            name: "auditctlKit",
+            dependencies: ["privacycommandCore"],
+            path: "Sources/auditctlKit"
+        ),
         .executableTarget(
             name: "auditctl",
-            dependencies: ["privacycommandCore"],
+            dependencies: ["auditctlKit", "privacycommandCore"],
             path: "Sources/auditctl"
         ),
         // Runs inside the macOS guest VM — listens for commands from
@@ -60,6 +69,11 @@ let package = Package(
             name: "privacycommandCoreTests",
             dependencies: ["privacycommandCore"],
             path: "Tests/privacycommandCoreTests"
+        ),
+        .testTarget(
+            name: "auditctlKitTests",
+            dependencies: ["auditctlKit", "privacycommandCore"],
+            path: "Tests/auditctlKitTests"
         )
     ]
 )

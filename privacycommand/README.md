@@ -98,10 +98,13 @@ privacycommand/
 │   │   └── GuestProtocol.swift
 │   ├── privacycommandGuestAgent/         # In-VM agent.
 │   │   └── main.swift
-│   └── auditctl/                         # CLI smoke test for the static analyzer.
-│       └── main.swift
+│   ├── auditctlKit/                      # Pure, testable CLI/TUI logic
+│   │   └── (Ansi, InputEvent, BrowserReducer, AppBrowserModel, TUIRenderer)
+│   └── auditctl/                         # CLI executable: one-shot audit, preview, -i TUI
+│       └── (main, AuditCommand, PreviewCommand, TerminalDriver, InteractiveCommand)
 └── Tests/
-    └── privacycommandCoreTests/
+    ├── privacycommandCoreTests/
+    └── auditctlKitTests/                 # decoder, model, reducer, renderer
 ```
 
 ## Why so many targets
@@ -120,9 +123,16 @@ Each pulls its weight:
 - **privacycommandGuestAgent** is the binary that runs inside a macOS
   VM, listens for commands from the host, and ships observations
   back across the VM boundary. See [`docs/GUEST_AGENT.md`](docs/GUEST_AGENT.md).
-- **auditctl** is a tiny CLI that runs `StaticAnalyzer().analyze(...)`
-  against a path and prints the result. Fastest smoke test you can
-  write.
+- **auditctlKit** is the pure, testable half of the CLI — ANSI styling,
+  terminal input decoding, the interactive browser's state model +
+  reducer, and frame rendering. No I/O, so `auditctlKitTests` covers it
+  without a terminal.
+- **auditctl** is the executable: a one-shot static audit
+  (`auditctl <name-or-path>`, with `--short` / `--tree` / `--json` /
+  `--warnings`), the `preview` command, and a bare `auditctl` / `-i`
+  interactive TUI browser. The binary is a thin termios / poll-loop
+  shell around `auditctlKit`; it's still the fastest end-to-end smoke
+  test for the analyzer.
 
 ## Signing & entitlements quick reference
 
@@ -148,12 +158,28 @@ Helper (`Resources/privacycommandHelper.entitlements`):
 
 ```sh
 swift build -c release
-.build/release/auditctl /System/Applications/Calculator.app
+BIN=.build/release/auditctl
+
+# One-shot audit — by path (the smoke test) or by installed-app name (like witr):
+$BIN /System/Applications/Calculator.app
+$BIN slack                       # substring-matches installed apps; -x for exact
+$BIN slack --short               # one-line verdict
+$BIN slack --tree                # frameworks / XPC / helpers / login-item tree
+$BIN slack --json                # machine-readable (stable key set)
+$BIN slack --warnings            # findings section only
+$BIN slack --warn-exit           # exit 1 when there are warn/error findings (CI)
+
+# Interactive browser (needs a terminal): filter as you type, ↑↓ to move,
+# Tab to sort by risk, ⏎ to re-scan, Esc/^C to quit.
+$BIN                             # or: auditctl -i
 ```
 
-`auditctl` is the smallest end-to-end smoke test for the analyzer —
-it runs `StaticAnalyzer().analyze(bundleAt:)` and pretty-prints the
-resulting `StaticReport`. Exits non-zero on parse failure.
+The bare-path form is the smallest end-to-end smoke test for the
+analyzer — it runs `StaticAnalyzer().analyze(bundleAt:)` and exits
+non-zero on parse failure. Exit codes: `0` analyzed OK · `1` analysis
+failed (or `--warn-exit` with findings) · `2` target not found · `4`
+ambiguous name. A bare `auditctl` only launches the TUI on a terminal;
+piped/CI callers get usage text and a non-zero exit instead.
 
 ## Troubleshooting
 
