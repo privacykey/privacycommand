@@ -138,10 +138,16 @@ public actor GhidraDecompiler {
         for root in roots {
             guard let entries = try? fm.contentsOfDirectory(
                 at: root, includingPropertiesForKeys: [.isDirectoryKey]) else { continue }
-            for dir in entries
-            where dir.hasDirectoryPath
-                && dir.lastPathComponent.lowercased().hasPrefix("ghidra") {
-                let headless = dir.appendingPathComponent("support/analyzeHeadless")
+            for entry in entries
+            where entry.lastPathComponent.lowercased().hasPrefix("ghidra") {
+                // Resolve through symlinks: a very common install shape is a link
+                // into ~/Applications (or /opt) pointing at a Homebrew Ghidra, and
+                // the URL's `hasDirectoryPath` is `false` for a symlink entry — so
+                // use FileManager's symlink-following directory check instead.
+                var isDirectory: ObjCBool = false
+                guard fm.fileExists(atPath: entry.path, isDirectory: &isDirectory),
+                      isDirectory.boolValue else { continue }
+                let headless = entry.appendingPathComponent("support/analyzeHeadless")
                 if fm.isExecutableFile(atPath: headless.path) { return headless }
             }
         }
@@ -154,6 +160,35 @@ public actor GhidraDecompiler {
          URL(fileURLWithPath: "/opt"),
          URL(fileURLWithPath: "/usr/local"),
          fm.homeDirectoryForCurrentUser.appendingPathComponent("Tools")]
+    }
+
+    /// Locate a JDK home to hand Ghidra. Ghidra's `analyzeHeadless` needs a JDK,
+    /// but a Finder-launched app has no `JAVA_HOME` and no TTY, so Ghidra can't
+    /// find or prompt for one and dies with "Unable to locate a Java Runtime".
+    /// We look it up ourselves and set `JAVA_HOME` on the process (see
+    /// `runHeadless`). Returns `nil` if no JDK is found — Ghidra then fails with
+    /// its own message, surfaced as a `headlessError`.
+    nonisolated static func locateJDKHome(fileManager fm: FileManager = .default) -> String? {
+        // 1. The canonical macOS locator — finds a system / Oracle / Temurin JDK.
+        let javaHome = ProcessRunner.runSync(
+            launchPath: "/usr/libexec/java_home", arguments: [], timeout: 5)
+        if javaHome.exitCode == 0 {
+            let path = javaHome.stdout.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !path.isEmpty, fm.isExecutableFile(atPath: path + "/bin/java") { return path }
+        }
+        // 2. Homebrew's openjdk is keg-only — not on PATH, invisible to
+        //    java_home — so check its opt prefixes directly, newest first.
+        for root in ["/opt/homebrew/opt", "/usr/local/opt"] {
+            guard let entries = try? fm.contentsOfDirectory(atPath: root) else { continue }
+            let candidates = entries
+                .filter { $0 == "openjdk" || $0.hasPrefix("openjdk@") }
+                .sorted().reversed()
+            for name in candidates {
+                let home = "\(root)/\(name)/libexec/openjdk.jdk/Contents/Home"
+                if fm.isExecutableFile(atPath: home + "/bin/java") { return home }
+            }
+        }
+        return nil
     }
 
     // MARK: - Output parsing (deterministic — unit-tested)
@@ -225,6 +260,15 @@ public actor GhidraDecompiler {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: launchPath)
         process.arguments = arguments
+        // Ghidra needs a JDK. If the app wasn't launched with JAVA_HOME set
+        // (the usual case for a Finder-launched .app), discover one and hand it
+        // over — otherwise Ghidra can't find Java and can't prompt (no TTY).
+        if ProcessInfo.processInfo.environment["JAVA_HOME"] == nil,
+           let jdkHome = locateJDKHome() {
+            var environment = ProcessInfo.processInfo.environment
+            environment["JAVA_HOME"] = jdkHome
+            process.environment = environment
+        }
         let outPipe = Pipe()
         let errPipe = Pipe()
         process.standardOutput = outPipe
@@ -264,70 +308,85 @@ public actor GhidraDecompiler {
 
     // MARK: - Embedded Ghidra post-script
 
-    static let postScriptName = "PCDecompileFunction.py"
+    static let postScriptName = "PCDecompileFunction.java"
 
-    /// Ghidra/Jython post-script. Run by `analyzeHeadless` after the program is
-    /// open; receives `<functionName> <outputPath>` as script args, finds the
-    /// function (tolerating a leading-underscore mismatch), decompiles it, and
+    /// Ghidra post-script as a **Java** GhidraScript. Ghidra 11.3+/12 route
+    /// `.py` scripts through PyGhidra (CPython), which our headless launch
+    /// doesn't enable — so a `.py` script fails with "Ghidra was not started
+    /// with PyGhidra." A Java GhidraScript is compiled by Ghidra itself and
+    /// works on every version. Receives `<functionName> <outputPath>
+    /// [address-hex]`, finds the function (tolerating a leading-underscore
+    /// mismatch, falling back to the containing address), decompiles it, and
     /// writes the C — or a `DECOMPILE_*:` marker — to the output path.
-    static let postScriptSource = """
-    # Auto-generated by privacycommand. Decompiles one function to C.
-    # Args: <functionName> <outputPath> [address-hex]
-    from ghidra.app.decompiler import DecompInterface
-    from ghidra.util.task import ConsoleTaskMonitor
+    static let postScriptSource = #"""
+    // Auto-generated by privacycommand. Decompiles one function to C.
+    // Args: <functionName> <outputPath> [address-hex]
+    import ghidra.app.script.GhidraScript;
+    import ghidra.app.decompiler.DecompInterface;
+    import ghidra.app.decompiler.DecompileResults;
+    import ghidra.program.model.address.Address;
+    import ghidra.program.model.listing.Function;
+    import ghidra.program.model.listing.FunctionIterator;
+    import ghidra.program.model.listing.FunctionManager;
+    import ghidra.util.task.ConsoleTaskMonitor;
+    import java.io.FileWriter;
+    import java.io.PrintWriter;
 
-    def _write(path, text):
-        fh = open(path, "w")
-        try:
-            fh.write(text)
-        finally:
-            fh.close()
+    public class PCDecompileFunction extends GhidraScript {
+        @Override
+        public void run() throws Exception {
+            String[] args = getScriptArgs();
+            if (args.length < 2) {
+                println("PCDecompile: expected <functionName> <outputPath> [address-hex]");
+                return;
+            }
+            String target = args[0];
+            String outPath = args[1];
+            String addrHex = args.length > 2 ? args[2] : "";
 
-    args = getScriptArgs()
-    if len(args) < 2:
-        print("PCDecompile: expected <functionName> <outputPath> [address-hex]")
-    else:
-        target = str(args[0])
-        out_path = str(args[1])
-        addr_hex = str(args[2]) if len(args) > 2 else ""
+            // Ghidra may store the symbol with or without a leading underscore.
+            String alt = target.startsWith("_") ? target.substring(1) : ("_" + target);
 
-        # Ghidra may store the symbol with or without a leading underscore.
-        candidates = [target]
-        if target.startswith("_"):
-            candidates.append(target[1:])
-        else:
-            candidates.append("_" + target)
+            FunctionManager fm = currentProgram.getFunctionManager();
+            Function found = null;
+            FunctionIterator it = fm.getFunctions(true);
+            while (it.hasNext()) {
+                Function f = it.next();
+                String name = f.getName();
+                if (name.equals(target) || name.equals(alt)) { found = f; break; }
+            }
 
-        fm = currentProgram.getFunctionManager()
-        found = None
-        it = fm.getFunctions(True)
-        while it.hasNext():
-            f = it.next()
-            if str(f.getName()) in candidates:
-                found = f
-                break
+            // Fall back to the function containing an address when the symbol
+            // isn't in Ghidra's view (stripped / renamed, e.g. FUN_0001abcd).
+            if (found == null && !addrHex.isEmpty()) {
+                try {
+                    Address a = currentProgram.getAddressFactory()
+                        .getDefaultAddressSpace().getAddress(Long.parseUnsignedLong(addrHex, 16));
+                    found = fm.getFunctionContaining(a);
+                } catch (Exception e) { found = null; }
+            }
 
-        # Fall back to address when the symbol isn't in Ghidra's view (stripped
-        # or differently-named functions, e.g. FUN_0001abcd).
-        if found is None and addr_hex != "":
-            try:
-                space = currentProgram.getAddressFactory().getDefaultAddressSpace()
-                found = fm.getFunctionContaining(space.getAddress(long(addr_hex, 16)))
-            except:
-                found = None
+            if (found == null) {
+                write(outPath, "DECOMPILE_NOT_FOUND: " + target);
+                return;
+            }
+            DecompInterface decomp = new DecompInterface();
+            decomp.openProgram(currentProgram);
+            DecompileResults res = decomp.decompileFunction(found, 60, new ConsoleTaskMonitor());
+            if (res != null && res.decompileCompleted()) {
+                write(outPath, res.getDecompiledFunction().getC());
+            } else {
+                write(outPath, "DECOMPILE_FAILED: " + (res != null ? res.getErrorMessage() : "no result"));
+            }
+        }
 
-        if found is None:
-            _write(out_path, "DECOMPILE_NOT_FOUND: " + target)
-        else:
-            decomp = DecompInterface()
-            decomp.openProgram(currentProgram)
-            res = decomp.decompileFunction(found, 60, ConsoleTaskMonitor())
-            if res is not None and res.decompileCompleted():
-                _write(out_path, res.getDecompiledFunction().getC())
-            else:
-                err = res.getErrorMessage() if res is not None else "no result"
-                _write(out_path, "DECOMPILE_FAILED: " + str(err))
-    """
+        private void write(String path, String text) throws Exception {
+            PrintWriter w = new PrintWriter(new FileWriter(path));
+            w.print(text);
+            w.close();
+        }
+    }
+    """#
 }
 
 /// Lock-protected stdout/stderr accumulator for `runHeadless` — the readability
