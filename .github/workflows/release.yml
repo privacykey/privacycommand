@@ -50,12 +50,11 @@ jobs:
       # The .xcodeproj is committed, not generated.
       uses_xcodegen: false
       appcast_branch: gh-pages
-      # privacycommand has always attached the dSYM to the public
-      # Release (anyone with a crash log can symbolicate); keep that.
-      # The reusable default (false) would make symbols private-only.
+      # Attach the dSYM to the public Release so anyone with a crash
+      # log can symbolicate; the reusable default (false) would keep
+      # symbols private-only.
       publish_dsym: true
       # Renders packaging/homebrew/privacycommand.rb and pushes it to
-      # the tap — replaces the manual version/sha256 bump in
       # privacykey/homebrew-tap. Skips cleanly until the
       # HOMEBREW_TAP_TOKEN secret exists.
       cask_name: privacycommand

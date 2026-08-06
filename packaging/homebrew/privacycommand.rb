@@ -2,8 +2,8 @@ cask "privacycommand" do
   # TEMPLATE — rendered by the shared release workflow
   # (privacykey/gh-workflows macos-sparkle-release.yml): @@VERSION@@,
   # @@SHA256@@ and @@URL@@ are substituted per release and the result is
-  # pushed to privacykey/homebrew-tap/Casks/privacycommand.rb. This
-  # replaces the manual version/sha256 bump in the tap.
+  # pushed to privacykey/homebrew-tap/Casks/privacycommand.rb. Do not
+  # hand-edit version/sha256/url here.
   version "@@VERSION@@"
   sha256 "@@SHA256@@"
 
