@@ -1,0 +1,29 @@
+name: App CI
+
+# Builds and tests the Xcode app target (privacycommand.app +
+# privacycommandTests) via the shared reusable workflow — unsigned, no
+# secrets. Complements ci.yml, which covers the SPM package targets
+# (Core, auditctlKit, auditctl, guest agent) on pull requests.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# A new push to the same ref/PR cancels an in-flight run. Declared here
+# as well as in the called workflow — GitHub evaluates workflow-level
+# concurrency of a *called* workflow inconsistently.
+concurrency:
+  group: app-ci-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: privacykey/gh-workflows/.github/workflows/macos-app-ci.yml@v1
+    with:
+      xcodeproj: privacycommand/privacycommand.xcodeproj
+      scheme: privacycommand

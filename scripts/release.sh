@@ -28,6 +28,10 @@
 #
 # Optional:
 #   SCHEME                      xcodebuild scheme (default: privacycommand).
+#   KEYCHAIN_PATH               Keychain holding the Developer ID identity.
+#                               Set by CI (the shared workflow's ephemeral
+#                               keychain); omit locally and codesign falls
+#                               back to the default keychain search list.
 
 set -euo pipefail
 
@@ -215,8 +219,15 @@ hdiutil create \
   "$DMG_PATH"
 
 # Sign + staple the DMG itself so the download isn't quarantined on
-# first open.
-codesign --force --sign "$DEVELOPER_ID" "$DMG_PATH"
+# first open. In CI, pin codesign to the ephemeral keychain the cert
+# was imported into (KEYCHAIN_PATH, provided by the shared release
+# workflow) so it never falls through to an interactive unlock prompt;
+# locally, fall back to the default keychain search list.
+if [[ -n "${KEYCHAIN_PATH:-}" ]]; then
+  codesign --force --sign "$DEVELOPER_ID" --keychain "$KEYCHAIN_PATH" "$DMG_PATH"
+else
+  codesign --force --sign "$DEVELOPER_ID" "$DMG_PATH"
+fi
 xcrun notarytool submit "$DMG_PATH" \
   --key         "$APPLE_API_KEY_PATH" \
   --key-id      "$APPLE_API_KEY_ID" \
