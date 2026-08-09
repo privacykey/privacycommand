@@ -110,10 +110,18 @@ privacycommand is a SwiftUI app backed by a pure-Swift analyzer library and an o
 |---|---|---|
 | Analyzer logic | [`privacycommand/Sources/privacycommandCore/`](privacycommand/Sources/privacycommandCore/) | Headless, AppKit-free; runs from CLI, tests, GUI |
 | App UI | [`privacycommand/Sources/privacycommand/`](privacycommand/Sources/privacycommand/) | SwiftUI views + view-models |
-| Privileged helper | [`privacycommand/Sources/privacycommandHelper/`](privacycommand/Sources/privacycommandHelper/) | XPC service installed via `SMAppService.daemon` |
+| Privileged helper | [`privacycommand/privacycommandHelper/`](privacycommand/privacycommandHelper/) | XPC service installed via `SMAppService.daemon`. Beside `Sources/`, not inside it |
 | Guest agent (VM) | [`privacycommand/Sources/privacycommandGuestAgent/`](privacycommand/Sources/privacycommandGuestAgent/) | Runs in-VM, ships observations to the host |
 
-Read [`architecture.md`](ARCHITECTURE.md) for the longer version.
+Read [`ARCHITECTURE.md`](.github/ARCHITECTURE.md) for the longer version, and
+[`BUILDING.md`](privacycommand/BUILDING.md) to get it compiling.
+
+## Documentation
+
+Full documentation — reading the report, monitored runs, VM mode, the `auditctl`
+CLI, and the privileged helper — lives at
+**[docs.privacycommand.privacykey.org](https://docs.privacycommand.privacykey.org)**
+([source](https://github.com/privacykey/docs-privacycommand)).
 
 ## Updates
 
@@ -122,7 +130,7 @@ Updates ship through two channels that share the same DMG:
 1. **Direct downloads** receive in-app updates via Sparkle 2. Auto-checks are off by default — opt in via Settings → Updates.
 2. **Homebrew** users update via `brew upgrade --cask privacycommand`. privacycommand detects Cask installs and disables Sparkle's installer to stay out of `brew`'s way.
 
-The appcast feed is hosted on `gh-pages` at `https://privacykey.github.io/privacycommand/appcast.xml` and signed with EdDSA — see [`docs/RELEASES.md`](docs/RELEASES.md) for the release flow.
+The appcast feed is hosted on `gh-pages` at `https://privacykey.github.io/privacycommand/appcast.xml` and signed with EdDSA. The release pipeline — test gate, sign, notarize, DMG, appcast, GitHub Release, Homebrew cask — lives in [privacykey/gh-workflows](https://github.com/privacykey/gh-workflows); [`.github/workflows/release.yml`](.github/workflows/release.yml) is the thin caller and documents the secret layout.
 
 ## Privacy & telemetry posture
 
@@ -150,9 +158,10 @@ If you find a security issue, please **don't** open a public issue. Email `secur
 
 ## Related products
 
-privacycommand is a **privacykey** project
+privacycommand is a **privacykey** project.
 
-- **[privacycommand](https://github.com/privacykey/privacycommand)** — macOS forensic permission auditor _(this repo)_
+- **[privacytracker](https://github.com/privacykey/privacytracker)** — watches iOS App Store privacy labels and tells you when an app quietly starts collecting more
+- **[mantis](https://github.com/privacykey/mantis)** — self-hostable tripwire keys: mint a URL, get told when something fetches it
 
 ## License
 

@@ -52,7 +52,7 @@ Each target is intentional:
 |---|---|---|
 | `privacycommandCore` | `privacycommand/Sources/privacycommandCore/` | Pure-Swift analyzer. AppKit-free. Runs from CLI, tests, GUI, and helper without dragging UI deps into builds that don't need them. |
 | `privacycommand` (app) | `privacycommand/Sources/privacycommand/` | SwiftUI app target. Views + view-models only. |
-| `privacycommandHelper` | `privacycommand/privacycommandHelper/` | Privileged XPC service installed via `SMAppService.daemon`. Minimal API surface — 5 Swift files (`main`, `HelperToolService`, `CodeSignValidator`, `FsUsageRunner`, `PfctlKillSwitch`). Validates clients by Team ID on connect. **Note the path**: a stale copy of this target also exists at `privacycommand/Sources/privacycommandHelper/` without `PfctlKillSwitch.swift`. Xcode builds the top-level directory; the `Sources/` copy is vestigial and should be deleted. |
+| `privacycommandHelper` | `privacycommand/privacycommandHelper/` | Privileged XPC service installed via `SMAppService.daemon`. Minimal API surface — 5 Swift files (`main`, `HelperToolService`, `CodeSignValidator`, `FsUsageRunner`, `PfctlKillSwitch`). Validates clients by Team ID on connect. **Note the path**: this sits beside `Sources/`, not inside it — it is an Xcode-only target and `Package.swift` does not declare it. |
 | `privacycommandGuestProtocol` | `privacycommand/Sources/privacycommandGuestProtocol/` | Wire format shared between host and guest agent. Lives in its own zero-dependency target so the agent can build without compiling Core. |
 | `privacycommandGuestAgent` | `privacycommand/Sources/privacycommandGuestAgent/` | The binary that runs inside a macOS VM and ships observations back to the host. |
 | `auditctl` | `privacycommand/Sources/auditctl/` | CLI front-end for the analyzer, with a witr-style interface. `auditctl <name-or-path>` audits one app (`--short` / `--tree` / `--json` / `--warnings`); a bare `auditctl` (or `-i`) opens an interactive TUI browser of installed apps. Still the fastest end-to-end smoke test. The executable is a thin termios / poll-loop / IO shell — its logic lives in `auditctlKit`. |
@@ -148,7 +148,7 @@ Run reports are persisted on disk for diffing across audits — `Sources/privacy
 | **Direct download** | DMG with Sparkle 2 in-app updater. Auto-checks **off by default**; user opts in via Settings → Updates. |
 | **Homebrew cask** | `brew upgrade --cask privacycommand`. privacycommand detects Cask installs and disables Sparkle's installer to stay out of brew's way — see `Sources/privacycommandCore/Updates/`. |
 
-The appcast feed lives on `gh-pages` at `https://privacykey.github.io/privacycommand/appcast.xml`, signed with EdDSA. The Sparkle keypair is per-app, **never shared with another product** — leaking one shouldn't compromise another product's update channel. Full release flow in [`docs/RELEASES.md`](docs/RELEASES.md).
+The appcast feed lives on `gh-pages` at `https://privacykey.github.io/privacycommand/appcast.xml`, signed with EdDSA. The Sparkle keypair is per-app, **never shared with another product** — leaking one shouldn't compromise another product's update channel. The pipeline itself lives in [privacykey/gh-workflows](https://github.com/privacykey/gh-workflows); [`.github/workflows/release.yml`](workflows/release.yml) is the thin caller and documents the secret layout.
 
 ## Knowledge Base (in-app)
 
@@ -170,6 +170,6 @@ The smallest end-to-end smoke test is `auditctl /System/Applications/Calculator.
 | Privileged helper bundling + signing + verification | [`privacycommand/HELPER.md`](privacycommand/HELPER.md) |
 | Guest agent walkthroughs | [`privacycommand/docs/GUEST_AGENT.md`](privacycommand/docs/GUEST_AGENT.md) |
 | Build workflow (Xcode + SPM) | [`privacycommand/BUILDING.md`](privacycommand/BUILDING.md) |
-| Release pipeline + secrets | [`docs/RELEASES.md`](docs/RELEASES.md) |
+| Release pipeline + secrets | [`.github/workflows/release.yml`](workflows/release.yml) + [privacykey/gh-workflows](https://github.com/privacykey/gh-workflows) |
 
 **Last reviewed:** 29 April 2026.
