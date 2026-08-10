@@ -4,7 +4,7 @@ Two parallel ways to build, both pointed at the same source files.
 
 ## 1. Xcode (the primary path)
 ```bash
-cd privacycommand/privacycommand
+cd privacycommand
 open privacycommand.xcodeproj
 ```
 
@@ -43,7 +43,7 @@ App Sandbox is disabled. Hardened Runtime is on. macOS deployment target is 13.0
 
 ## 2. Swift Package Manager (CLI smoke test)
 ```bash
-cd privacycommand/privacycommand
+cd privacycommand
 swift build
 .build/debug/auditctl /System/Applications/Calculator.app
 swift test

@@ -9,11 +9,10 @@ The deeper design docs referenced from the project `README.md` sit alongside thi
 
 > **One-line model.** A SwiftUI app drops a `.app` bundle onto a pure-Swift analyzer library, optionally launches the inspected app under a privileged XPC helper for dynamic monitoring, and optionally ships a guest agent into a macOS VM to do the same work in isolation.
 
-> **Scale note.** The codebase is substantial: 229 Swift files. The analyzer
+> **Scale note.** The codebase is substantial: 225 Swift files. The analyzer
 > (`Sources/privacycommandCore/Analysis/`) has 41 detector files, monitoring has 12, and
-> the app target has 63 SwiftUI files. User-facing documentation now lives at
-> [docs-privacycommand](https://github.com/privacykey/docs-privacycommand); this file
-> covers the internals.
+> the app target has 63 SwiftUI files. The [`README.md`](../README.md) carries the
+> user-facing pitch; this file covers the internals.
 
 ---
 
