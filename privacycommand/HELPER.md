@@ -9,9 +9,10 @@ and the one signing knob you have to set on first checkout.
 The `privacycommand.xcodeproj` now contains:
 
 - A `privacycommandHelper` target that builds a Mach-O command-line
-  executable from `Sources/privacycommandHelper/*.swift` (auto-discovered
-  via Xcode's file-system-synchronized group, so adding/removing files
-  doesn't require pbxproj edits).
+  executable from `privacycommandHelper/*.swift` — the directory beside
+  `Sources/`, not inside it (auto-discovered via Xcode's
+  file-system-synchronized group, so adding/removing files doesn't require
+  pbxproj edits).
 - The helper target is configured with:
   - `PRODUCT_BUNDLE_IDENTIFIER = org.privacykey.privacycommand.HelperTool`
   - `CODE_SIGN_ENTITLEMENTS = privacycommand/Resources/privacycommandHelper.entitlements`

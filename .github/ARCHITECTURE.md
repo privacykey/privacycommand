@@ -2,15 +2,21 @@
 
 A high-level orientation. The user-facing pitch is in [`README.md`](README.md); the source-tree map is in [`privacycommand/README.md`](privacycommand/README.md). This doc sits between them — what the boxes are, why they're separate, and how data moves between them.
 
-The deeper design docs referenced from the project `README.md` 
+The deeper design docs referenced from the project `README.md` sit alongside this one:
+[`HELPER.md`](../privacycommand/HELPER.md) for the privileged helper,
+[`BUILDING.md`](../privacycommand/BUILDING.md) for the two build paths, and
+[`docs/GUEST_AGENT.md`](../privacycommand/docs/GUEST_AGENT.md) for VM mode.
 
 > **One-line model.** A SwiftUI app drops a `.app` bundle onto a pure-Swift analyzer library, optionally launches the inspected app under a privileged XPC helper for dynamic monitoring, and optionally ships a guest agent into a macOS VM to do the same work in isolation.
 
-> **Maturity note.** Despite the project being six commits old, the codebase is substantial: ~26k LOC of Swift across ~100 files. The analyzer (`Sources/privacycommandCore/Analysis/`) has 29 detector files; monitoring has 11; the app target has 59 SwiftUI files. **The code is largely there; the docs aren't.** This file is part of fixing that.
+> **Scale note.** The codebase is substantial: 225 Swift files. The analyzer
+> (`Sources/privacycommandCore/Analysis/`) has 41 detector files, monitoring has 12, and
+> the app target has 63 SwiftUI files. The [`README.md`](../README.md) carries the
+> user-facing pitch; this file covers the internals.
 
 ---
 
-## The four targets, and why each pulls its weight
+## The targets, and why each pulls its weight
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -45,7 +51,7 @@ Each target is intentional:
 |---|---|---|
 | `privacycommandCore` | `privacycommand/Sources/privacycommandCore/` | Pure-Swift analyzer. AppKit-free. Runs from CLI, tests, GUI, and helper without dragging UI deps into builds that don't need them. |
 | `privacycommand` (app) | `privacycommand/Sources/privacycommand/` | SwiftUI app target. Views + view-models only. |
-| `privacycommandHelper` | `privacycommand/Sources/privacycommandHelper/` | Privileged XPC service installed via `SMAppService.daemon`. Minimal API surface — currently 4 Swift files (`main`, `HelperToolService`, `CodeSignValidator`, `FsUsageRunner`). The source-tree README also references `PfctlKillSwitch.swift` for the network kill switch, but that file isn't committed yet. Validates clients by Team ID on connect. |
+| `privacycommandHelper` | `privacycommand/privacycommandHelper/` | Privileged XPC service installed via `SMAppService.daemon`. Minimal API surface — 5 Swift files (`main`, `HelperToolService`, `CodeSignValidator`, `FsUsageRunner`, `PfctlKillSwitch`). Validates clients by Team ID on connect. **Note the path**: this sits beside `Sources/`, not inside it — it is an Xcode-only target and `Package.swift` does not declare it. |
 | `privacycommandGuestProtocol` | `privacycommand/Sources/privacycommandGuestProtocol/` | Wire format shared between host and guest agent. Lives in its own zero-dependency target so the agent can build without compiling Core. |
 | `privacycommandGuestAgent` | `privacycommand/Sources/privacycommandGuestAgent/` | The binary that runs inside a macOS VM and ships observations back to the host. |
 | `auditctl` | `privacycommand/Sources/auditctl/` | CLI front-end for the analyzer, with a witr-style interface. `auditctl <name-or-path>` audits one app (`--short` / `--tree` / `--json` / `--warnings`); a bare `auditctl` (or `-i`) opens an interactive TUI browser of installed apps. Still the fastest end-to-end smoke test. The executable is a thin termios / poll-loop / IO shell — its logic lives in `auditctlKit`. |
@@ -59,8 +65,8 @@ Three layers of signal, each with a different cost:
 
 | Layer | Where | Privilege |
 |---|---|---|
-| **Static** — entitlements, code-signing, notarization (stapler/spctl/SHA-256), URL schemes, document types, hard-coded domains, embedded launch agents, third-party SDK fingerprints (LaunchDarkly, Firebase, Mixpanel, AdMob, …), feature flags / trial-state strings, secrets and license-key names, anti-analysis signals, dylib hijacking surface, Privacy Manifest cross-check | `Sources/privacycommandCore/Analysis/` (29 detector files: `StaticAnalyzer`, `EntitlementsReader`, `MachOInspector`, `BundleSigningAuditor`, `NotarizationDeepDive`, `SDKFingerprintDetector`, `SecretsScanner`, `RPathAuditor`, `AntiAnalysisDetector`, `PrivacyManifestReader`, …) | **None.** Runs on the user's data without ever touching Apple-granted entitlements. |
-| **Dynamic** — file events, network destinations, child processes, pasteboard / camera / microphone / screen-recording activity, USB device interactions, resource usage | `Sources/privacycommandCore/Monitoring/` (11 files: `DynamicMonitor`, `LiveProbeMonitor`, `NetworkMonitor`, `ProcessTracker`, `USBDeviceMonitor`, `ResourceMonitor`, `DeviceUsageProbe`, `VMHostDetection`, `GuestObservationStream`, …) | **Helper required** for `fs_usage`-based file events; Background Task Management audit also goes via the helper to skip the admin prompt. |
+| **Static** — entitlements, code-signing, notarization (stapler/spctl/SHA-256), URL schemes, document types, hard-coded domains, embedded launch agents, third-party SDK fingerprints (LaunchDarkly, Firebase, Mixpanel, AdMob, …), feature flags / trial-state strings, secrets and license-key names, anti-analysis signals, dylib hijacking surface, Privacy Manifest cross-check | `Sources/privacycommandCore/Analysis/` (41 detector files: `StaticAnalyzer`, `EntitlementsReader`, `MachOInspector`, `BundleSigningAuditor`, `NotarizationDeepDive`, `SDKFingerprintDetector`, `SecretsScanner`, `RPathAuditor`, `AntiAnalysisDetector`, `PrivacyManifestReader`, …) | **None.** Runs on the user's data without ever touching Apple-granted entitlements. |
+| **Dynamic** — file events, network destinations, child processes, pasteboard / camera / microphone / screen-recording activity, USB device interactions, resource usage | `Sources/privacycommandCore/Monitoring/` (12 files: `DynamicMonitor`, `LiveProbeMonitor`, `NetworkMonitor`, `ProcessTracker`, `USBDeviceMonitor`, `ResourceMonitor`, `DeviceUsageProbe`, `VMHostDetection`, `GuestObservationStream`, …) | **Helper required** for `fs_usage`-based file events; Background Task Management audit also goes via the helper to skip the admin prompt. |
 | **App Store cross-reference** — Mac App Store privacy labels fetched from `apps.apple.com`, displayed next to the static-analysis findings | `Sources/privacycommandCore/Analysis/AppStoreLookup.swift` + `AppStorePrivacyLabelFetcher.swift` | None. Network call is keyed on bundle ID, never user data. |
 
 The privacy-stance contract: **all analysis runs locally**. The inspected app's contents never leave the machine. The only outbound traffic is bounded — DNS reverse lookups for destinations the inspected app contacts, App Store privacy-label lookups against `itunes.apple.com`/`apps.apple.com`, and Sparkle appcast fetch from `privacykey.github.io`.
@@ -86,10 +92,8 @@ StaticReport (Codable) ─── feeds Dashboard, Static, Telemetry, Background-
 HelperToolService over XPC                       Guest agent in VM
    ├── FsUsageRunner (file events)                  ├── runs same analyzer locally
    ├── BackgroundTaskAuditor (sfltool)              └── ships observations via
-   └── pf-anchor kill switch (planned —                 privacycommandGuestProtocol
-       referenced in source-tree README
-       as PfctlKillSwitch.swift but not
-       yet committed; see WIP doc)
+   └── PfctlKillSwitch (pf-anchor                       privacycommandGuestProtocol
+       network kill switch)
         │
         ▼
 Live observations stream into the Monitoring tab
@@ -143,7 +147,7 @@ Run reports are persisted on disk for diffing across audits — `Sources/privacy
 | **Direct download** | DMG with Sparkle 2 in-app updater. Auto-checks **off by default**; user opts in via Settings → Updates. |
 | **Homebrew cask** | `brew upgrade --cask privacycommand`. privacycommand detects Cask installs and disables Sparkle's installer to stay out of brew's way — see `Sources/privacycommandCore/Updates/`. |
 
-The appcast feed lives on `gh-pages` at `https://privacykey.github.io/privacycommand/appcast.xml`, signed with EdDSA. The Sparkle keypair is per-app, **never shared with another product** — leaking one shouldn't compromise another product's update channel. Full release flow in [`docs/RELEASES.md`](docs/RELEASES.md).
+The appcast feed lives on `gh-pages` at `https://privacykey.github.io/privacycommand/appcast.xml`, signed with EdDSA. The Sparkle keypair is per-app, **never shared with another product** — leaking one shouldn't compromise another product's update channel. The pipeline itself lives in [privacykey/gh-workflows](https://github.com/privacykey/gh-workflows); [`.github/workflows/release.yml`](workflows/release.yml) is the thin caller and documents the secret layout.
 
 ## Knowledge Base (in-app)
 
@@ -165,6 +169,6 @@ The smallest end-to-end smoke test is `auditctl /System/Applications/Calculator.
 | Privileged helper bundling + signing + verification | [`privacycommand/HELPER.md`](privacycommand/HELPER.md) |
 | Guest agent walkthroughs | [`privacycommand/docs/GUEST_AGENT.md`](privacycommand/docs/GUEST_AGENT.md) |
 | Build workflow (Xcode + SPM) | [`privacycommand/BUILDING.md`](privacycommand/BUILDING.md) |
-| Release pipeline + secrets | [`docs/RELEASES.md`](docs/RELEASES.md) |
+| Release pipeline + secrets | [`.github/workflows/release.yml`](workflows/release.yml) + [privacykey/gh-workflows](https://github.com/privacykey/gh-workflows) |
 
 **Last reviewed:** 29 April 2026.
