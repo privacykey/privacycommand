@@ -39,10 +39,9 @@ public enum MachOInspector {
                                                       buildPlatform: nil, sliceCount: 0)
     }
 
-    /// Best-effort parse of the first thin slice (or first arch of a fat
-    /// binary) for the load-command details we care about. Returns
-    /// `.empty` for unrecognised formats rather than throwing — this is a
-    /// soft analysis, not a load-bearing parser.
+    /// Best-effort parse of every arch slice for the load-command details we
+    /// care about. Returns `.empty` for unrecognised formats rather than
+    /// throwing — this is a soft analysis, not a load-bearing parser.
     public static func loadCommands(of url: URL) -> LoadCommandsSummary {
         guard let data = try? Data(contentsOf: url, options: [.mappedIfSafe]),
               data.count >= 32 else { return .empty }
@@ -78,8 +77,7 @@ public enum MachOInspector {
     }
 
     /// Enumerate the (offset, is64) of every Mach-O slice -- one entry for a
-    /// thin file, every fat arch for a universal binary. Generalises
-    /// `firstThinSlice` (which the symbol/arch readers still use).
+    /// thin file, every fat arch for a universal binary.
     private static func enumerateSlices(in data: Data) -> [(Int, Bool)] {
         let magic = data.withUnsafeBytes { $0.loadUnaligned(as: UInt32.self) }
         if magic == mh_magic || magic == mh_cigam     { return [(0, false)] }
@@ -132,16 +130,27 @@ public enum MachOInspector {
     /// disassembly, and readable even on encrypted App Store binaries (the
     /// `__LINKEDIT` symbol table is not encrypted).
     ///
-    /// Parses the first thin slice's `LC_SYMTAB` directly — no `nm`/`objdump`
-    /// dependency, so it works even without Xcode Command Line Tools.
+    /// Parses `LC_SYMTAB` in EVERY arch slice directly — no `nm`/`objdump`
+    /// dependency, so it works even without Xcode Command Line Tools. Slices
+    /// of a universal binary can import different symbols (and x86_64 slices
+    /// spell some libc imports differently, e.g. `_stat$INODE64`), so the
+    /// result is the de-duplicated union across all slices: a symbol imported
+    /// by only one slice is still reported.
     /// Leading underscores are preserved (Mach-O convention). Returns at most
     /// `limit` symbols. Returns `[]` (never throws) for unparseable inputs.
     public static func importedSymbols(of url: URL, limit: Int = 8000) -> [String] {
         guard let data = try? Data(contentsOf: url, options: [.mappedIfSafe]),
               data.count >= 32 else { return [] }
-        let (sliceOffset, is64) = firstThinSlice(in: data)
-        guard let sliceOffset else { return [] }
-        return parseImportedSymbols(in: data, at: sliceOffset, is64: is64, limit: limit)
+        var out: [String] = []
+        var seen = Set<String>()
+        for (sliceOffset, is64) in enumerateSlices(in: data) {
+            guard out.count < limit else { break }
+            for name in parseImportedSymbols(in: data, at: sliceOffset, is64: is64, limit: limit) {
+                guard out.count < limit else { break }
+                if seen.insert(name).inserted { out.append(name) }
+            }
+        }
+        return out
     }
 
     public static func architectures(of url: URL) throws -> [String] {
@@ -209,8 +218,6 @@ public enum MachOInspector {
 
     // MARK: - Load command parsing
 
-    /// Locate the start of the first thin Mach-O slice. For a thin binary
-    /// the offset is 0; for a fat binary we read the first arch's offset.
     /// Decode a Mach-O nibble-packed version (X.Y.Z in bits xxxx.yy.zz).
     static func decodeVersion(_ v: UInt32) -> String {
         let x = (v >> 16) & 0xFFFF, y = (v >> 8) & 0xFF, z = v & 0xFF
@@ -232,41 +239,6 @@ public enum MachOInspector {
         case 10: return "DriverKit"
         default: return nil
         }
-    }
-
-    private static func firstThinSlice(in data: Data) -> (Int?, Bool) {
-        let magic = data.withUnsafeBytes { $0.loadUnaligned(as: UInt32.self) }
-        if magic == mh_magic || magic == mh_cigam     { return (0, false) }
-        if magic == mh_magic_64 || magic == mh_cigam_64 { return (0, true) }
-        let isFat = magic == fatMagic || magic == fatMagicSwapped
-            || magic == fat64Magic || magic == fat64MagicSwapped
-        guard isFat, data.count >= 16 else { return (nil, false) }
-        let swapped = magic == fatMagicSwapped || magic == fat64MagicSwapped
-        let is64 = magic == fat64Magic || magic == fat64MagicSwapped
-        // First arch starts at 8; offset field is at +8 (32-bit) or +8 (64-bit).
-        // 32-bit arch struct: cputype(4) cpusubtype(4) offset(4) size(4) align(4)
-        // 64-bit arch struct: cputype(4) cpusubtype(4) offset(8) size(8) align(4) reserved(4)
-        let offsetField = 8 + 8
-        let offset: UInt64
-        if is64 {
-            var raw: UInt64 = 0
-            data.withUnsafeBytes {
-                raw = $0.baseAddress!.advanced(by: offsetField).loadUnaligned(as: UInt64.self)
-            }
-            offset = swapped ? raw.byteSwapped : raw
-        } else {
-            var raw: UInt32 = 0
-            data.withUnsafeBytes {
-                raw = $0.baseAddress!.advanced(by: offsetField).loadUnaligned(as: UInt32.self)
-            }
-            offset = UInt64(swapped ? raw.byteSwapped : raw)
-        }
-        guard offset < UInt64(data.count) else { return (nil, false) }
-        let sliceMagic = data.withUnsafeBytes {
-            $0.baseAddress!.advanced(by: Int(offset)).loadUnaligned(as: UInt32.self)
-        }
-        let sliceIs64 = sliceMagic == mh_magic_64 || sliceMagic == mh_cigam_64
-        return (Int(offset), sliceIs64)
     }
 
     private static func parseThinLoadCommands(in data: Data, at sliceOffset: Int, is64: Bool) -> LoadCommandsSummary {

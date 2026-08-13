@@ -358,9 +358,13 @@ public struct StaticAnalyzer {
                 kbArticleID: "app-runtime"))
         }
 
-        // Privacy-manifest cross-check.
+        // Privacy-manifest cross-check: the binary's undefined-external
+        // symbols (exact nlist spellings) vs the manifest's declared
+        // required-reason categories.
         if let manifest = privacyManifest {
-            let xc = PrivacyManifestReader.crossCheck(manifest: manifest, scan: scan)
+            let xc = PrivacyManifestReader.crossCheck(
+                manifest: manifest,
+                importedSymbols: Set(MachOInspector.importedSymbols(of: bundle.executableURL)))
             if !xc.declaredButUnused.isEmpty {
                 enrichedWarnings.append(Finding(
                     severity: .info,

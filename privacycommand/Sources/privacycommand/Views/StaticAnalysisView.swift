@@ -98,7 +98,8 @@ struct StaticAnalysisView: View {
                             crossCheck: report.privacyManifest.map {
                                 PrivacyManifestReader.crossCheck(
                                     manifest: $0,
-                                    scan: BinaryStringScanner.scan(executable: report.bundle.executableURL))
+                                    importedSymbols: Set(MachOInspector.importedSymbols(
+                                        of: report.bundle.executableURL)))
                             })
                             .id(SectionAnchor.privacyManifest.rawValue)
                         SandboxContainerView(info: sandboxContainer)
