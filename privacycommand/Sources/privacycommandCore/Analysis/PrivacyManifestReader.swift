@@ -102,37 +102,31 @@ public enum PrivacyManifestReader {
 
     // MARK: - Cross-check
 
-    /// Compare the manifest's `accessedAPITypes` against the binary scan's
-    /// observed symbol references. Returns mismatches in both directions.
+    /// Compare the manifest's `accessedAPITypes` against the binary's
+    /// undefined-external symbols (`MachOInspector.importedSymbols(of:)`),
+    /// using the `RequiredReasonAPIs` vocabulary. Returns mismatches in both
+    /// directions.
+    ///
+    /// Matching is exact on nlist spellings — `_stat`, `_stat$INODE64`,
+    /// `_OBJC_CLASS_$_NSUserDefaults` — never substring-based. A symbol that
+    /// belongs to more than one category (the `getattrlist` family sits in
+    /// both FileTimestamp and DiskSpace) counts as evidence for each.
+    ///
+    /// Categories the manifest declares that Apple doesn't document (they
+    /// collapse to `.other`) are excluded from `declaredButUnused`: no symbol
+    /// evidence can exist for them, and flagging the unknown value itself is
+    /// a validity check, not a cross-check.
     public static func crossCheck(manifest: PrivacyManifest,
-                                  scan: BinaryStringScanner.Result) -> PrivacyManifestCrossCheck {
-        let symbolToCategory: [String: PrivacyManifest.AccessedAPI.Category] = [
-            // File timestamps
-            "NSFileSystemNumber": .fileTimestamp,
-            "creationDate":       .fileTimestamp,
-            "fileModificationDate": .fileTimestamp,
-            // Disk space
-            "volumeAvailableCapacityKey":     .diskSpace,
-            "systemFreeSize":                 .diskSpace,
-            "NSURLVolumeAvailableCapacityKey": .diskSpace,
-            // System boot time
-            "kern.boottime":          .systemBootTime,
-            "mach_absolute_time":     .systemBootTime,
-            // User defaults
-            "NSUserDefaults":         .userDefaults,
-            // Active keyboards
-            "TIInputSource":          .activeKeyboards,
-            // CoreMotion / pedometer
-            "CMPedometer":            .userDefaults,    // close enough for cross-check
-        ]
-
-        var symbolEvidenceByCategory: [PrivacyManifest.AccessedAPI.Category: [String]] = [:]
-        for (symbol, cat) in symbolToCategory where scan.foundFrameworkSymbols.contains(symbol) {
-            symbolEvidenceByCategory[cat, default: []].append(symbol)
+                                  importedSymbols: Set<String>) -> PrivacyManifestCrossCheck {
+        var evidenceByCategory: [PrivacyManifest.AccessedAPI.Category: Set<String>] = [:]
+        for symbol in importedSymbols {
+            for category in RequiredReasonAPIs.categories(forNlistSpelling: symbol) {
+                evidenceByCategory[category, default: []].insert(symbol)
+            }
         }
 
         let declaredCategories = Set(manifest.accessedAPITypes.map(\.category))
-        let observedCategories = Set(symbolEvidenceByCategory.keys)
+        let observedCategories = Set(evidenceByCategory.keys)
 
         let declaredButUnused = declaredCategories.subtracting(observedCategories)
             .filter { $0 != .other }
@@ -142,7 +136,7 @@ public enum PrivacyManifestReader {
             declaredButUnused: declaredButUnused.sorted(by: { $0.rawValue < $1.rawValue }),
             usedButUndeclared: usedButUndeclared.sorted(by: { $0.rawValue < $1.rawValue })
                 .map { PrivacyManifestCrossCheck.Mismatch(
-                    category: $0, evidence: symbolEvidenceByCategory[$0] ?? []) }
+                    category: $0, evidence: (evidenceByCategory[$0] ?? []).sorted()) }
         )
     }
 
