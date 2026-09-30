@@ -27,3 +27,7 @@ release-local:
 [group("dev")]
 clean:
     rm -rf privacycommand/.build
+
+# Regenerate the project, Archive, and verify its app/extension build identity.
+archive platform="macos":
+    python3 scripts/archive-app.py --platform {{quote(platform)}}

@@ -1,0 +1,15 @@
+name: Build identity
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  identity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/test-build-identity.py
+      - run: ruby scripts/test-fastlane-identity.rb
+      - run: python3 scripts/test-archive-command.py

@@ -1,0 +1,11 @@
+{
+  "project": "privacycommand/privacycommand.xcodeproj",
+  "spec": null,
+  "defaultPlatform": "macos",
+  "platforms": {
+    "macos": {
+      "scheme": "privacycommand",
+      "destination": "generic/platform=macOS"
+    }
+  }
+}

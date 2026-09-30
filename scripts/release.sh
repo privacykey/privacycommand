@@ -54,33 +54,18 @@ mkdir -p "$DIST_DIR"
 TMP_DIR="$(mktemp -d -t privacycommand-release)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
-# ── 1. Resolve the version from the Xcode project ─────────────────
-# Info.plist's CFBundleShortVersionString is now $(MARKETING_VERSION) —
-# Xcode resolves it at build time. PlistBuddy on the static file would
-# return the placeholder string, so we ask xcodebuild for the resolved
-# value. -showBuildSettings is a read-only dry-run; it doesn't compile
-# anything, but does load the project.
-VERSION=$(xcodebuild \
-    -project "$REPO_ROOT/privacycommand/privacycommand.xcodeproj" \
-    -target "$SCHEME" \
-    -configuration "$CONFIG" \
-    -showBuildSettings \
-  | awk '$1 == "MARKETING_VERSION" { print $3; exit }')
+# ── 1. Read the canonical marketing version ───────────────────────
+VERSION="$(sed -nE 's/^MARKETING_VERSION[[:space:]]*=[[:space:]]*([0-9.]+).*/\1/p' "$REPO_ROOT/Config/Shared.xcconfig" | head -1)"
 if [[ -z "$VERSION" ]]; then
-  echo "error: could not read MARKETING_VERSION from privacycommand target" >&2
-  echo "       Make sure Xcode has Marketing Version set under Project →" >&2
-  echo "       privacycommand → General → Identity." >&2
+  echo "error: could not read MARKETING_VERSION from Config/Shared.xcconfig" >&2
   exit 2
 fi
 echo "Building privacycommand v$VERSION"
 
-# Auto-incrementing CFBundleVersion: count of git commits on HEAD.
-# Sparkle requires CFBundleVersion to monotonically increase across
-# releases, and `git rev-list --count HEAD` grows with every push to
-# main, so we get that for free. CI does fetch-depth: 0 so this works
-# in GitHub Actions; locally the result is whatever your full clone
-# has, which is also fine for dry-runs.
-BUILD_NUMBER="$(git -C "$REPO_ROOT" rev-list --count HEAD)"
+# Capture one UTC build number and provenance stamp for the release.
+build_identity=()
+while IFS= read -r setting; do build_identity+=("$setting"); done < <(cd "$REPO_ROOT" && BUILD_CHANNEL=release scripts/buildinfo.sh)
+BUILD_NUMBER="${build_identity[0]#BUILD_NUMBER=}"
 echo "Using CFBundleVersion: $BUILD_NUMBER"
 
 # ── 2. Resolve the signing identity ────────────────────────────────
@@ -147,7 +132,7 @@ xcodebuild \
   CODE_SIGN_IDENTITY="$DEVELOPER_ID" \
   CODE_SIGN_STYLE=Manual \
   DEVELOPMENT_TEAM="$TEAM_ID" \
-  CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
+  "${build_identity[@]}" \
   archive
 
 # ── 4. Export the .app from the archive ────────────────────────────

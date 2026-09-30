@@ -5,6 +5,15 @@
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES">
+      <PreActions>
+         <ExecutionAction ActionType="Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent title="Capture shared build identity" scriptText="env -u SDKROOT /usr/bin/python3 &quot;$SRCROOT/../scripts/prepare-build-info.py&quot; session">
+               <EnvironmentBuildable>
+                  <BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="1100000000000000000000A0" BuildableName="privacycommand.app" BlueprintName="privacycommand" ReferencedContainer="container:privacycommand.xcodeproj"/>
+               </EnvironmentBuildable>
+            </ActionContent>
+         </ExecutionAction>
+      </PreActions>
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"

@@ -15,6 +15,7 @@
 		0BBBBBBB000000000000A006 /* UpdateFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A006 /* UpdateFetcher.swift */; };
 		0BBBBBBB000000000000A007 /* WatchModeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A007 /* WatchModeManager.swift */; };
 		0BBBBBBB000000000000A008 /* UpdateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A008 /* UpdateController.swift */; };
+		0BBBBBBB000000000000A009 /* BatchScanModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A009 /* BatchScanModel.swift */; };
 		0BBBBBBB000000000000A101 /* DropTargetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A101 /* DropTargetView.swift */; };
 		0BBBBBBB000000000000A102 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A102 /* DashboardView.swift */; };
 		0BBBBBBB000000000000A103 /* StaticAnalysisView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A103 /* StaticAnalysisView.swift */; };
@@ -63,6 +64,9 @@
 		0BBBBBBB000000000000A12E /* TelemetrySummaryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A12E /* TelemetrySummaryCard.swift */; };
 		0BBBBBBB000000000000A12F /* PrivacyLabelsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A12F /* PrivacyLabelsCard.swift */; };
 		0BBBBBBB000000000000A130 /* UpdatesSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A130 /* UpdatesSettingsView.swift */; };
+		0BBBBBBB000000000000A131 /* BatchScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A131 /* BatchScanView.swift */; };
+		0BBBBBBB000000000000A132 /* PermissionMatrixView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A132 /* PermissionMatrixView.swift */; };
+		0BBBBBBB000000000000A133 /* DecompiledClassesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A133 /* DecompiledClassesView.swift */; };
 		0BBBBBBB000000000000A201 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A201 /* OnboardingView.swift */; };
 		0BBBBBBB000000000000A202 /* OnboardingSteps.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A202 /* OnboardingSteps.swift */; };
 		0BBBBBBB000000000000A301 /* PDFExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A301 /* PDFExporter.swift */; };
@@ -74,6 +78,9 @@
 		0BBBBBBB000000000000C006 /* OpenResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C006 /* OpenResource.swift */; };
 		0BBBBBBB000000000000C007 /* LiveProbeEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C007 /* LiveProbeEvent.swift */; };
 		0BBBBBBB000000000000C008 /* AppStoreInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C008 /* AppStoreInfo.swift */; };
+		0BBBBBBB000000000000C009 /* TCCGrant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C009 /* TCCGrant.swift */; };
+		0BBBBBBB000000000000C00A /* PermissionReconciliation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C00A /* PermissionReconciliation.swift */; };
+		0BBBBBBB000000000000C00B /* DecompilationIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C00B /* DecompilationIndex.swift */; };
 		0BBBBBBB000000000000C101 /* MachOInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C101 /* MachOInspector.swift */; };
 		0BBBBBBB000000000000C102 /* CodesignWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C102 /* CodesignWrapper.swift */; };
 		0BBBBBBB000000000000C103 /* EntitlementsReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C103 /* EntitlementsReader.swift */; };
@@ -86,9 +93,6 @@
 		0BBBBBBB000000000000C10A /* UpdateMechanismDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C10A /* UpdateMechanismDetector.swift */; };
 		0BBBBBBB000000000000C10B /* AppcastParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C10B /* AppcastParser.swift */; };
 		0BBBBBBB000000000000C10C /* DisassemblyAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C10C /* DisassemblyAnalyzer.swift */; };
-		0BBBBBBB000000000000C120 /* BinaryCapabilityAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C120 /* BinaryCapabilityAnalyzer.swift */; };
-		0BBBBBBB000000000000C11E /* GhidraDecompiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C11E /* GhidraDecompiler.swift */; };
-		0BBBBBBB000000000000C11F /* ConnectionTracer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C11F /* ConnectionTracer.swift */; };
 		0BBBBBBB000000000000C10D /* SDKFingerprintDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C10D /* SDKFingerprintDatabase.swift */; };
 		0BBBBBBB000000000000C10E /* SDKFingerprintDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C10E /* SDKFingerprintDetector.swift */; };
 		0BBBBBBB000000000000C10F /* SecretsScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C10F /* SecretsScanner.swift */; };
@@ -98,31 +102,30 @@
 		0BBBBBBB000000000000C113 /* EmbeddedAssetScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C113 /* EmbeddedAssetScanner.swift */; };
 		0BBBBBBB000000000000C114 /* BehaviorAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C114 /* BehaviorAnalyzer.swift */; };
 		0BBBBBBB000000000000C115 /* PrivacyManifestReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C115 /* PrivacyManifestReader.swift */; };
-		0BBBBBBB000000000000C153 /* RequiredReasonAPIs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C153 /* RequiredReasonAPIs.swift */; };
-		0BBBBBBB000000000000C152 /* AppExtensionScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C152 /* AppExtensionScanner.swift */; };
-		0BBBBBBB000000000000C151 /* AppRuntimeDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C151 /* AppRuntimeDetector.swift */; };
-		0BBBBBBB000000000000C150 /* EmbeddedResourceScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C150 /* EmbeddedResourceScanner.swift */; };
 		0BBBBBBB000000000000C116 /* SandboxContainerInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C116 /* SandboxContainerInspector.swift */; };
 		0BBBBBBB000000000000C117 /* BTMAuditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C117 /* BTMAuditor.swift */; };
-		0BBBBBBB000000000000C125 /* MalimiteImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C125 /* MalimiteImporter.swift */; };
-		0BBBBBBB000000000000C126 /* MacAptImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C126 /* MacAptImporter.swift */; };
-		0BBBBBBB000000000000C702 /* ToolCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C702 /* ToolCatalog.swift */; };
-		0BBBBBBB000000000000C124 /* GhidraProgramDump.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C124 /* GhidraProgramDump.swift */; };
-		0BBBBBBB000000000000C00B /* DecompilationIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C00B /* DecompilationIndex.swift */; };
-		0BBBBBBB000000000000C602 /* DecompilationIndexStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C602 /* DecompilationIndexStore.swift */; };
-		0BBBBBBB000000000000A133 /* DecompiledClassesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A133 /* DecompiledClassesView.swift */; };
-		0BBBBBBB000000000000C121 /* SQLiteReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C121 /* SQLiteReader.swift */; };
-		0BBBBBBB000000000000C122 /* TCCAuditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C122 /* TCCAuditor.swift */; };
-		0BBBBBBB000000000000C123 /* PermissionReconciler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C123 /* PermissionReconciler.swift */; };
-		0BBBBBBB000000000000C009 /* TCCGrant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C009 /* TCCGrant.swift */; };
-		0BBBBBBB000000000000C00A /* PermissionReconciliation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C00A /* PermissionReconciliation.swift */; };
-		0BBBBBBB000000000000A132 /* PermissionMatrixView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A132 /* PermissionMatrixView.swift */; };
 		0BBBBBBB000000000000C118 /* NotarizationDeepDive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C118 /* NotarizationDeepDive.swift */; };
 		0BBBBBBB000000000000C119 /* DMGMounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C119 /* DMGMounter.swift */; };
 		0BBBBBBB000000000000C11A /* FlagsScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C11A /* FlagsScanner.swift */; };
 		0BBBBBBB000000000000C11B /* MASReceiptDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C11B /* MASReceiptDetector.swift */; };
 		0BBBBBBB000000000000C11C /* AppStoreLookup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C11C /* AppStoreLookup.swift */; };
 		0BBBBBBB000000000000C11D /* AppStorePrivacyLabelFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C11D /* AppStorePrivacyLabelFetcher.swift */; };
+		0BBBBBBB000000000000C11E /* GhidraDecompiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C11E /* GhidraDecompiler.swift */; };
+		0BBBBBBB000000000000C11F /* ConnectionTracer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C11F /* ConnectionTracer.swift */; };
+		0BBBBBBB000000000000C120 /* BinaryCapabilityAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C120 /* BinaryCapabilityAnalyzer.swift */; };
+		0BBBBBBB000000000000C121 /* SQLiteReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C121 /* SQLiteReader.swift */; };
+		0BBBBBBB000000000000C122 /* TCCAuditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C122 /* TCCAuditor.swift */; };
+		0BBBBBBB000000000000C123 /* PermissionReconciler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C123 /* PermissionReconciler.swift */; };
+		0BBBBBBB000000000000C124 /* GhidraProgramDump.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C124 /* GhidraProgramDump.swift */; };
+		0BBBBBBB000000000000C125 /* MalimiteImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C125 /* MalimiteImporter.swift */; };
+		0BBBBBBB000000000000C126 /* MacAptImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C126 /* MacAptImporter.swift */; };
+		0BBBBBBB000000000000C141 /* InstalledAppEnumerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C141 /* InstalledAppEnumerator.swift */; };
+		0BBBBBBB000000000000C142 /* BatchAppResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C142 /* BatchAppResult.swift */; };
+		0BBBBBBB000000000000C143 /* BatchAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C143 /* BatchAnalyzer.swift */; };
+		0BBBBBBB000000000000C150 /* EmbeddedResourceScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C150 /* EmbeddedResourceScanner.swift */; };
+		0BBBBBBB000000000000C151 /* AppRuntimeDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C151 /* AppRuntimeDetector.swift */; };
+		0BBBBBBB000000000000C152 /* AppExtensionScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C152 /* AppExtensionScanner.swift */; };
+		0BBBBBBB000000000000C153 /* RequiredReasonAPIs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C153 /* RequiredReasonAPIs.swift */; };
 		0BBBBBBB000000000000C201 /* ProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C201 /* ProcessRunner.swift */; };
 		0BBBBBBB000000000000C202 /* ProcessTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C202 /* ProcessTracker.swift */; };
 		0BBBBBBB000000000000C203 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C203 /* NetworkMonitor.swift */; };
@@ -138,22 +141,19 @@
 		0BBBBBBB000000000000C301 /* PathClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C301 /* PathClassifier.swift */; };
 		0BBBBBBB000000000000C302 /* RiskClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C302 /* RiskClassifier.swift */; };
 		0BBBBBBB000000000000C303 /* RiskScorer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C303 /* RiskScorer.swift */; };
-		0BBBBBBB000000000000C141 /* InstalledAppEnumerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C141 /* InstalledAppEnumerator.swift */; };
-		0BBBBBBB000000000000C142 /* BatchAppResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C142 /* BatchAppResult.swift */; };
-		0BBBBBBB000000000000C143 /* BatchAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C143 /* BatchAnalyzer.swift */; };
-		0BBBBBBB000000000000A009 /* BatchScanModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A009 /* BatchScanModel.swift */; };
-		0BBBBBBB000000000000A131 /* BatchScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A131 /* BatchScanView.swift */; };
 		0BBBBBBB000000000000C304 /* DomainClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C304 /* DomainClassifier.swift */; };
+		0BBBBBBB000000000000C305 /* ContributorSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C305 /* ContributorSource.swift */; };
 		0BBBBBBB000000000000C306 /* KnownTLDs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C306 /* KnownTLDs.swift */; };
 		0BBBBBBB000000000000C307 /* DomainValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C307 /* DomainValidator.swift */; };
-		0BBBBBBB000000000000C305 /* ContributorSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C305 /* ContributorSource.swift */; };
 		0BBBBBBB000000000000C401 /* JSONExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C401 /* JSONExporter.swift */; };
 		0BBBBBBB000000000000C402 /* HTMLExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C402 /* HTMLExporter.swift */; };
 		0BBBBBBB000000000000C403 /* ReportDiffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C403 /* ReportDiffer.swift */; };
 		0BBBBBBB000000000000C501 /* HelperToolProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C501 /* HelperToolProtocol.swift */; };
 		0BBBBBBB000000000000C502 /* HelperToolProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C501 /* HelperToolProtocol.swift */; };
 		0BBBBBBB000000000000C601 /* RunStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C601 /* RunStore.swift */; };
+		0BBBBBBB000000000000C602 /* DecompilationIndexStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C602 /* DecompilationIndexStore.swift */; };
 		0BBBBBBB000000000000C701 /* KnowledgeBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C701 /* KnowledgeBase.swift */; };
+		0BBBBBBB000000000000C702 /* ToolCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C702 /* ToolCatalog.swift */; };
 		0BBBBBBB000000000000C801 /* RunSearcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C801 /* RunSearcher.swift */; };
 		0BBBBBBB000000000000C901 /* GuestProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C901 /* GuestProtocol.swift */; };
 		0BBBBBBB000000000000C902 /* UpdateChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C902 /* UpdateChannel.swift */; };
@@ -237,6 +237,7 @@
 		0FFFFFFF000000000000A006 /* UpdateFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateFetcher.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A007 /* WatchModeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchModeManager.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A008 /* UpdateController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateController.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A009 /* BatchScanModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchScanModel.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A101 /* DropTargetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropTargetView.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A102 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A103 /* StaticAnalysisView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticAnalysisView.swift; sourceTree = "<group>"; };
@@ -285,6 +286,9 @@
 		0FFFFFFF000000000000A12E /* TelemetrySummaryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetrySummaryCard.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A12F /* PrivacyLabelsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyLabelsCard.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A130 /* UpdatesSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdatesSettingsView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A131 /* BatchScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchScanView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A132 /* PermissionMatrixView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionMatrixView.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A133 /* DecompiledClassesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecompiledClassesView.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A201 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A202 /* OnboardingSteps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSteps.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A301 /* PDFExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFExporter.swift; sourceTree = "<group>"; };
@@ -308,6 +312,9 @@
 		0FFFFFFF000000000000C006 /* OpenResource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenResource.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C007 /* LiveProbeEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveProbeEvent.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C008 /* AppStoreInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreInfo.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C009 /* TCCGrant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCCGrant.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C00A /* PermissionReconciliation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionReconciliation.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C00B /* DecompilationIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecompilationIndex.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C101 /* MachOInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MachOInspector.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C102 /* CodesignWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodesignWrapper.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C103 /* EntitlementsReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntitlementsReader.swift; sourceTree = "<group>"; };
@@ -320,9 +327,6 @@
 		0FFFFFFF000000000000C10A /* UpdateMechanismDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateMechanismDetector.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C10B /* AppcastParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppcastParser.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C10C /* DisassemblyAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisassemblyAnalyzer.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C120 /* BinaryCapabilityAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BinaryCapabilityAnalyzer.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C11E /* GhidraDecompiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhidraDecompiler.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C11F /* ConnectionTracer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionTracer.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C10D /* SDKFingerprintDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDKFingerprintDatabase.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C10E /* SDKFingerprintDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDKFingerprintDetector.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C10F /* SecretsScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecretsScanner.swift; sourceTree = "<group>"; };
@@ -332,31 +336,30 @@
 		0FFFFFFF000000000000C113 /* EmbeddedAssetScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbeddedAssetScanner.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C114 /* BehaviorAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BehaviorAnalyzer.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C115 /* PrivacyManifestReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyManifestReader.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C153 /* RequiredReasonAPIs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequiredReasonAPIs.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C152 /* AppExtensionScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppExtensionScanner.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C151 /* AppRuntimeDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRuntimeDetector.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C150 /* EmbeddedResourceScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbeddedResourceScanner.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C116 /* SandboxContainerInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SandboxContainerInspector.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C117 /* BTMAuditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BTMAuditor.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C125 /* MalimiteImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MalimiteImporter.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C126 /* MacAptImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacAptImporter.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C702 /* ToolCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolCatalog.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C124 /* GhidraProgramDump.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhidraProgramDump.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C00B /* DecompilationIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecompilationIndex.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C602 /* DecompilationIndexStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecompilationIndexStore.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000A133 /* DecompiledClassesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecompiledClassesView.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C121 /* SQLiteReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteReader.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C122 /* TCCAuditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCCAuditor.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C123 /* PermissionReconciler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionReconciler.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C009 /* TCCGrant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCCGrant.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C00A /* PermissionReconciliation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionReconciliation.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000A132 /* PermissionMatrixView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionMatrixView.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C118 /* NotarizationDeepDive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotarizationDeepDive.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C119 /* DMGMounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DMGMounter.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C11A /* FlagsScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlagsScanner.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C11B /* MASReceiptDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MASReceiptDetector.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C11C /* AppStoreLookup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreLookup.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C11D /* AppStorePrivacyLabelFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStorePrivacyLabelFetcher.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C11E /* GhidraDecompiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhidraDecompiler.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C11F /* ConnectionTracer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionTracer.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C120 /* BinaryCapabilityAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BinaryCapabilityAnalyzer.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C121 /* SQLiteReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteReader.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C122 /* TCCAuditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCCAuditor.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C123 /* PermissionReconciler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionReconciler.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C124 /* GhidraProgramDump.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhidraProgramDump.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C125 /* MalimiteImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MalimiteImporter.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C126 /* MacAptImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacAptImporter.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C141 /* InstalledAppEnumerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstalledAppEnumerator.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C142 /* BatchAppResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchAppResult.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C143 /* BatchAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchAnalyzer.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C150 /* EmbeddedResourceScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbeddedResourceScanner.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C151 /* AppRuntimeDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRuntimeDetector.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C152 /* AppExtensionScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppExtensionScanner.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C153 /* RequiredReasonAPIs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequiredReasonAPIs.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C201 /* ProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessRunner.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C202 /* ProcessTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessTracker.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C203 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
@@ -372,21 +375,18 @@
 		0FFFFFFF000000000000C301 /* PathClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathClassifier.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C302 /* RiskClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiskClassifier.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C303 /* RiskScorer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiskScorer.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C141 /* InstalledAppEnumerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstalledAppEnumerator.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C142 /* BatchAppResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchAppResult.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C143 /* BatchAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchAnalyzer.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000A009 /* BatchScanModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchScanModel.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000A131 /* BatchScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchScanView.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C304 /* DomainClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainClassifier.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C305 /* ContributorSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContributorSource.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C306 /* KnownTLDs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnownTLDs.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C307 /* DomainValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DomainValidator.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000C305 /* ContributorSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContributorSource.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C401 /* JSONExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONExporter.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C402 /* HTMLExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTMLExporter.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C403 /* ReportDiffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportDiffer.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C501 /* HelperToolProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelperToolProtocol.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C601 /* RunStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunStore.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C602 /* DecompilationIndexStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecompilationIndexStore.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C701 /* KnowledgeBase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnowledgeBase.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C702 /* ToolCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolCatalog.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C801 /* RunSearcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunSearcher.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C901 /* GuestProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestProtocol.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C902 /* UpdateChannel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChannel.swift; sourceTree = "<group>"; };
@@ -399,11 +399,22 @@
 		0FFFFFFF000000000000D005 /* SecretsScannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecretsScannerTests.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000E001 /* privacycommand.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = privacycommand.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0FFFFFFF000000000000E002 /* privacycommandTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = privacycommandTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		45C386EC5EE885DE4E4DFA6F /* Shared.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Shared.xcconfig; path = ../Config/Shared.xcconfig; sourceTree = "<group>"; };
 		A954CFEA2F9E0506005AC054 /* privacycommandHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = privacycommandHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		A954CFEB2F9E0506005AC054 /* privacycommandHelper */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = privacycommandHelper; sourceTree = "<group>"; };
+		A954CFEB2F9E0506005AC054 /* privacycommandHelper */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = privacycommandHelper;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -444,6 +455,7 @@
 				0CCCCCCC0000000000000D00 /* Tests */,
 				A954CFEB2F9E0506005AC054 /* privacycommandHelper */,
 				0CCCCCCC0000000000000E00 /* Products */,
+				45C386EC5EE885DE4E4DFA6F /* Shared.xcconfig */,
 			);
 			sourceTree = "<group>";
 		};
@@ -563,16 +575,6 @@
 				0FFFFFFF000000000000B100 /* Assets.xcassets */,
 			);
 			path = Resources;
-			sourceTree = "<group>";
-		};
-		0CCCCCCC0000000000000C14 /* Batch */ = {
-			isa = PBXGroup;
-			children = (
-				0FFFFFFF000000000000C141 /* InstalledAppEnumerator.swift */,
-				0FFFFFFF000000000000C142 /* BatchAppResult.swift */,
-				0FFFFFFF000000000000C143 /* BatchAnalyzer.swift */,
-			);
-			path = Batch;
 			sourceTree = "<group>";
 		};
 		0CCCCCCC0000000000000C00 /* privacycommandCore */ = {
@@ -748,6 +750,16 @@
 			path = Updates;
 			sourceTree = "<group>";
 		};
+		0CCCCCCC0000000000000C14 /* Batch */ = {
+			isa = PBXGroup;
+			children = (
+				0FFFFFFF000000000000C141 /* InstalledAppEnumerator.swift */,
+				0FFFFFFF000000000000C142 /* BatchAppResult.swift */,
+				0FFFFFFF000000000000C143 /* BatchAnalyzer.swift */,
+			);
+			path = Batch;
+			sourceTree = "<group>";
+		};
 		0CCCCCCC0000000000000C20 /* privacycommandGuestProtocol */ = {
 			isa = PBXGroup;
 			children = (
@@ -805,6 +817,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 4400000000000000000000A0 /* Build configuration list for PBXNativeTarget "privacycommand" */;
 			buildPhases = (
+				6817230F7A024CABA7EF1475 /* Prepare version and build identity */,
 				0202020200000000000000A0 /* Sources */,
 				0202020200000000000000A1 /* Frameworks */,
 				0202020200000000000000A2 /* Resources */,
@@ -843,6 +856,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = A954CFF02F9E0506005AC054 /* Build configuration list for PBXNativeTarget "privacycommandHelper" */;
 			buildPhases = (
+				E456358CD2407044374546AD /* Prepare version and build identity */,
 				A954CFE62F9E0506005AC054 /* Sources */,
 				A954CFE72F9E0506005AC054 /* Frameworks */,
 				A954CFE82F9E0506005AC054 /* CopyFiles */,
@@ -855,8 +869,6 @@
 				A954CFEB2F9E0506005AC054 /* privacycommandHelper */,
 			);
 			name = privacycommandHelper;
-			packageProductDependencies = (
-			);
 			productName = privacycommandHelper;
 			productReference = A954CFEA2F9E0506005AC054 /* privacycommandHelper */;
 			productType = "com.apple.product-type.tool";
@@ -942,7 +954,52 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
-			shellScript = "# Build the privacycommand-guest executable via SwiftPM, copy it\n# into the app's Resources folder, and codesign it with hardened\n# runtime. Apple's notarization service rejects any embedded Mach-O\n# that wasn't built with --options runtime, and SwiftPM (unlike\n# xcodebuild) doesn't apply that flag automatically — so we re-sign\n# here, using the same identity Xcode is using for the app target.\n\nset -euo pipefail\n\nTARGET=privacycommand-guest\necho \"Building ${TARGET} via SwiftPM…\"\ncd \"${SRCROOT}\"\nswift build -c release --product \"${TARGET}\"\n\nGUEST_BIN=\"${SRCROOT}/.build/release/${TARGET}\"\nif [[ ! -f \"${GUEST_BIN}\" ]]; then\n    echo \"error: SwiftPM didn't produce ${GUEST_BIN}\" >&2\n    exit 1\nfi\n\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\nmkdir -p \"${DEST}\"\ncp -f \"${GUEST_BIN}\" \"${DEST}/${TARGET}\"\nchmod +x \"${DEST}/${TARGET}\"\n\n# Re-sign with hardened runtime. EXPANDED_CODE_SIGN_IDENTITY is the\n# resolved cert ID Xcode will use for the rest of the app. For\n# Sign-to-Run-Locally builds it's '-' (ad-hoc); for Developer ID\n# Release builds it's the actual cert. We always pass --options\n# runtime so notarization accepts the binary; we add --timestamp\n# only when signing with a real identity (ad-hoc + --timestamp\n# fails because Apple's TSA needs the cert to validate against).\nIDENTITY=\"${EXPANDED_CODE_SIGN_IDENTITY:-${CODE_SIGN_IDENTITY:--}}\"\nif [[ -z \"${IDENTITY}\" ]]; then\n    IDENTITY=\"-\"\nfi\nSIGN_FLAGS=( --force --options runtime --sign \"${IDENTITY}\" )\nif [[ \"${IDENTITY}\" != \"-\" ]]; then\n    SIGN_FLAGS+=( --timestamp )\nfi\necho \"Signing ${TARGET} with identity '${IDENTITY}'…\"\n/usr/bin/codesign \"${SIGN_FLAGS[@]}\" \"${DEST}/${TARGET}\"\n\necho \"Staged + signed ${TARGET} into ${DEST}/\"\n";
+			shellScript = "# Build the privacycommand-guest executable via SwiftPM, copy it\n# into the app's Resources folder, and codesign it with hardened\n# runtime. Apple's notarization service rejects any embedded Mach-O\n# that wasn't built with --options runtime, and SwiftPM (unlike\n# xcodebuild) doesn't apply that flag automatically — so we re-sign\n# here, using the same identity Xcode is using for the app target.\n\nset -euo pipefail\n\nTARGET=privacycommand-guest\necho \"Building ${TARGET} via SwiftPM…\"\ncd \"${SRCROOT}\"\nswift build -c release --product \"${TARGET}\"\n\nGUEST_BIN=\"${SRCROOT}/.build/release/${TARGET}\"\nif [[ ! -f \"${GUEST_BIN}\" ]]; then\n    echo \"error: SwiftPM didn't produce ${GUEST_BIN}\" >&2\n    exit 1\nfi\n\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\nmkdir -p \"${DEST}\"\ncp -f \"${GUEST_BIN}\" \"${DEST}/${TARGET}\"\nchmod +x \"${DEST}/${TARGET}\"\n\n# Follow Xcode's signing choice for unsigned archive validation.\nif [[ \"${CODE_SIGNING_ALLOWED:-YES}\" == \"NO\" ]]; then\n    echo \"Staged ${TARGET} without signing (CODE_SIGNING_ALLOWED=NO).\"\n    exit 0\nfi\n\n# Re-sign with hardened runtime. EXPANDED_CODE_SIGN_IDENTITY is the\n# resolved cert ID Xcode will use for the rest of the app. For\n# Sign-to-Run-Locally builds it's '-' (ad-hoc); for Developer ID\n# Release builds it's the actual cert. We always pass --options\n# runtime so notarization accepts the binary; we add --timestamp\n# only when signing with a real identity (ad-hoc + --timestamp\n# fails because Apple's TSA needs the cert to validate against).\nIDENTITY=\"${EXPANDED_CODE_SIGN_IDENTITY:-${CODE_SIGN_IDENTITY:--}}\"\nif [[ -z \"${IDENTITY}\" ]]; then\n    IDENTITY=\"-\"\nfi\nSIGN_FLAGS=( --force --options runtime --sign \"${IDENTITY}\" )\nif [[ \"${IDENTITY}\" != \"-\" ]]; then\n    SIGN_FLAGS+=( --timestamp )\nfi\necho \"Signing ${TARGET} with identity '${IDENTITY}'…\"\n/usr/bin/codesign \"${SIGN_FLAGS[@]}\" \"${DEST}/${TARGET}\"\n\necho \"Staged + signed ${TARGET} into ${DEST}/\"\n";
+		};
+		6817230F7A024CABA7EF1475 /* Prepare version and build identity */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/../scripts/prepare-build-info.py",
+				"$(PROJECT_TEMP_DIR)/BuildIdentity.plist",
+				"$(SRCROOT)/Resources/Info.plist",
+			);
+			name = "Prepare version and build identity";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/BuildIdentity-Info.plist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "env -u SDKROOT /usr/bin/python3 \"$SRCROOT/../scripts/prepare-build-info.py\" plist\n";
+		};
+		E456358CD2407044374546AD /* Prepare version and build identity */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/../scripts/prepare-build-info.py",
+				"$(PROJECT_TEMP_DIR)/BuildIdentity.plist",
+			);
+			name = "Prepare version and build identity";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/BuildIdentity-Info.plist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "env -u SDKROOT /usr/bin/python3 \"$SRCROOT/../scripts/prepare-build-info.py\" plist\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -1145,26 +1202,25 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				BUILD_IDENTITY_SOURCE_PLIST = "$(SRCROOT)/Resources/Info.plist";
 				CODE_SIGN_ENTITLEMENTS = Resources/privacycommand.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 6S9Q286XS9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = Resources/Info.plist;
+				INFOPLIST_FILE = "$(DERIVED_FILE_DIR)/BuildIdentity-Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 0.1.5;
-				PRODUCT_BUNDLE_IDENTIFIER = org.privacykey.privacycommand;
 				OTHER_LDFLAGS = "-lsqlite3";
+				PRODUCT_BUNDLE_IDENTIFIER = org.privacykey.privacycommand;
 				PRODUCT_NAME = privacycommand;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -1175,26 +1231,25 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				BUILD_IDENTITY_SOURCE_PLIST = "$(SRCROOT)/Resources/Info.plist";
 				CODE_SIGN_ENTITLEMENTS = Resources/privacycommand.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 6S9Q286XS9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = Resources/Info.plist;
+				INFOPLIST_FILE = "$(DERIVED_FILE_DIR)/BuildIdentity-Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 0.1.5;
-				PRODUCT_BUNDLE_IDENTIFIER = org.privacykey.privacycommand;
 				OTHER_LDFLAGS = "-lsqlite3";
+				PRODUCT_BUNDLE_IDENTIFIER = org.privacykey.privacycommand;
 				PRODUCT_NAME = privacycommand;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -1241,6 +1296,7 @@
 		};
 		3300000000000000000000F1 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 45C386EC5EE885DE4E4DFA6F /* Shared.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -1303,6 +1359,7 @@
 		};
 		3300000000000000000000F2 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 45C386EC5EE885DE4E4DFA6F /* Shared.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -1366,7 +1423,8 @@
 				DEVELOPMENT_TEAM = 6S9Q286XS9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "$(DERIVED_FILE_DIR)/BuildIdentity-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "privacycommand Helper";
 				INFOPLIST_KEY_LSBackgroundOnly = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "privacycommand Helper — privileged helper for privacycommand. A privacykey product.";
@@ -1393,7 +1451,8 @@
 				DEVELOPMENT_TEAM = 6S9Q286XS9;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "$(DERIVED_FILE_DIR)/BuildIdentity-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "privacycommand Helper";
 				INFOPLIST_KEY_LSBackgroundOnly = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "privacycommand Helper — privileged helper for privacycommand. A privacykey product.";
