@@ -14,6 +14,8 @@ from apple_signing import load_environment, provisioning_arguments
 root = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--platform")
+parser.add_argument("--channel", choices=["local", "ci", "testflight", "release"],
+                    default=os.environ.get("BUILD_CHANNEL") or "release")
 parser.add_argument("--unsigned", action="store_true", help="Validate an archive without a signing identity")
 parser.add_argument("--plan", action="store_true", help="Print the commands without running them")
 args = parser.parse_args()
@@ -32,6 +34,9 @@ if config.get("spec"):
 archive = root / "build" / (target["scheme"] + "-" + platform + ".xcarchive")
 command = ["xcodebuild", "archive", "-project", config["project"], "-scheme", target["scheme"],
            "-configuration", "Release", "-destination", target["destination"], "-archivePath", str(archive)]
+# Xcode's xcconfig values override environment variables. Pass the channel as
+# a build setting so its shared scheme captures the explicitly chosen identity.
+command.append("BUILD_CHANNEL=" + args.channel)
 if args.unsigned:
     command.append("CODE_SIGNING_ALLOWED=NO")
 else:
@@ -54,7 +59,7 @@ commands.append(["python3", str(Path(__file__).with_name("verify-archive.py")), 
 if args.plan:
     print(json.dumps(commands, indent=2))
 else:
-    env = dict(environment, BUILD_CHANNEL="release")
+    env = dict(environment, BUILD_CHANNEL=args.channel)
     for command in commands:
         subprocess.run(command, cwd=root, env=env, check=True)
     print(f"Archive ready: {archive}")

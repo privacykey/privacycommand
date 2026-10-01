@@ -1,0 +1,200 @@
+{
+  "schema": "project-commands/v1",
+  "name": "privacycommand",
+  "private": false,
+  "default_branch": "main",
+  "version_file": "Config/Shared.xcconfig",
+  "default_target": "app",
+  "default_test_target": "core",
+  "tools": [
+    "python3",
+    "git",
+    "just",
+    "xcodebuild"
+  ],
+  "commands": {
+    "help": {
+      "description": "Find available commands"
+    },
+    "info": {
+      "description": "Inspect this checkout and its capabilities"
+    },
+    "doctor": {
+      "description": "Check whether this machine is ready"
+    },
+    "setup": {
+      "description": "Prepare a fresh checkout"
+    },
+    "clean": {
+      "description": "Remove reproducible build outputs"
+    },
+    "check": {
+      "description": "Run the normal validation bundle"
+    },
+    "lint": {
+      "description": "Check static code and conventions"
+    },
+    "security-check": {
+      "description": "Run the declared security checks"
+    },
+    "docs-check": {
+      "description": "Validate docs and their visibility"
+    },
+    "test": {
+      "description": "Run the default automated tests"
+    },
+    "version": {
+      "description": "Change the marketing version deliberately"
+    },
+    "changelog": {
+      "description": "Refresh release notes and feeds"
+    },
+    "ci-status": {
+      "description": "Read CI for the selected revision"
+    },
+    "ci": {
+      "description": "Dispatch a named workflow deliberately"
+    },
+    "source-check": {
+      "description": "source-check",
+      "hidden": true
+    },
+    "source-capture": {
+      "description": "source-capture",
+      "hidden": true
+    },
+    "record-artifact": {
+      "description": "record-artifact",
+      "hidden": true
+    },
+    "record-package": {
+      "description": "record-package",
+      "hidden": true
+    },
+    "test-result-verify": {
+      "description": "test-result-verify",
+      "hidden": true
+    },
+    "build": {
+      "description": "Compile the intended product"
+    },
+    "typecheck": {
+      "description": "Check types without publishing"
+    },
+    "archive": {
+      "description": "Create and verify a native archive"
+    },
+    "artifact-verify": {
+      "description": "Inspect a built artifact before shipping"
+    },
+    "export": {
+      "description": "Export an existing verified archive"
+    },
+    "archive-export": {
+      "description": "Keep a combined local convenience task"
+    },
+    "release-plan": {
+      "description": "Preview the release actions"
+    },
+    "release-check": {
+      "description": "Validate release eligibility"
+    },
+    "screenshot": {
+      "description": "Capture reproducible screenshots"
+    },
+    "dev": {
+      "description": "Start an interactive development loop"
+    },
+    "release": {
+      "description": "Create and trigger a versioned release"
+    },
+    "release-local": {
+      "description": "Keep the combined local release builder"
+    }
+  },
+  "targets": {
+    "app": {
+      "kind": "apple",
+      "default_platform": "macos",
+      "platforms": {
+        "macos": {
+          "scheme": "privacycommand",
+          "destination": "generic/platform=macOS"
+        }
+      },
+      "actions": {
+        "release-local": [
+          {
+            "argv": [
+              "bash",
+              "scripts/release.sh"
+            ],
+            "cwd": "."
+          }
+        ]
+      }
+    },
+    "tooling": {
+      "kind": "tooling",
+      "actions": {
+        "test": [
+          {
+            "argv": [
+              "python3",
+              ".project/tests/test_projectctl.py"
+            ],
+            "cwd": "."
+          }
+        ]
+      }
+    },
+    "core": {
+      "kind": "swiftpm",
+      "package_paths": [
+        "privacycommand"
+      ],
+      "actions": {}
+    }
+  },
+  "check": [
+    "lint",
+    "security-check",
+    "docs-check",
+    "test"
+  ],
+  "documentation": [
+    "docs/PROJECT-COMMANDS.md"
+  ],
+  "clean": [
+    ".project/output"
+  ],
+  "changelog": "CHANGELOG.md",
+  "release": {
+    "allow_untagged_beta": true,
+    "required_checks": [
+      "identity",
+      "Command contract",
+      "Native app compile"
+    ],
+    "export_method": "developer-id"
+  },
+  "credential_fixtures": [
+    {
+      "path": "privacycommand/Tests/privacycommandCoreTests/SecretsScannerTests.swift",
+      "sha256": "4de4f5b9eed2fbd297096ebb2e5b51c0d5037d543362de54dccc431974c918c6"
+    },
+    {
+      "path": "privacycommand/Tests/privacycommandCoreTests/SecretsScannerTests.swift",
+      "sha256": "4de4f5b9eed2fbd297096ebb2e5b51c0d5037d543362de54dccc431974c918c6"
+    },
+    {
+      "path": "privacycommand/Tests/privacycommandCoreTests/SecretsScannerTests.swift",
+      "sha256": "e5d61101743310e2ea4fbaa93b95f296d434bfc2af5ee57bdbe2c032519c52b0"
+    }
+  ],
+  "apple": {
+    "scripts": "scripts",
+    "archive_config": "Config/ArchiveTargets.json",
+    "product": "privacycommand.app"
+  }
+}

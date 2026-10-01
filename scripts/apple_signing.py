@@ -150,6 +150,15 @@ def upload_archive(archive, environment):
         raise ValueError("Upload needs an existing .xcarchive with Info.plist: " + str(archive))
     if not environment.get("APPLE_TEAM_ID"):
         raise ValueError("Set APPLE_TEAM_ID before uploading an archive")
+    root = Path(__file__).resolve().parents[1]
+    contract = root / ".project/commands.json"
+    if contract.is_file():
+        channel = environment.get("BUILD_CHANNEL", "testflight")
+        if channel not in ("testflight", "release"):
+            raise ValueError("Upload requires BUILD_CHANNEL=testflight or release")
+        subprocess.run([sys.executable, str(root / ".project/projectctl.py"), "--config", str(contract),
+                        "artifact-verify", str(archive), "--channel", channel],
+                       cwd=root, env=environment, check=True)
     auth = provisioning_arguments(environment)
     options = {"method": "app-store-connect", "destination": "upload", "signingStyle": "automatic",
                "teamID": environment["APPLE_TEAM_ID"], "manageAppVersionAndBuildNumber": False,

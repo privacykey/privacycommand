@@ -19,11 +19,12 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
+  checks: read
   contents: read
 
 jobs:
   ci:
-    uses: privacykey/gh-workflows/.github/workflows/macos-app-ci.yml@57d245db16e566c11d6ef66a6bb0bcd010e6bb12 # Apple source provenance
+    uses: privacykey/gh-workflows/.github/workflows/macos-app-ci.yml@17c26982bea3999cc60fbc18ac094b164319b9cd # Source provenance and project publication gates
     with:
       xcodeproj: privacycommand/privacycommand.xcodeproj
       scheme: privacycommand
