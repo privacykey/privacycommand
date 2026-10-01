@@ -33,7 +33,7 @@ class SigningTests(unittest.TestCase):
         self.config_values()
         with self.config.open("a") as file:
             file.write('\nexport KEYCHAIN_PATH="$HOME/a keychain"\n')
-        env = signing.load_environment({"HOME": str(self.home)})
+        env = signing.load_environment({"HOME": str(self.home), "APPLE_PROVISIONING_AUTH": "api-key"})
         self.assertEqual(env["KEYCHAIN_PATH"], str(self.home / "a keychain"))
         args = signing.provisioning_arguments(env)
         self.assertEqual(args[args.index("-authenticationKeyPath") + 1], str(self.key))
@@ -60,7 +60,7 @@ class SigningTests(unittest.TestCase):
         self.assertEqual(signing.provisioning_arguments(env), ["-allowProvisioningUpdates"])
 
     def test_incomplete_key_fails_before_build(self):
-        env = signing.load_environment({"HOME": str(self.home), "APPLE_API_KEY_ID": "ABCDEFGHIJ"})
+        env = signing.load_environment({"HOME": str(self.home), "APPLE_API_KEY_ID": "ABCDEFGHIJ", "APPLE_PROVISIONING_AUTH": "api-key"})
         with self.assertRaisesRegex(ValueError, "APPLE_API_ISSUER"):
             signing.provisioning_arguments(env)
 

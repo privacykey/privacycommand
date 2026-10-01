@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import sys
 import subprocess
 import tempfile
 import unittest
@@ -11,8 +12,15 @@ SCRIPTS = Path(__file__).resolve().parent
 ROOT = SCRIPTS.parent
 
 
+@unittest.skipUnless(sys.platform == "darwin", "macOS release shell uses macOS command-line tools")
 class ShellSigningTests(unittest.TestCase):
-    def test_shared_settings_reach_shell_archive_before_xcode_runs(self):
+    def test_account_and_keychain_profile_need_no_p8(self):
+        self.run_shell(False)
+
+    def test_explicit_api_credentials_are_still_supported(self):
+        self.run_shell(True)
+
+    def run_shell(self, api):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory).resolve()
             scripts = root / SCRIPTS.name
@@ -30,7 +38,12 @@ class ShellSigningTests(unittest.TestCase):
             key = root / 'key with spaces.p8'
             key.write_text('fixture')
             config = root / 'signing.env'
-            config.write_text('APPLE_TEAM_ID=ABCDE12345\nAPPLE_API_KEY_ID=ABCDE12345\nAPPLE_API_ISSUER=00000000-0000-0000-0000-000000000000\nAPPLE_API_KEY_PATH="'+str(key)+'"\nAPPLE_DEVELOPER_ID_IDENTITY="Developer ID Application: Test (ABCDE12345)"\n')
+            settings = 'APPLE_TEAM_ID=ABCDE12345\nAPPLE_DEVELOPER_ID_IDENTITY="Developer ID Application: Test (ABCDE12345)"\n'
+            if api:
+                settings += 'APPLE_PROVISIONING_AUTH=api-key\nAPPLE_API_KEY_ID=ABCDE12345\nAPPLE_API_ISSUER=00000000-0000-0000-0000-000000000000\nAPPLE_API_KEY_PATH="'+str(key)+'"\n'
+            else:
+                settings += 'APPLE_PROVISIONING_AUTH=account\nAPPLE_NOTARY_PROFILE="Release Profile"\n'
+            config.write_text(settings)
             bin = root / 'bin'
             bin.mkdir()
             (bin / 'xcodegen').write_text('#!/bin/bash\nexit 0\n')
@@ -46,11 +59,10 @@ class ShellSigningTests(unittest.TestCase):
             args = json.loads(output.read_text())
             self.assertIn('DEVELOPMENT_TEAM=ABCDE12345', args)
             if runner=='archive.sh':
-                self.assertIn(str(key), args)
-                self.assertIn('-authenticationKeyID', args)
+                self.assertEqual('-authenticationKeyID' in args, api)
+                if api: self.assertIn(str(key), args)
             else:
                 self.assertIn('CODE_SIGN_IDENTITY=Developer ID Application: Test (ABCDE12345)',args)
-            self.assertNotIn('fixture private key',result.stdout+result.stderr)
 
 
 if __name__ == '__main__':

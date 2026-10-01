@@ -9,22 +9,12 @@
 # Outputs:
 #   dist/privacycommand-<version>.dmg — signed + notarized + stapled
 #
-# Required environment:
-#   APPLE_SIGNING_IDENTITY      Common-name string of the Developer ID
-#                               Application cert, e.g.
-#                               "Developer ID Application: PrivacyKey (TEAMID)".
-#                               Optional locally — falls back to picking the
-#                               first matching identity in the keychain.
-#
-#   APPLE_API_KEY_PATH          Path to the App Store Connect API key (.p8).
-#   APPLE_API_KEY_ID            10-character Key ID associated with the .p8.
-#   APPLE_API_ISSUER            Issuer UUID from App Store Connect → Keys.
-#
-#   notarytool's API-key auth is preferred over the legacy
-#   --apple-id/--password/--team-id triple because it's revocable per-key
-#   in one click and immune to Apple ID 2FA prompts. The legacy path is
-#   no longer wired up here — if you need it for an emergency local run,
-#   call notarytool directly.
+# Notarization credentials (loaded from ~/.config/apple/signing.env):
+#   APPLE_NOTARY_PROFILE        Preferred: saved notarytool Keychain profile.
+#   or APPLE_API_KEY_PATH/APPLE_API_KEY_ID/APPLE_API_ISSUER
+#   or APPLE_NOTARY_USER/APPLE_NOTARY_PASSWORD/APPLE_TEAM_ID.
+# Xcode account login handles signing/provisioning; notarization is separate.
+# See docs/apple-signing.md.
 #
 # Optional:
 #   SCHEME                      xcodebuild scheme (default: privacycommand).
@@ -117,18 +107,15 @@ if [[ "$TEAM_ID" != "$certificate_team" ]]; then
 fi
 echo "Using DEVELOPMENT_TEAM: $TEAM_ID"
 
-python3 "$REPO_ROOT/scripts/apple_signing.py" --api-check
-
-# ── 2b. Validate notarytool credentials ────────────────────────────
-# All three are required; checking up front means we fail in seconds
-# rather than after the 5-minute archive build.
-: "${APPLE_API_KEY_PATH:?APPLE_API_KEY_PATH must point to the App Store Connect .p8 file}"
-: "${APPLE_API_KEY_ID:?APPLE_API_KEY_ID must be the 10-char Key ID}"
-: "${APPLE_API_ISSUER:?APPLE_API_ISSUER must be the App Store Connect issuer UUID}"
-if [[ ! -f "$APPLE_API_KEY_PATH" ]]; then
-  echo "error: APPLE_API_KEY_PATH=$APPLE_API_KEY_PATH does not exist" >&2
+# Resolve notarization independently from Xcode provisioning before archiving.
+notary_arguments_file="$TMP_DIR/notary-args"
+if ! python3 "$REPO_ROOT/scripts/apple_signing.py" --notary-args > "$notary_arguments_file"; then
+  rm -f "$notary_arguments_file"
   exit 2
 fi
+notary_auth=()
+while IFS= read -r -d '' argument; do notary_auth+=("$argument"); done < "$notary_arguments_file"
+rm -f "$notary_arguments_file"
 
 # ── 3. Archive the app target ──────────────────────────────────────
 # Build settings overridden on the CLI win against anything in
@@ -185,13 +172,11 @@ fi
 ZIP_PATH="$TMP_DIR/${SCHEME}-notarize.zip"
 ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$ZIP_PATH"
 
-# notarytool with App Store Connect API key auth. `--wait` blocks until
+# notarytool with the configured Keychain or API credentials. `--wait` blocks until
 # Apple's notarisation service returns Accepted / Invalid; on Invalid
 # the command exits non-zero and `set -e` aborts the rest of the run.
 xcrun notarytool submit "$ZIP_PATH" \
-  --key         "$APPLE_API_KEY_PATH" \
-  --key-id      "$APPLE_API_KEY_ID" \
-  --issuer      "$APPLE_API_ISSUER" \
+  "${notary_auth[@]}" \
   --wait
 
 # Staple so Gatekeeper can verify offline.
@@ -226,9 +211,7 @@ else
   codesign --force --sign "$DEVELOPER_ID" "$DMG_PATH"
 fi
 xcrun notarytool submit "$DMG_PATH" \
-  --key         "$APPLE_API_KEY_PATH" \
-  --key-id      "$APPLE_API_KEY_ID" \
-  --issuer      "$APPLE_API_ISSUER" \
+  "${notary_auth[@]}" \
   --wait
 xcrun stapler staple "$DMG_PATH"
 

@@ -15,7 +15,7 @@ class ArchiveSigningTests(unittest.TestCase):
         self.addCleanup(self.directory.cleanup)
         root = Path(self.directory.name)
         config = root / 'signing.env'
-        config.write_text('APPLE_TEAM_ID=ABCDE12345\nAPPLE_API_KEY_ID=ABCDE12345\n'
+        config.write_text('APPLE_PROVISIONING_AUTH=api-key\nAPPLE_TEAM_ID=ABCDE12345\nAPPLE_API_KEY_ID=ABCDE12345\n'
                           'APPLE_API_ISSUER=84eafacc-18d8-41e9-ad12-d24703a41e1e\n'
                           'APPLE_API_KEY_PATH="/keys/Apple key.p8"\n')
         self.env = {name: value for name, value in os.environ.items()
