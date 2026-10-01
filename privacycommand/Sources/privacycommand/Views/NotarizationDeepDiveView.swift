@@ -11,7 +11,7 @@ struct NotarizationDeepDiveView: View {
 
     var body: some View {
         GroupBox(label: HStack(spacing: 6) {
-            Text("Notarization deep dive")
+            Text("Notarization details")
             InfoButton(articleID: "notarization-deep-dive")
         }) {
             VStack(alignment: .leading, spacing: 8) {
