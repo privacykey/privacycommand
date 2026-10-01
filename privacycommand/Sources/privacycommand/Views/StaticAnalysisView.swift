@@ -46,7 +46,7 @@ struct StaticAnalysisView: View {
             case .urlSchemes:       return "URL schemes"
             case .ats:              return "App Transport Security"
             case .docTypes:         return "Document types"
-            case .notarizationDeep: return "Notarization deep dive"
+            case .notarizationDeep: return "Notarization details"
             case .privacyManifest:  return "Privacy manifest"
             case .sandboxContainer: return "Sandbox container"
             case .btm:              return "Background Task Management"
