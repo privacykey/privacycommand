@@ -20,7 +20,11 @@ class ShellSigningTests(unittest.TestCase):
     def test_explicit_api_credentials_are_still_supported(self):
         self.run_shell(True)
 
-    def run_shell(self, api):
+    @unittest.skipUnless((SCRIPTS/'release.sh').exists(), 'Developer ID release adapter only')
+    def test_publication_rejection_prevents_signing(self):
+        self.run_shell(False, reject=True)
+
+    def run_shell(self, api, reject=False):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory).resolve()
             scripts = root / SCRIPTS.name
@@ -28,6 +32,9 @@ class ShellSigningTests(unittest.TestCase):
             runner = 'archive.sh' if (SCRIPTS / 'archive.sh').exists() else 'release.sh'
             for name in (runner, 'apple_signing.py'):
                 shutil.copyfile(SCRIPTS / name, scripts / name)
+            (root/'.project').mkdir()
+            (root/'.project/commands.json').write_text('{}')
+            (root/'.project/projectctl.py').write_text('import os,sys\nif "source-check" in sys.argv and os.environ.get("TEST_REJECT")=="1": sys.exit(98)\n')
             (root / 'Config').mkdir()
             (root / 'Config/Shared.xcconfig').write_text('MARKETING_VERSION = 1.0.0\n')
             (root / 'BananaBlitz.xcodeproj').mkdir()
@@ -53,8 +60,13 @@ class ShellSigningTests(unittest.TestCase):
             output = root / 'args.json'
             env.update(PATH=str(bin)+':'+os.defpath, APPLE_SIGNING_CONFIG=str(config),
                        TEST_ARCHIVE_ARGS=str(output), SKIP_CK_SCHEMA_CHECK='1', PYTHONDONTWRITEBYTECODE='1')
+            env['TEST_REJECT']='1' if reject else '0'
             result = subprocess.run(['bash', str(scripts/runner)], cwd=root, env=env,
                                     capture_output=True, text=True)
+            if reject:
+                self.assertEqual(result.returncode,98,result.stdout+result.stderr)
+                self.assertFalse(output.exists())
+                return
             self.assertEqual(result.returncode,99,result.stdout+result.stderr)
             args = json.loads(output.read_text())
             self.assertIn('DEVELOPMENT_TEAM=ABCDE12345', args)

@@ -24,6 +24,9 @@ with tempfile.TemporaryDirectory() as directory:
     assert "-allowProvisioningUpdates" in commands[1] and "DEVELOPMENT_TEAM=ABCDEFGHIJ" in commands[1]
     assert str(root / "build/Fixture-macos.xcarchive") in commands[1]
     assert not any(argument.startswith(("BUILD_NUMBER=", "CURRENT_PROJECT_VERSION=")) for argument in commands[1])
+    beta = json.loads(subprocess.check_output(["python3", str(runner), "--channel", "testflight", "--plan"], env=env))
+    assert "BUILD_CHANNEL=testflight" in beta[1]
+    assert not any(argument.startswith(("BUILD_NUMBER=", "CURRENT_PROJECT_VERSION=")) for argument in beta[1])
     unsigned = json.loads(subprocess.check_output(["python3", str(runner), "--unsigned", "--plan"], env=env))
     assert "CODE_SIGNING_ALLOWED=NO" in unsigned[1] and "-allowProvisioningUpdates" not in unsigned[1]
     failure = subprocess.run(["python3", str(runner), "--plan"], env=dict(env, APPLE_TEAM_ID="invalid"), capture_output=True)

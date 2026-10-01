@@ -31,6 +31,15 @@ if [[ "${APPLE_SIGNING_LOADED:-}" != "1" ]]; then
 fi
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# Verify publication before signing/notarization; capture source before compilation.
+project_command() {
+  python3 "$REPO_ROOT/.project/projectctl.py" --config "$REPO_ROOT/.project/commands.json" "$@"
+}
+project_command source-check --channel release
+PROJECT_SOURCE_RECORD="$(mktemp -t project-release-source)"
+project_command source-capture "$PROJECT_SOURCE_RECORD"
+trap 'rm -f "$PROJECT_SOURCE_RECORD"' EXIT
+
 cd "$REPO_ROOT/privacycommand"
 
 SCHEME="${SCHEME:-privacycommand}"
@@ -47,7 +56,7 @@ mkdir -p "$DIST_DIR"
 # version, so leaving notarize.zip next to the DMG breaks the appcast
 # step. Cleaned up unconditionally on script exit (success or failure).
 TMP_DIR="$(mktemp -d -t privacycommand-release)"
-trap 'rm -rf "$TMP_DIR"' EXIT
+trap 'rm -rf "$TMP_DIR"; rm -f "$PROJECT_SOURCE_RECORD"' EXIT
 
 # ── 1. Read the canonical marketing version ───────────────────────
 VERSION="$(sed -nE 's/^MARKETING_VERSION[[:space:]]*=[[:space:]]*([0-9.]+).*/\1/p' "$REPO_ROOT/Config/Shared.xcconfig" | head -1)"
@@ -134,6 +143,8 @@ xcodebuild \
   "${build_identity[@]}" \
   archive
 
+project_command record-artifact "$ARCHIVE_PATH" --source-record "$PROJECT_SOURCE_RECORD"
+
 # ── 4. Export the .app from the archive ────────────────────────────
 EXPORT_OPTIONS_PLIST="$REPO_ROOT/dist/ExportOptions.plist"
 cat > "$EXPORT_OPTIONS_PLIST" <<EOF
@@ -182,6 +193,9 @@ xcrun notarytool submit "$ZIP_PATH" \
 # Staple so Gatekeeper can verify offline.
 xcrun stapler staple "$APP_PATH"
 xcrun stapler validate "$APP_PATH"
+project_command record-artifact "$APP_PATH" --source-record "$PROJECT_SOURCE_RECORD"
+project_command artifact-verify "$APP_PATH" --channel release
+
 
 # ── 6. Build the DMG ───────────────────────────────────────────────
 DMG_PATH="$DIST_DIR/privacycommand-$VERSION.dmg"
@@ -214,6 +228,8 @@ xcrun notarytool submit "$DMG_PATH" \
   "${notary_auth[@]}" \
   --wait
 xcrun stapler staple "$DMG_PATH"
+project_command record-package "$DMG_PATH" --from-artifact "$APP_PATH" --channel release
+
 
 # ── 7. Package the dSYM for crash symbolication ────────────────────
 # xcodebuild emits the .dSYM into the .xcarchive's dSYMs/ folder.

@@ -1,0 +1,8 @@
+{
+  "schema": "project-runtime/v1",
+  "files": {
+    "projectctl.py": "66abd3d33e11cfbcf1e6271b9c1f3ec85ce9a1093a00366a6269ead24bbe5283",
+    "install.py": "68d74f7bfb6fbd9b2b65c9001e26307f3c7051cbea0f525461a37074b2db0bd6",
+    "tests/test_projectctl.py": "1f0b5cd72b8fdecb077040538fb35a6f39e947f0ab5991864c1fcb6ed84c3f68"
+  }
+}

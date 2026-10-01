@@ -65,6 +65,10 @@ class AccountSigningTests(unittest.TestCase):
         original = plistlib.dumps({'ApplicationProperties': {'CFBundleVersion': '2026.1001.0100'}})
         (archive/'Info.plist').write_bytes(original)
         def upload(command, **kwargs):
+            if 'artifact-verify' in command:
+                self.assertIn(str(archive), command)
+                self.assertEqual(command[-2:], ['--channel', 'testflight'])
+                return subprocess.CompletedProcess(command, 0)
             self.assertEqual(command[:2], ['xcodebuild', '-exportArchive'])
             self.assertIn(str(archive), command)
             self.assertNotIn('-authenticationKeyPath', command)
@@ -76,8 +80,20 @@ class AccountSigningTests(unittest.TestCase):
             return subprocess.CompletedProcess(command, 0)
         with patch.object(signing.subprocess, 'run', side_effect=upload) as run:
             signing.upload_archive(archive, {'APPLE_TEAM_ID': 'ABCDE12345', 'APPLE_PROVISIONING_AUTH': 'account'})
-            self.assertEqual(run.call_count, 1)
+            has_contract=(Path(signing.__file__).resolve().parents[1]/'.project/commands.json').is_file()
+            self.assertEqual(run.call_count, 2 if has_contract else 1)
         self.assertEqual((archive/'Info.plist').read_bytes(), original)
+
+    def test_contract_rejection_prevents_credential_use_and_remote_upload(self):
+        scripts=self.root/'Scripts';scripts.mkdir();(self.root/'.project').mkdir()
+        (self.root/'.project/commands.json').write_text('{}')
+        archive=self.root/'Existing.xcarchive';archive.mkdir();(archive/'Info.plist').write_bytes(plistlib.dumps({}))
+        with patch.object(signing,'__file__',str(scripts/'apple_signing.py')),patch.object(signing.subprocess,'run',side_effect=subprocess.CalledProcessError(1,['guard'])) as run:
+            with self.assertRaises(subprocess.CalledProcessError):
+                signing.upload_archive(archive,{'APPLE_TEAM_ID':'ABCDE12345','APPLE_PROVISIONING_AUTH':'api-key'})
+        self.assertEqual(run.call_count,1)
+        self.assertIn('artifact-verify',run.call_args.args[0])
+        self.assertNotIn('xcodebuild',run.call_args.args[0])
 
     def test_missing_archive_fails_before_upload(self):
         with patch.object(signing.subprocess, 'run') as run:

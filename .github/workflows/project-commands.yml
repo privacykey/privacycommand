@@ -1,0 +1,67 @@
+name: Project commands
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: project-commands-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  contract:
+    name: Command contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install the tested Just version
+        uses: extractions/setup-just@f8a3cce218d9f83db3a2ecd90e41ac3de6cdfd9b # v3
+        with:
+          just-version: '1.58.0'
+      - name: Verify generated command surface
+        run: |
+          just --list
+          python3 .project/install.py .
+          git diff --exit-code -- justfile .project/runtime.lock.json
+      - name: Run the local fast checks
+        run: just check
+  native:
+    name: Native app compile
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          clean: true
+      - name: Select installed Xcode
+        run: |
+          python3 - <<'PY'
+          import os, pathlib, subprocess
+          installed = []
+          for bundle in pathlib.Path('/Applications').glob('Xcode*.app'):
+              if 'beta' in bundle.name.lower(): continue
+              developer = bundle / 'Contents/Developer'
+              result = subprocess.run([str(developer / 'usr/bin/xcodebuild'), '-version'], capture_output=True, text=True)
+              if result.returncode == 0:
+                  version = tuple(int(x) for x in result.stdout.splitlines()[0].split()[1].split('.'))
+                  installed.append((version, developer))
+          if not installed: raise SystemExit('No supported full Xcode is installed')
+          version, developer = max(installed)
+          with open(os.environ['GITHUB_ENV'], 'a') as stream:
+              stream.write('DEVELOPER_DIR=' + str(developer) + '\n')
+          print('Selected Xcode', version)
+          PY
+      - name: Install source generation tool
+        run: command -v xcodegen >/dev/null || brew install xcodegen
+      - name: Compile native app and embedded targets through the local contract
+        run: python3 .project/projectctl.py build --target app --channel ci
+
