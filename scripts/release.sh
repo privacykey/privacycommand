@@ -35,6 +35,11 @@
 
 set -euo pipefail
 
+# Load the shared settings once, including when invoked outside just.
+if [[ "${APPLE_SIGNING_LOADED:-}" != "1" ]]; then
+  exec python3 "$(dirname "$0")/apple_signing.py" --exec bash "$0" "$@"
+fi
+
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO_ROOT/privacycommand"
 
@@ -74,8 +79,8 @@ echo "Using CFBundleVersion: $BUILD_NUMBER"
 # come back first from the keychain). Fall back to the keychain probe
 # for local dev — convenient when a developer has only one identity
 # imported.
-DEVELOPER_ID="${APPLE_SIGNING_IDENTITY:-${DEVELOPER_ID:-$(security find-identity -v -p codesigning \
-  | awk -F'"' '/Developer ID Application/ {print $2; exit}')}}"
+DEVELOPER_ID="${APPLE_DEVELOPER_ID_IDENTITY:-${APPLE_SIGNING_IDENTITY:-${DEVELOPER_ID:-$(security find-identity -v -p codesigning \
+  | awk -F'"' '/Developer ID Application/ {print $2; exit}')}}}"
 if [[ -z "$DEVELOPER_ID" ]]; then
   echo "error: no Developer ID Application identity available" >&2
   echo "       Set APPLE_SIGNING_IDENTITY explicitly, or import a Developer ID" >&2
@@ -104,8 +109,15 @@ if [[ -z "$TEAM_ID" ]]; then
   echo "       this by exporting TEAM_ID before invoking the script." >&2
   exit 2
 fi
-TEAM_ID="${TEAM_ID_OVERRIDE:-$TEAM_ID}"
+certificate_team="$TEAM_ID"
+TEAM_ID="${TEAM_ID_OVERRIDE:-${APPLE_TEAM_ID:-$certificate_team}}"
+if [[ "$TEAM_ID" != "$certificate_team" ]]; then
+  echo "error: configured Apple team does not match the Developer ID certificate" >&2
+  exit 2
+fi
 echo "Using DEVELOPMENT_TEAM: $TEAM_ID"
+
+python3 "$REPO_ROOT/scripts/apple_signing.py" --api-check
 
 # ── 2b. Validate notarytool credentials ────────────────────────────
 # All three are required; checking up front means we fail in seconds
