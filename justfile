@@ -31,3 +31,7 @@ clean:
 # Regenerate the project, Archive, and verify its app/extension build identity.
 archive platform="macos":
     python3 scripts/archive-app.py --platform {{quote(platform)}}
+
+# Show the UTC build preview, commit, dirty files, tag-at-HEAD and channel.
+info:
+    @scripts/banner.sh "privacycommand"
