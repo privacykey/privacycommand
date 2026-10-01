@@ -43,7 +43,7 @@ permissions:
 
 jobs:
   release:
-    uses: privacykey/gh-workflows/.github/workflows/macos-sparkle-release.yml@v1
+    uses: privacykey/gh-workflows/.github/workflows/macos-sparkle-release.yml@57d245db16e566c11d6ef66a6bb0bcd010e6bb12 # Apple source provenance
     with:
       xcodeproj: privacycommand/privacycommand.xcodeproj
       scheme: privacycommand

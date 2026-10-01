@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: python3 scripts/test-buildinfo.py
       - run: python3 scripts/test-build-identity.py
       - run: ruby scripts/test-fastlane-identity.rb
       - run: python3 scripts/test-archive-command.py
