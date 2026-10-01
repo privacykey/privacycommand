@@ -16,3 +16,5 @@ jobs:
       - run: python3 scripts/test-build-identity.py
       - run: ruby scripts/test-fastlane-identity.rb
       - run: python3 scripts/test-archive-command.py
+      - name: Verify account signing, API overrides and upload routing
+        run: python3 -m unittest discover -s scripts -p 'test_*signing.py'

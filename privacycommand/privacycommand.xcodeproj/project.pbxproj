@@ -1298,6 +1298,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 45C386EC5EE885DE4E4DFA6F /* Shared.xcconfig */;
 			buildSettings = {
+				DEVELOPMENT_TEAM = 6S9Q286XS9;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -1361,6 +1362,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 45C386EC5EE885DE4E4DFA6F /* Shared.xcconfig */;
 			buildSettings = {
+				DEVELOPMENT_TEAM = 6S9Q286XS9;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
