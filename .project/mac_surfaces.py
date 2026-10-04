@@ -3,8 +3,9 @@
 
 Run from an app as `.project/mac_surfaces.py` (through `just surfaces` and the
 build). When the standards checkout is reachable, a newer reviewed version is
-copied in and shows up as an ordinary diff to commit. When it is not, as in CI
-or a contributor's clone, the committed copy is verified against its lock.
+copied in and shows up as an ordinary diff to commit. When it is not, as in a
+contributor's clone, the committed copy is verified against its lock. CI and
+TestFlight or release builds only ever verify, so they never change sources.
 """
 import argparse
 import hashlib
@@ -70,6 +71,12 @@ def find_source(root, explicit):
     return None
 
 
+def publishing():
+    """True in CI and in TestFlight or release builds, which must not change sources."""
+    channel = os.environ.get("BUILD_CHANNEL", "")
+    return channel in ("ci", "testflight", "release") or bool(os.environ.get("CI") or os.environ.get("GITHUB_ACTIONS"))
+
+
 def verify(root, lock):
     """Problems with the committed copy, as a list of sentences."""
     destination = root / lock["destination"]
@@ -106,6 +113,9 @@ def sync(root, destination, explicit_source, force):
         if lock is None:
             raise SurfaceError("First sync needs --destination, the folder in the app that holds the copy")
         destination = lock["destination"]
+    if lock is not None and publishing():
+        print("Mac surfaces: CI or publication build; verifying the committed copy without copying")
+        return check(root)
     source = find_source(root, explicit_source)
     if source is None:
         if lock is None:
