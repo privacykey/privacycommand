@@ -47,7 +47,7 @@ All analysis happens on your machine, and the app ships no analytics of its own.
 
 ## Get it
 
-Requires macOS 13 or later.
+Requires macOS 14 or later.
 
 **Homebrew** — the cask lives in [`privacykey/homebrew-tap`](https://github.com/privacykey/homebrew-tap):
 

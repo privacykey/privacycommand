@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "privacycommand",
     platforms: [
-        .macOS(.v13)
+        .macOS(.v14)
     ],
     products: [
         .library(name: "privacycommandCore", targets: ["privacycommandCore"]),

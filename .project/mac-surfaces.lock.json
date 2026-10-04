@@ -1,0 +1,18 @@
+{
+  "schema": "mac-surfaces/v1",
+  "version": 2,
+  "destination": "privacycommand/Sources/privacycommand/MacSurfaces",
+  "tool": "b593d3ccbc2f0226517834db5d6e56a0aeff918f43dfc015668cac116adb9aa6",
+  "files": {
+    "SurfaceAbout.swift": "a1b43ec780abe86f225d30111416317ec688138dd932d43a103022238c529231",
+    "SurfaceActivation.swift": "88875baa038fa97ce9adbefad6998c64b5bfe6161f255d14437c6702dfaf6de8",
+    "SurfaceBuild.swift": "e02a17f9bde7ef4a003c0abe0f14fdecfabe8eacbfdeb8708d300a59873edbb6",
+    "SurfaceCommands.swift": "57de8bd4b2647d3877a440e46dc95d73940ba42b109c79d5e8140f34390ec23f",
+    "SurfaceMenuBar.swift": "88f0780c8d005b6ec494063acd1d36f2e4d703e949edff8b3bd1dab60d76b68c",
+    "SurfaceProfile.swift": "bbc564ded117f2619d5c520e53dc027cdc1631bc47f543661d5bfc5f292c7a24",
+    "SurfaceRows.swift": "b01b6864f50ce89b94b562cc8b052e3de5370901ab4f7efdd609e0749f2adbed",
+    "SurfaceSettings.swift": "7503434a92f6a2a94990f110939037b6b7c948a6f3d2a8efbcda4f5ae460203b",
+    "SurfaceSparkle.swift": "1ab6c60a27f34e0fc0551c28b82ef0c456a82e26803aabd98043dd6890ced436",
+    "SurfaceUpdates.swift": "6d7b755cb3fd2ad41b379007cbeb0f9420138fc3476440647445cd25d6e55ae5"
+  }
+}
