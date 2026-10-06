@@ -192,13 +192,13 @@ enum WatchModeIconStyle: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    /// Human-readable name in the settings dropdown.
+    /// Caption under the tile in the Settings icon picker.
     var displayName: String {
         switch self {
         case .eye:        return "Eye"
-        case .magnifier:  return "Search bar (magnifying glass)"
+        case .magnifier:  return "Magnifier"
         case .binoculars: return "Binoculars"
-        case .radar:      return "Radar antenna"
+        case .radar:      return "Radar"
         case .shield:     return "Shield"
         }
     }

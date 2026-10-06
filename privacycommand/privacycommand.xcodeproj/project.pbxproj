@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0BBBBBBB000000000000A001 /* privacycommandApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A001 /* privacycommandApp.swift */; };
+		0BBBBBBB000000000000A00A /* privacycommandSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A00A /* privacycommandSurface.swift */; };
 		0BBBBBBB000000000000A002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A002 /* ContentView.swift */; };
 		0BBBBBBB000000000000A003 /* AnalysisCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A003 /* AnalysisCoordinator.swift */; };
 		0BBBBBBB000000000000A004 /* HelperInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A004 /* HelperInstaller.swift */; };
@@ -63,7 +64,6 @@
 		0BBBBBBB000000000000A12D /* FlagsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A12D /* FlagsView.swift */; };
 		0BBBBBBB000000000000A12E /* TelemetrySummaryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A12E /* TelemetrySummaryCard.swift */; };
 		0BBBBBBB000000000000A12F /* PrivacyLabelsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A12F /* PrivacyLabelsCard.swift */; };
-		0BBBBBBB000000000000A130 /* UpdatesSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A130 /* UpdatesSettingsView.swift */; };
 		0BBBBBBB000000000000A131 /* BatchScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A131 /* BatchScanView.swift */; };
 		0BBBBBBB000000000000A132 /* PermissionMatrixView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A132 /* PermissionMatrixView.swift */; };
 		0BBBBBBB000000000000A133 /* DecompiledClassesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A133 /* DecompiledClassesView.swift */; };
@@ -172,6 +172,7 @@
 		0DDDDDDD000000000000B201 /* org.privacykey.privacycommand.guest.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B201 /* org.privacykey.privacycommand.guest.plist */; };
 		0DDDDDDD000000000000B202 /* Install.command in Resources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B202 /* Install.command */; };
 		0DDDDDDD000000000000B203 /* README.txt in Resources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B203 /* README.txt */; };
+		0DDDDDDD000000000000B300 /* Manual in Resources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B300 /* Manual */; };
 		0EEEEEEE000000000000F101 /* privacycommandHelper in Embed Privileged Helper */ = {isa = PBXBuildFile; fileRef = A954CFEA2F9E0506005AC054 /* privacycommandHelper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		0EEEEEEE000000000000F102 /* org.privacykey.privacycommand.HelperTool.plist in Embed LaunchDaemon plist */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000B006 /* org.privacykey.privacycommand.HelperTool.plist */; };
 		55505BF12FA1EF0700ED7616 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 55505BF02FA1EF0700ED7616 /* Sparkle */; };
@@ -230,6 +231,7 @@
 
 /* Begin PBXFileReference section */
 		0FFFFFFF000000000000A001 /* privacycommandApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = privacycommandApp.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A00A /* privacycommandSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = privacycommandSurface.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A003 /* AnalysisCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisCoordinator.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A004 /* HelperInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelperInstaller.swift; sourceTree = "<group>"; };
@@ -285,7 +287,6 @@
 		0FFFFFFF000000000000A12D /* FlagsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlagsView.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A12E /* TelemetrySummaryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetrySummaryCard.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A12F /* PrivacyLabelsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyLabelsCard.swift; sourceTree = "<group>"; };
-		0FFFFFFF000000000000A130 /* UpdatesSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdatesSettingsView.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A131 /* BatchScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchScanView.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A132 /* PermissionMatrixView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionMatrixView.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A133 /* DecompiledClassesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecompiledClassesView.swift; sourceTree = "<group>"; };
@@ -304,6 +305,7 @@
 		0FFFFFFF000000000000B201 /* org.privacykey.privacycommand.guest.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = org.privacykey.privacycommand.guest.plist; path = Resources/GuestInstaller/org.privacykey.privacycommand.guest.plist; sourceTree = SOURCE_ROOT; };
 		0FFFFFFF000000000000B202 /* Install.command */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = Install.command; path = Resources/GuestInstaller/Install.command; sourceTree = SOURCE_ROOT; };
 		0FFFFFFF000000000000B203 /* README.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = README.txt; path = Resources/GuestInstaller/README.txt; sourceTree = SOURCE_ROOT; };
+		0FFFFFFF000000000000B300 /* Manual */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Manual; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C001 /* AppBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBundle.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C002 /* PrivacyKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyKey.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C003 /* StaticReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticReport.swift; sourceTree = "<group>"; };
@@ -468,6 +470,7 @@
 			isa = PBXGroup;
 			children = (
 				0FFFFFFF000000000000A001 /* privacycommandApp.swift */,
+				0FFFFFFF000000000000A00A /* privacycommandSurface.swift */,
 				0FFFFFFF000000000000A002 /* ContentView.swift */,
 				0FFFFFFF000000000000A005 /* AppIconView.swift */,
 				0CCCCCCC0000000000000A01 /* ViewModels */,
@@ -542,7 +545,6 @@
 				0FFFFFFF000000000000A12D /* FlagsView.swift */,
 				0FFFFFFF000000000000A12E /* TelemetrySummaryCard.swift */,
 				0FFFFFFF000000000000A12F /* PrivacyLabelsCard.swift */,
-				0FFFFFFF000000000000A130 /* UpdatesSettingsView.swift */,
 				0FFFFFFF000000000000A131 /* BatchScanView.swift */,
 				0FFFFFFF000000000000A133 /* DecompiledClassesView.swift */,
 				0FFFFFFF000000000000A132 /* PermissionMatrixView.swift */,
@@ -579,6 +581,7 @@
 				0FFFFFFF000000000000B006 /* org.privacykey.privacycommand.HelperTool.plist */,
 				0FFFFFFF000000000000B007 /* privacycommandHelper.entitlements */,
 				0FFFFFFF000000000000B100 /* Assets.xcassets */,
+				0FFFFFFF000000000000B300 /* Manual */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -940,6 +943,7 @@
 				0DDDDDDD000000000000B201 /* org.privacykey.privacycommand.guest.plist in Resources */,
 				0DDDDDDD000000000000B202 /* Install.command in Resources */,
 				0DDDDDDD000000000000B203 /* README.txt in Resources */,
+				0DDDDDDD000000000000B300 /* Manual in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1017,6 +1021,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0BBBBBBB000000000000A00A /* privacycommandSurface.swift in Sources */,
 				0BBBBBBB000000000000A001 /* privacycommandApp.swift in Sources */,
 				0BBBBBBB000000000000A002 /* ContentView.swift in Sources */,
 				0BBBBBBB000000000000A003 /* AnalysisCoordinator.swift in Sources */,
@@ -1117,7 +1122,6 @@
 				0BBBBBBB000000000000A12D /* FlagsView.swift in Sources */,
 				0BBBBBBB000000000000A12E /* TelemetrySummaryCard.swift in Sources */,
 				0BBBBBBB000000000000A12F /* PrivacyLabelsCard.swift in Sources */,
-				0BBBBBBB000000000000A130 /* UpdatesSettingsView.swift in Sources */,
 				0BBBBBBB000000000000A008 /* UpdateController.swift in Sources */,
 				0BBBBBBB000000000000C902 /* UpdateChannel.swift in Sources */,
 				0BBBBBBB000000000000C903 /* HomebrewDetector.swift in Sources */,

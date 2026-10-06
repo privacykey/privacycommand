@@ -35,7 +35,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>privacycommand reads the camera-in-use indicator while a monitored run is active. It never captures or records video.</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>privacycommand — inspects macOS apps. All analysis runs locally. A privacykey product.</string>
+	<string>© 2026 privacykey</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>privacycommand reads the microphone-in-use indicator while a monitored run is active. It never captures or records audio.</string>
 	<key>NSPrincipalClass</key>
