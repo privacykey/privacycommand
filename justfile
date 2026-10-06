@@ -111,6 +111,10 @@ screenshot value="":
 dev value="":
     @python3 .project/projectctl.py dev {{quote(value)}} --target {{quote(target)}} --platform {{quote(platform)}} --environment {{quote(environment)}} --channel {{quote(channel)}} --suite {{quote(suite)}} --package {{quote(package)}} --filter {{quote(filter)}} --state {{quote(state)}} --width {{quote(width)}} --height {{quote(height)}}
 
+# Copy the shared Settings, menu and About code into this app
+surfaces:
+    @python3 .project/projectctl.py surfaces --target {{quote(target)}} --platform {{quote(platform)}} --environment {{quote(environment)}} --channel {{quote(channel)}} --suite {{quote(suite)}} --package {{quote(package)}} --filter {{quote(filter)}} --state {{quote(state)}} --width {{quote(width)}} --height {{quote(height)}}
+
 # Create and trigger a versioned release
 release chosen:
     @python3 .project/projectctl.py release {{quote(chosen)}} --target {{quote(target)}} --platform {{quote(platform)}} --environment {{quote(environment)}} --channel {{quote(channel)}} --suite {{quote(suite)}} --package {{quote(package)}} --filter {{quote(filter)}} --state {{quote(state)}} --width {{quote(width)}} --height {{quote(height)}}

@@ -105,6 +105,9 @@
     "dev": {
       "description": "Start an interactive development loop"
     },
+    "surfaces": {
+      "description": "Copy the shared Settings, menu and About code into this app"
+    },
     "release": {
       "description": "Create and trigger a versioned release"
     },
@@ -131,6 +134,16 @@
             ],
             "cwd": "."
           }
+        ],
+        "surfaces": [
+          {
+            "argv": [
+              "python3",
+              ".project/mac_surfaces.py",
+              "sync"
+            ],
+            "cwd": "."
+          }
         ]
       }
     },
@@ -142,6 +155,14 @@
             "argv": [
               "python3",
               ".project/tests/test_projectctl.py"
+            ],
+            "cwd": "."
+          },
+          {
+            "argv": [
+              "python3",
+              ".project/mac_surfaces.py",
+              "check"
             ],
             "cwd": "."
           }

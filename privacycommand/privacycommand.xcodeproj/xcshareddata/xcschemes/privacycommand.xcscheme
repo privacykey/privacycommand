@@ -13,6 +13,13 @@
                </EnvironmentBuildable>
             </ActionContent>
          </ExecutionAction>
+         <ExecutionAction ActionType="Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent title="Refresh shared surface code" scriptText="cd &quot;$SRCROOT/..&quot; &amp;&amp; env -u SDKROOT /usr/bin/python3 .project/mac_surfaces.py sync">
+               <EnvironmentBuildable>
+                  <BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="1100000000000000000000A0" BuildableName="privacycommand.app" BlueprintName="privacycommand" ReferencedContainer="container:privacycommand.xcodeproj"/>
+               </EnvironmentBuildable>
+            </ActionContent>
+         </ExecutionAction>
       </PreActions>
       <BuildActionEntries>
          <BuildActionEntry
