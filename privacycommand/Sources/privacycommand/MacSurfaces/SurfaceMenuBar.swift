@@ -18,13 +18,15 @@ public final class SurfaceMenuBarPreference: ObservableObject {
         defaultIcon: String,
         shownByDefault: Bool = true,
         defaults: UserDefaults = .standard,
-        prefix: String = "surface.menuBar"
+        prefix: String = "surface.menuBar",
+        shownKey: String? = nil,
+        iconKey: String? = nil
     ) {
         self.defaults = defaults
-        shownKey = prefix + ".shown"
-        iconKey = prefix + ".icon"
-        isShown = defaults.object(forKey: shownKey) as? Bool ?? shownByDefault
-        icon = defaults.string(forKey: iconKey) ?? defaultIcon
+        self.shownKey = shownKey ?? prefix + ".shown"
+        self.iconKey = iconKey ?? prefix + ".icon"
+        isShown = defaults.object(forKey: self.shownKey) as? Bool ?? shownByDefault
+        icon = defaults.string(forKey: self.iconKey) ?? defaultIcon
     }
 
     public func setShown(_ value: Bool) {
@@ -131,21 +133,48 @@ struct SurfaceSettingsAction {
 }
 
 /// The top of a menu bar popover: the mark and the app name.
-public struct SurfacePopoverHeader: View {
+public struct SurfacePopoverHeader<Trailing: View>: View {
     private let app: SurfaceApp
-    private let mark: Image
+    private let mark: AnyView
+    private let trailing: Trailing
 
-    public init(app: SurfaceApp, mark: Image) {
+    /// `mark` is drawn at 20 points; `trailing` sits at the right edge, for a
+    /// filter menu or a status glyph.
+    public init(app: SurfaceApp, mark: Image, @ViewBuilder trailing: () -> Trailing) {
         self.app = app
-        self.mark = mark
+        self.mark = AnyView(mark.resizable().aspectRatio(contentMode: .fit))
+        self.trailing = trailing()
+    }
+
+    /// A drawn mark, such as a SwiftUI shape, instead of an image.
+    public init<Mark: View>(app: SurfaceApp, @ViewBuilder mark: () -> Mark, @ViewBuilder trailing: () -> Trailing) {
+        self.app = app
+        self.mark = AnyView(mark())
+        self.trailing = trailing()
     }
 
     public var body: some View {
         HStack(spacing: 8) {
             mark
+                .frame(width: 20, height: 20)
+                .accessibilityHidden(true)
             Text(app.name).font(.headline)
             Spacer()
+            trailing
         }
+    }
+}
+
+extension SurfacePopoverHeader where Trailing == EmptyView {
+    public init(app: SurfaceApp, mark: Image) {
+        self.init(app: app, mark: mark) { EmptyView() }
+    }
+}
+
+extension SurfaceMenuBarSection where Actions == EmptyView {
+    /// For an item with no optional actions: show or hide and the icon picker only.
+    public init(app: SurfaceApp, preference: SurfaceMenuBarPreference, icons: [SurfaceMenuBarIcon]) {
+        self.init(app: app, preference: preference, icons: icons) { EmptyView() }
     }
 }
 

@@ -1,5 +1,6 @@
 #if os(macOS)
 import AppKit
+import SwiftUI
 
 /// Keeps a menu bar utility in the Dock while any of its windows is open, so
 /// the main menu and ⌘, work, and returns it to the menu bar when the last one
@@ -13,8 +14,13 @@ public final class SurfaceActivation {
     private init() {}
 
     /// Call once at launch in a menu bar utility. Does nothing when repeated.
-    public func start() {
+    /// `initialPolicy` is applied at once; an app without `LSUIElement`, as
+    /// when run from `swift run`, passes `.accessory` to start in the menu bar.
+    public func start(initialPolicy: NSApplication.ActivationPolicy? = nil) {
         guard observers.isEmpty else { return }
+        if let initialPolicy, NSApplication.shared.activationPolicy() != initialPolicy {
+            NSApplication.shared.setActivationPolicy(initialPolicy)
+        }
         let center = NotificationCenter.default
         observers.append(center.addObserver(forName: NSWindow.didBecomeKeyNotification, object: nil, queue: .main) { _ in
             MainActor.assumeIsolated { SurfaceActivation.shared.update(closing: nil) }
@@ -45,6 +51,49 @@ public final class SurfaceActivation {
             NSApplication.shared.setActivationPolicy(wanted)
             if hasWindow { NSApplication.shared.activate() }
         }
+    }
+}
+
+/// Marks the hosting window as not restorable, so About, the manual and the
+/// shortcuts window do not reopen at the next launch when left open at quit.
+struct SurfaceNotRestored: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView(frame: .zero)
+        DispatchQueue.main.async { view.window?.isRestorable = false }
+        return view
+    }
+
+    func updateNSView(_ view: NSView, context: Context) {
+        view.window?.isRestorable = false
+    }
+}
+
+extension View {
+    /// Apply to the root view of a secondary window.
+    public func surfaceNotRestored() -> some View {
+        background(SurfaceNotRestored())
+    }
+}
+
+/// Opens the Settings scene from AppKit code: a status item's menu, an
+/// `NSMenu` action or an app delegate. SwiftUI code uses `openSettings`.
+public enum SurfaceSettingsOpener {
+    /// Sends the app menu's Settings… item (⌘,), which is what SwiftUI wires;
+    /// the `showSettingsWindow:` selector no longer opens it on current macOS.
+    @MainActor
+    public static func open() {
+        NSApplication.shared.activate()
+        if let item = settingsItem(in: NSApplication.shared.mainMenu), let action = item.action {
+            NSApplication.shared.sendAction(action, to: item.target, from: item)
+        } else {
+            NSApplication.shared.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        }
+    }
+
+    @MainActor
+    static func settingsItem(in menu: NSMenu?) -> NSMenuItem? {
+        guard let appMenu = menu?.items.first?.submenu else { return nil }
+        return appMenu.items.first { $0.keyEquivalent == "," && $0.keyEquivalentModifierMask == [.command] }
     }
 }
 #endif

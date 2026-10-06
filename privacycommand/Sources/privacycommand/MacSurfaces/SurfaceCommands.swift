@@ -32,8 +32,8 @@ public struct SurfaceCommands: Commands {
             }
         }
         CommandGroup(replacing: .help) {
-            Button("\(app.name) Help") { help.openManual() }
-            Button("Keyboard Shortcuts") { help.openShortcuts() }
+            Button("\(app.name) Help") { help.manual(openWindow) }
+            Button("Keyboard Shortcuts") { help.shortcuts(openWindow) }
                 .keyboardShortcut("?", modifiers: .command)
             if let replay = help.replayWelcome {
                 Divider()

@@ -56,12 +56,7 @@ def find_source(root, explicit):
         candidates.append(Path(explicit))
     if os.environ.get("MAC_SURFACES_SOURCE"):
         candidates.append(Path(os.environ["MAC_SURFACES_SOURCE"]))
-    try:
-        common = subprocess.run(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
-                                cwd=root, capture_output=True, text=True, check=True).stdout.strip()
-        candidates.append(Path(common).parent.parent / STANDARD)
-    except (OSError, subprocess.CalledProcessError):
-        pass
+    candidates.extend(main_checkout_candidates(root))
     candidates.append(root.parent / STANDARD)
     for candidate in candidates:
         if (candidate / "manifest.json").is_file():
@@ -69,6 +64,18 @@ def find_source(root, explicit):
     if explicit:
         raise SurfaceError(f"No manifest.json under {explicit}")
     return None
+
+
+def main_checkout_candidates(root):
+    """The standards folder beside the app's main checkout, which a worktree
+    of the app shares. Empty when the app is not a git checkout or git is not
+    installed; the folder beside the app itself is still tried after this."""
+    try:
+        common = subprocess.run(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
+                                cwd=root, capture_output=True, text=True, check=True).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        return []
+    return [Path(common).parent.parent / STANDARD] if common else []
 
 
 def publishing():
@@ -115,13 +122,15 @@ def sync(root, destination, explicit_source, force):
         destination = lock["destination"]
     if lock is not None and publishing():
         print("Mac surfaces: CI or publication build; verifying the committed copy without copying")
-        return check(root)
+        check(root)
+        return
     source = find_source(root, explicit_source)
     if source is None:
         if lock is None:
             raise SurfaceError("The standards checkout is not on this machine and no copy is recorded")
         print("Mac surfaces: standards checkout not found; using the committed copy")
-        return check(root)
+        check(root)
+        return
 
     manifest = read_json(source / "manifest.json")
     actual = build_manifest(source, manifest["version"])
