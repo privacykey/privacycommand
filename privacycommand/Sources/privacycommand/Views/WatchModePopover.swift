@@ -4,14 +4,14 @@ import AppKit
 import privacycommandCore
 #endif
 
-/// Popover content shown from the menu-bar `MenuBarExtra`. Lists recent
-/// watch-mode changes plus controls for stopping watch / opening the main
-/// window.
+/// Popover content shown from the menu-bar `MenuBarExtra`. The standard
+/// header and footer frame the app's own content: the watched app, the
+/// recent watch-mode changes, and the controls for the run.
 struct WatchModePopover: View {
     @ObservedObject var manager: WatchModeManager
     @ObservedObject var coordinator: AnalysisCoordinator
-    /// SwiftUI helper for activating an existing window scene.
-    @Environment(\.openWindow) private var openWindow
+
+    private let app = PrivacycommandSurface.app
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -23,10 +23,13 @@ struct WatchModePopover: View {
                 list
             }
             Divider()
-            footer
+            controls
+            Divider()
+            SurfacePopoverFooter(app: app, openApp: { bringMainWindowFront() })
+                .padding(10)
         }
         .frame(width: 380)
-        .frame(maxHeight: 540)
+        .frame(maxHeight: 600)
         .onAppear {
             // Visiting the popover counts as having seen the changes.
             manager.markAllRead()
@@ -36,17 +39,18 @@ struct WatchModePopover: View {
     // MARK: - Sections
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 6) {
-                Image(systemName: "eye.fill").foregroundStyle(.blue)
-                Text("Watching \(manager.watchedBundleName)")
-                    .font(.headline)
-                Spacer()
+        VStack(alignment: .leading, spacing: 6) {
+            SurfacePopoverHeader(app: app, mark: Image(nsImage: NSApplication.shared.applicationIconImage)) {
                 if let started = manager.startedAt {
                     Text(durationString(since: started))
                         .font(.caption.monospacedDigit())
                         .foregroundStyle(.secondary)
                 }
+            }
+            HStack(spacing: 6) {
+                Image(systemName: "eye.fill").foregroundStyle(.blue)
+                Text("Watching \(manager.watchedBundleName)")
+                    .font(.callout.weight(.semibold))
             }
             Text("\(manager.changes.count) change\(manager.changes.count == 1 ? "" : "s") · \(coordinator.events.count) total events")
                 .font(.caption)
@@ -99,23 +103,20 @@ struct WatchModePopover: View {
         .padding(.vertical, 6)
     }
 
-    private var footer: some View {
+    /// The run's own controls. Stopping the watch is the primary action.
+    private var controls: some View {
         HStack(spacing: 6) {
-            Button {
-                bringMainWindowFront()
-            } label: {
-                Label("Open auditor", systemImage: "macwindow")
-            }
-            Spacer()
             if !manager.changes.isEmpty {
-                Button("Clear log") { manager.clearLog() }
+                Button("Clear Log") { manager.clearLog() }
                     .controlSize(.small)
             }
+            Spacer()
             Button(role: .destructive) {
                 Task { await stopWatching() }
             } label: {
-                Label("Stop watching", systemImage: "stop.circle")
+                Label("Stop Watching", systemImage: "stop.circle")
             }
+            .keyboardShortcut(.return, modifiers: .command)
         }
         .padding(10)
     }

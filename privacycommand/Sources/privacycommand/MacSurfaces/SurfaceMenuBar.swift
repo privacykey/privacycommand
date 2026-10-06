@@ -18,13 +18,14 @@ public final class SurfaceMenuBarPreference: ObservableObject {
         defaultIcon: String,
         shownByDefault: Bool = true,
         defaults: UserDefaults = .standard,
-        prefix: String = "surface.menuBar"
+        prefix: String = "surface.menuBar",
+        iconKey: String? = nil
     ) {
         self.defaults = defaults
         shownKey = prefix + ".shown"
-        iconKey = prefix + ".icon"
+        self.iconKey = iconKey ?? prefix + ".icon"
         isShown = defaults.object(forKey: shownKey) as? Bool ?? shownByDefault
-        icon = defaults.string(forKey: iconKey) ?? defaultIcon
+        icon = defaults.string(forKey: self.iconKey) ?? defaultIcon
     }
 
     public func setShown(_ value: Bool) {
@@ -131,21 +132,36 @@ struct SurfaceSettingsAction {
 }
 
 /// The top of a menu bar popover: the mark and the app name.
-public struct SurfacePopoverHeader: View {
+public struct SurfacePopoverHeader<Trailing: View>: View {
     private let app: SurfaceApp
     private let mark: Image
+    private let trailing: Trailing
 
-    public init(app: SurfaceApp, mark: Image) {
+    /// `mark` is drawn at 20 points; `trailing` sits at the right edge, for a
+    /// filter menu or a status glyph.
+    public init(app: SurfaceApp, mark: Image, @ViewBuilder trailing: () -> Trailing) {
         self.app = app
         self.mark = mark
+        self.trailing = trailing()
     }
 
     public var body: some View {
         HStack(spacing: 8) {
             mark
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 20, height: 20)
+                .accessibilityHidden(true)
             Text(app.name).font(.headline)
             Spacer()
+            trailing
         }
+    }
+}
+
+extension SurfacePopoverHeader where Trailing == EmptyView {
+    public init(app: SurfaceApp, mark: Image) {
+        self.init(app: app, mark: mark) { EmptyView() }
     }
 }
 

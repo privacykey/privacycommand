@@ -11,8 +11,8 @@ with:
 
 - A description of the issue and its impact.
 - Steps to reproduce, or a proof-of-concept if you have one.
-- The privacycommand version you observed it on (Settings → About,
-  or `mdls -name kMDItemVersion /Applications/privacycommand.app`).
+- The privacycommand version you observed it on (privacycommand →
+  About privacycommand, or `mdls -name kMDItemVersion /Applications/privacycommand.app`).
 - Your macOS version and chip family (Apple menu → About This Mac).
 - Whether you've shared the finding anywhere else (e.g. coordinated
   disclosure with another vendor).

@@ -1,4 +1,5 @@
 #if os(macOS)
+import AppKit
 import SwiftUI
 
 /// How the app reaches its users. Decides the About links, the legal line,
@@ -122,10 +123,11 @@ public struct SurfaceApp: Sendable {
     public var links: [SurfaceLink] {
         switch distribution {
         case let .appStore(website, support, creator):
-            [SurfaceLink("Website", url: website), SurfaceLink("Support", url: support), creator]
+            [SurfaceLink(String(localized: "Website"), url: website),
+             SurfaceLink(String(localized: "Support"), url: support), creator]
         case let .openSource(repository, issues, _):
-            [SurfaceLink("Source on GitHub", url: repository, showsURL: true),
-             SurfaceLink("Report an Issue", url: issues)]
+            [SurfaceLink(String(localized: "Source on GitHub"), url: repository, showsURL: true),
+             SurfaceLink(String(localized: "Report an Issue"), url: issues)]
         }
     }
 
@@ -140,21 +142,36 @@ public struct SurfaceApp: Sendable {
     }
 }
 
-/// What the three Help items do. The app supplies the windows.
+/// What the three Help items do. Leave `openManual` and `openShortcuts` nil
+/// to use the shared `SurfaceManualWindow` and `SurfaceShortcutsWindow`.
 public struct SurfaceHelp {
-    public var openManual: @MainActor () -> Void
-    public var openShortcuts: @MainActor () -> Void
+    public var openManual: (@MainActor () -> Void)?
+    public var openShortcuts: (@MainActor () -> Void)?
     /// Nil in an app that has no first-run welcome; the item is then omitted.
     public var replayWelcome: (@MainActor () -> Void)?
 
     public init(
-        openManual: @escaping @MainActor () -> Void,
-        openShortcuts: @escaping @MainActor () -> Void,
+        openManual: (@MainActor () -> Void)? = nil,
+        openShortcuts: (@MainActor () -> Void)? = nil,
         replayWelcome: (@MainActor () -> Void)? = nil
     ) {
         self.openManual = openManual
         self.openShortcuts = openShortcuts
         self.replayWelcome = replayWelcome
+    }
+
+    @MainActor
+    func manual(_ openWindow: OpenWindowAction) {
+        if let openManual { openManual(); return }
+        NSApplication.shared.activate()
+        openWindow(id: SurfaceManualWindow.id)
+    }
+
+    @MainActor
+    func shortcuts(_ openWindow: OpenWindowAction) {
+        if let openShortcuts { openShortcuts(); return }
+        NSApplication.shared.activate()
+        openWindow(id: SurfaceShortcutsWindow.id)
     }
 }
 #endif

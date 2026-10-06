@@ -129,9 +129,16 @@ public struct SurfaceUpdateSections: View {
         Section {
             HStack {
                 Button("Check Now") { updates.check() }
+                    .disabled(!updates.canCheck)
                 if let notes = updates.releaseNotes {
                     Link("Release Notes", destination: notes)
                 }
+            }
+        } footer: {
+            if !updates.canCheck {
+                Text("This build cannot check for updates.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
     }
