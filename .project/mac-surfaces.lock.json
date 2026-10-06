@@ -1,8 +1,8 @@
 {
   "schema": "mac-surfaces/v1",
-  "version": 7,
+  "version": 8,
   "destination": "privacycommand/Sources/privacycommand/MacSurfaces",
-  "tool": "e9ec766d0aceba3327d9600de1727aaaf2e444a3a02db612faf3e25d80b95fbc",
+  "tool": "d667ee5efbd0ba513ddb48397881d97f259c837269e5f45d46a839fbed56350a",
   "files": {
     "SurfaceAbout.swift": "8722b826c6b9e53214a2ab0171ecdddf89907d60f9b17759607f4409b1f3aebc",
     "SurfaceActivation.swift": "48d77775caf80c48a295631bacefa07d8e774888e009f86c1ac04ebbc2439d5b",
