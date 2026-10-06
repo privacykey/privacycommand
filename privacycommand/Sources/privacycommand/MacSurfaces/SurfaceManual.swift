@@ -170,7 +170,7 @@ public struct SurfaceMarkdownView: View {
             VStack(alignment: .leading, spacing: 5) {
                 ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        Text("•")
+                        Text(verbatim: "•")
                         Text(SurfaceMarkdown.inline(item))
                     }
                 }
@@ -179,7 +179,7 @@ public struct SurfaceMarkdownView: View {
             VStack(alignment: .leading, spacing: 5) {
                 ForEach(Array(items.enumerated()), id: \.offset) { index, item in
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        Text("\(index + 1).").monospacedDigit()
+                        Text(verbatim: "\(index + 1).").monospacedDigit()
                         Text(SurfaceMarkdown.inline(item))
                     }
                 }
@@ -238,7 +238,7 @@ public struct SurfaceManualView: View {
             List(shown, selection: $selection) { page in
                 Text(page.title).tag(page.id)
             }
-            .navigationSplitViewColumnWidth(min: 180, ideal: 220, max: 300)
+            .navigationSplitViewColumnWidth(min: 210, ideal: 240, max: 320)
             .searchable(text: $query, placement: .sidebar)
         } detail: {
             if let page = pages.first(where: { $0.id == selection }) {
@@ -279,6 +279,7 @@ public struct SurfaceManualWindow: Scene {
         let title = "\(app.name) Help"
         return Window(title, id: Self.id) {
             SurfaceManualView(app: app, folder: folder)
+                .surfaceNotRestored()
         }
         .defaultSize(width: 880, height: 620)
         .commandsRemoved()

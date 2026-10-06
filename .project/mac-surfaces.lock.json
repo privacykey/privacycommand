@@ -1,20 +1,20 @@
 {
   "schema": "mac-surfaces/v1",
-  "version": 6,
+  "version": 7,
   "destination": "privacycommand/Sources/privacycommand/MacSurfaces",
   "tool": "e9ec766d0aceba3327d9600de1727aaaf2e444a3a02db612faf3e25d80b95fbc",
   "files": {
-    "SurfaceAbout.swift": "cc62c19028b84d79dd6eda29bc6a8c305c8e8cda9fe288a981787041bdf017d4",
-    "SurfaceActivation.swift": "88875baa038fa97ce9adbefad6998c64b5bfe6161f255d14437c6702dfaf6de8",
+    "SurfaceAbout.swift": "8722b826c6b9e53214a2ab0171ecdddf89907d60f9b17759607f4409b1f3aebc",
+    "SurfaceActivation.swift": "48d77775caf80c48a295631bacefa07d8e774888e009f86c1ac04ebbc2439d5b",
     "SurfaceBuild.swift": "e02a17f9bde7ef4a003c0abe0f14fdecfabe8eacbfdeb8708d300a59873edbb6",
     "SurfaceCommands.swift": "70b89a2de563bc1f3f6f835d2c89d5b90a1bce677f24d64dc0cbea722898a9c6",
-    "SurfaceManual.swift": "afe07643e7be090f8b51d49b5a34ecfe0215435c071f4cad43a351fab0f9b679",
-    "SurfaceMenuBar.swift": "19c688860cd6cf0eb0b423d5b4c20fd55ddcf3a76c5d43d6aae90d0b60b8fb08",
+    "SurfaceManual.swift": "84df6bbeaa06265fb1c3388ced6784920994ca86bf00b5168458610b97af5cd9",
+    "SurfaceMenuBar.swift": "02776bb94305f25da89783eb2907872816133a16e417072ffb38c861611ddb2f",
     "SurfaceProfile.swift": "63238bbeb405002770dd72e5150f2a2c74900cbbae7c50c5592af06f74d70cf0",
     "SurfaceRows.swift": "b01b6864f50ce89b94b562cc8b052e3de5370901ab4f7efdd609e0749f2adbed",
     "SurfaceSettings.swift": "7503434a92f6a2a94990f110939037b6b7c948a6f3d2a8efbcda4f5ae460203b",
-    "SurfaceShortcuts.swift": "68de2522413c43cb61287a23f472a58bac1e1a3b951cf38c3a685133ae9dc249",
+    "SurfaceShortcuts.swift": "83be738da118854446dc649edb26abcddb162be07f9f6348778e0fa8ebad3c6f",
     "SurfaceSparkle.swift": "1ab6c60a27f34e0fc0551c28b82ef0c456a82e26803aabd98043dd6890ced436",
-    "SurfaceUpdates.swift": "954f0e518200117f0f3cc1315a0663b596ebb749ed02deb420fa42ad79286c57"
+    "SurfaceUpdates.swift": "99fcb3c8db66cba9549697a56f5538bbf0eff46e9a27714c9628286bee6326e3"
   }
 }

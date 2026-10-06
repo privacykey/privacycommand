@@ -21,6 +21,7 @@ public struct SurfaceAboutWindow: Scene {
         let title = "About \(app.name)"
         return Window(title, id: Self.id) {
             SurfaceAboutView(app: app, help: help, build: build)
+                .surfaceNotRestored()
         }
         .windowResizability(.contentSize)
         .defaultPosition(.center)

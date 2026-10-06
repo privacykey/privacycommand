@@ -149,12 +149,25 @@ public struct SurfaceUpdateSections: View {
 }
 
 extension SurfacePane {
-    /// The Updates pane, always the last tab in a Sparkle app.
+    /// The Updates pane, always the last tab in a Sparkle app. `extra` adds
+    /// the app's own sections above the shared ones, as for a Homebrew install
+    /// that is upgraded from the command line.
     @MainActor
-    public static func updates(_ updates: SurfaceUpdates, build: SurfaceBuild = .current) -> SurfacePane {
-        SurfacePane("Updates", systemImage: "arrow.down.circle") {
+    public static func updates<Extra: View>(
+        _ updates: SurfaceUpdates,
+        build: SurfaceBuild = .current,
+        @ViewBuilder extra: () -> Extra
+    ) -> SurfacePane {
+        let extra = extra()
+        return SurfacePane("Updates", systemImage: "arrow.down.circle") {
+            extra
             SurfaceUpdateSections(updates: updates, build: build)
         }
+    }
+
+    @MainActor
+    public static func updates(_ updates: SurfaceUpdates, build: SurfaceBuild = .current) -> SurfacePane {
+        self.updates(updates, build: build) { EmptyView() }
     }
 }
 #endif

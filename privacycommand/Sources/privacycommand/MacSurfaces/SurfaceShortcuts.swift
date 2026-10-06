@@ -85,6 +85,7 @@ public struct SurfaceShortcutsWindow: Scene {
     public var body: some Scene {
         Window("Keyboard Shortcuts", id: Self.id) {
             SurfaceShortcutsView(groups: groups)
+                .surfaceNotRestored()
         }
         .windowResizability(.contentSize)
         .commandsRemoved()
