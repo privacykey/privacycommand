@@ -61,7 +61,7 @@ brew install --cask privacykey/tap/privacycommand
 
 **Command line** — the app also carries a command-line tool of the same name, `privacycommand`, which runs the same analyser from Terminal. There are two ways to put it on your `PATH`:
 
-- **Homebrew** — the cask links `privacycommand` for you on install and removes it on uninstall. Nothing else to do.
+- **Homebrew** — the cask links `privacycommand` for you on install, along with its zsh, bash and fish tab completion, and removes them on uninstall. Nothing else to do.
 - **Direct download** — choose **privacycommand ▸ Install Command Line Tool…**. It links the copy inside the app into `/usr/local/bin`, so the tool updates with the app. When that folder needs administrator rights, as it does on most Macs, it shows the `sudo ln -s` command to paste into Terminal instead, with a button that copies it. The same menu item then reads **Uninstall Command Line Tool…** and removes the link.
 
 ```sh
@@ -70,7 +70,13 @@ privacycommand preview         # check outdated Homebrew casks before you upgrad
 privacycommand --help          # every command and flag
 ```
 
-`preview` inspects Homebrew casks *before* you update them; it never runs `brew`, never blocks an update, and always exits 0. To build the CLI from source instead, see [CONTRIBUTING.md](CONTRIBUTING.md#the-privacycommand-cli).
+**Tab completion** — Homebrew sets it up. Otherwise add one line to your shell's startup file; `privacycommand completion --help` lists them. For zsh, put this in `~/.zshrc` after `compinit`:
+
+```sh
+eval "$(privacycommand completion zsh)"
+```
+
+`preview` inspects Homebrew casks *before* you update them. It runs read-only `brew` queries but never `brew upgrade`, never blocks an update, and exits 0 whenever it completes. To build the CLI from source instead, see [CONTRIBUTING.md](CONTRIBUTING.md#the-privacycommand-cli).
 
 ## Docs
 

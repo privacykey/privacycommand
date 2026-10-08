@@ -78,7 +78,8 @@ final class CommandLineToolInstaller: ObservableObject {
             refresh()
             inform("The command-line tool is installed",
                    "\(tool.link.path) now links to the copy inside privacycommand, so it updates with the app. "
-                   + "Open a new Terminal window and run “privacycommand --help” to get started.")
+                   + "Open a new Terminal window and run “privacycommand --help” to get started. "
+                   + "For tab completion, see “privacycommand completion --help”.")
         } catch {
             refresh()
             report(error, verb: "install")

@@ -25,6 +25,11 @@ cask "privacycommand" do
   # and removes the link on uninstall. DMG installs use the app menu's
   # Install Command Line Tool… item instead.
   binary "#{appdir}/privacycommand.app/Contents/Helpers/privacycommand"
+  # Its tab completion, generated at build time by `privacycommand
+  # completion <shell>`.
+  bash_completion "#{appdir}/privacycommand.app/Contents/Resources/completions/privacycommand.bash"
+  zsh_completion "#{appdir}/privacycommand.app/Contents/Resources/completions/_privacycommand"
+  fish_completion "#{appdir}/privacycommand.app/Contents/Resources/completions/privacycommand.fish"
 
   # We're not sandboxed, so quitting the app is enough — no need for
   # a tighter `quit:` predicate. The in-app Sparkle updater is
