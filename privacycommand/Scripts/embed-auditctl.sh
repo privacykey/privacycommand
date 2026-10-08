@@ -38,12 +38,10 @@ SWIFT_ARGS=( -c release --product "${PRODUCT}"
 for arch in ${ARCHS}; do
     SWIFT_ARGS+=( --arch "${arch}" )
 done
+# Only flags clang also understands: older SwiftPM (Xcode 26.6's, for
+# multi-arch builds) hands -Xlinker values to clang unwrapped.
 SWIFT_ARGS+=( -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __info_plist
               -Xlinker "${INFO_PLIST}" )
-# Leave debug info and local symbols out at link time, as Xcode strips the
-# app's own executable: it halves the binary. Stripping afterwards instead
-# would break the linker's signature in unsigned builds.
-SWIFT_ARGS+=( -Xlinker -S -Xlinker -x )
 
 # Xcode's build settings arrive as environment variables; keep them away
 # from SwiftPM so this builds exactly what `swift build` does in Terminal,
@@ -74,6 +72,10 @@ DEST="${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}/Helpers"
 mkdir -p "${DEST}"
 cp -f "${BIN}" "${DEST}/${PRODUCT}"
 chmod 755 "${DEST}/${PRODUCT}"
+# Drop debug info and local symbols, as Xcode strips the app's own
+# executable: it halves the binary. strip re-signs a linker-signed arm64
+# slice, so unsigned builds still run.
+xcrun strip -S -x "${DEST}/${PRODUCT}"
 
 # Follow Xcode's signing choice for unsigned builds (App CI).
 if [[ "${CODE_SIGNING_ALLOWED:-YES}" == "NO" ]]; then
