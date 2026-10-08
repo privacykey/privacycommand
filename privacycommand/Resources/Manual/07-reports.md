@@ -10,7 +10,7 @@ Each item opens a save panel with a file name suggested from the app's name and 
 
 ## The command line
 
-privacycommand also comes with a command-line tool of the same name, `privacycommand`, for scripting and CI. `privacycommand <path or app name>` audits one app (`--short`, `--tree`, `--json`, `--warnings`), and `privacycommand preview` inspects outdated Homebrew casks before you update them. `privacycommand --help` lists every command.
+privacycommand also comes with a command-line tool of the same name, `privacycommand`, for scripting and CI. `privacycommand <path or app name>` audits one app (`--short`, `--tree`, `--json`, `--warnings`), and `privacycommand preview` inspects outdated Homebrew casks before you update them. `privacycommand upgrade --max-risk medium` goes a step further: it downloads each incoming build, upgrades the casks whose build scores at or below the limit, and holds the riskier ones for you to review. `privacycommand --help` lists every command.
 
 - **Installed with Homebrew:** the cask has already put the `privacycommand` command on your `PATH`.
 - **Installed from the disk image:** choose **privacycommand ▸ Install Command Line Tool…**. It links the copy inside the app into `/usr/local/bin`, so the tool updates with the app. If that folder needs administrator rights, the alert shows the `sudo` command to run in Terminal instead, with a button that copies it. Choose **Uninstall Command Line Tool…** from the same place to remove the link.

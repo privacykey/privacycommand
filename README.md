@@ -67,6 +67,7 @@ brew install --cask privacykey/tap/privacycommand
 ```sh
 privacycommand slack --short   # one-line verdict for an installed app
 privacycommand preview         # check outdated Homebrew casks before you upgrade
+privacycommand upgrade --max-risk medium   # apply the low-risk upgrades, review the rest
 privacycommand --help          # every command and flag
 ```
 
@@ -76,7 +77,7 @@ privacycommand --help          # every command and flag
 eval "$(privacycommand completion zsh)"
 ```
 
-`preview` inspects Homebrew casks *before* you update them. It runs read-only `brew` queries but never `brew upgrade`, never blocks an update, and exits 0 whenever it completes. To build the CLI from source instead, see [CONTRIBUTING.md](CONTRIBUTING.md#the-privacycommand-cli).
+`preview` inspects Homebrew casks *before* you update them. It runs read-only `brew` queries but never `brew upgrade`, never blocks an update, and exits 0 whenever it completes. `upgrade --max-risk <limit>` turns that into a gate: it downloads each incoming build, and a cask whose build scores at or below the limit (`low`, `medium`, `high`, `critical`, or a score 0–100) is upgraded through `brew`, while anything riskier is held for you to review — on a terminal it asks about each held app, and the exit status says whether something is still held. Many people keep it behind an alias, `alias update='privacycommand upgrade --max-risk medium'`, so a routine update only stops for the apps worth a look. To build the CLI from source instead, see [CONTRIBUTING.md](CONTRIBUTING.md#the-privacycommand-cli).
 
 ## Docs
 

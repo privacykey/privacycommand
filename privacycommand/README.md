@@ -139,7 +139,8 @@ Each pulls its weight:
   without a terminal.
 - **privacycommandCLI** is the executable, built as `privacycommand`: a
   one-shot static audit (`privacycommand <name-or-path>`, with `--short` /
-  `--tree` / `--json` / `--warnings`), the `preview` command, and a bare
+  `--tree` / `--json` / `--warnings`), the `preview` and `upgrade` commands
+  (`upgrade --max-risk` gates `brew upgrade` by risk score), and a bare
   `privacycommand` / `-i` interactive TUI browser. The binary is a thin
   termios / poll-loop shell around `privacycommandCLIKit`; it's still the
   fastest end-to-end smoke test for the analyzer.

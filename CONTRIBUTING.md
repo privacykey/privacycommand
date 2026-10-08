@@ -92,6 +92,8 @@ $BIN preview --all-apps --only-noteworthy --min-tier high
 $BIN preview --json
 $BIN preview --fetch firefox   # download the incoming build and diff it
 $BIN upgrade                   # = preview --fetch: what `brew upgrade` would change
+$BIN upgrade --max-risk medium --dry-run   # gate: which casks clear, which are held
+$BIN upgrade --max-risk medium             # …and apply the cleared ones through brew
 ```
 
 `preview` is inform-only: it runs read-only `brew` queries but never
@@ -106,6 +108,19 @@ incoming build is analysed *before* Gatekeeper has cleared it, so a one-off
 notarization difference can simply be a fresh-download artifact — the output
 flags this when it happens. Downloads land in Homebrew's cache, so a later
 `brew upgrade` reuses them.
+
+`--max-risk <limit>` adds a gate (`UpgradeGate` in Core): a cask is *cleared*
+when the judged build's risk score is at or below the limit (a tier name means
+the top of that tier: `medium` is 49/100) and *held for review* otherwise; a
+cask whose incoming build could not be fetched or analysed is always held.
+`preview --max-risk` only reports and exits `3` when anything is held, so it
+works as a gate in front of a plain `brew upgrade`. `upgrade --max-risk` then
+runs `brew upgrade --cask <token>` for each cleared cask (`HomebrewUpgrader`,
+one cask at a time, with `HOMEBREW_NO_AUTO_UPDATE=1` so it installs the build
+it just analysed), asks about each held cask on a terminal, and leaves the
+rest alone; `--dry-run` shows the plan without running brew and `--no-input`
+skips the questions. Exit codes: `0` nothing held · `1` a brew upgrade failed ·
+`2` bad arguments · `3` something is still held for review.
 
 Running `privacycommand` with no arguments opens an interactive browser when
 stdin and stdout are a terminal, and prints usage otherwise so CI callers do

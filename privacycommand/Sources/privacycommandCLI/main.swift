@@ -10,7 +10,8 @@ import privacycommandCLIKit
 //   privacycommand audit <target>        same, explicit
 //   privacycommand -i | interactive      force the interactive browser
 //   privacycommand preview [options]     preview the apps you're about to update
-//   privacycommand upgrade [options]     what `brew upgrade` would change (preview --fetch)
+//   privacycommand upgrade [options]     what `brew upgrade` would change; with
+//                                        --max-risk, apply the safe ones
 //   privacycommand completion <shell>    print a zsh, bash or fish completion script
 //
 // `<target>` is a path to a .app or an app-name substring matched against
@@ -36,7 +37,7 @@ usage:
   privacycommand audit <target>        same, explicit
   privacycommand -i, interactive       force the interactive browser
   privacycommand preview [options]     preview apps before you update them
-  privacycommand upgrade [options]     show what `brew upgrade` would change in each app
+  privacycommand upgrade [options]     show what `brew upgrade` would change, or gate it by risk
   privacycommand completion <shell>    print a tab-completion script (zsh, bash, fish)
 
 <target> is a path to a .app or an app-name substring (like `witr`).
