@@ -1,5 +1,5 @@
 import XCTest
-@testable import auditctlKit
+@testable import privacycommandCLIKit
 
 final class InputDecoderTests: XCTestCase {
 

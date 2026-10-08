@@ -3,7 +3,7 @@ name: App CI
 # Builds and tests the Xcode app target (privacycommand.app +
 # privacycommandTests) via the shared reusable workflow — unsigned, no
 # secrets. Complements ci.yml, which covers the SPM package targets
-# (Core, auditctlKit, auditctl, guest agent) on pull requests.
+# (Core, the privacycommand CLI and its kit, guest agent) on pull requests.
 
 on:
   push:

@@ -17,6 +17,7 @@
 		0BBBBBBB000000000000A007 /* WatchModeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A007 /* WatchModeManager.swift */; };
 		0BBBBBBB000000000000A008 /* UpdateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A008 /* UpdateController.swift */; };
 		0BBBBBBB000000000000A009 /* BatchScanModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A009 /* BatchScanModel.swift */; };
+		0BBBBBBB000000000000A00B /* CommandLineToolInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A00B /* CommandLineToolInstaller.swift */; };
 		0BBBBBBB000000000000A101 /* DropTargetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A101 /* DropTargetView.swift */; };
 		0BBBBBBB000000000000A102 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A102 /* DashboardView.swift */; };
 		0BBBBBBB000000000000A103 /* StaticAnalysisView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000A103 /* StaticAnalysisView.swift */; };
@@ -159,6 +160,7 @@
 		0BBBBBBB000000000000C902 /* UpdateChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C902 /* UpdateChannel.swift */; };
 		0BBBBBBB000000000000C903 /* HomebrewDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C903 /* HomebrewDetector.swift */; };
 		0BBBBBBB000000000000C904 /* UpdatePreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C904 /* UpdatePreferences.swift */; };
+		0BBBBBBB000000000000C905 /* CommandLineTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000C905 /* CommandLineTool.swift */; };
 		0BBBBBBB000000000000D001 /* PathClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000D001 /* PathClassifierTests.swift */; };
 		0BBBBBBB000000000000D002 /* BinaryStringScannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000D002 /* BinaryStringScannerTests.swift */; };
 		0BBBBBBB000000000000D003 /* StaticAnalyzerSmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFFFFFF000000000000D003 /* StaticAnalyzerSmokeTests.swift */; };
@@ -240,6 +242,7 @@
 		0FFFFFFF000000000000A007 /* WatchModeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchModeManager.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A008 /* UpdateController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateController.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A009 /* BatchScanModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchScanModel.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000A00B /* CommandLineToolInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandLineToolInstaller.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A101 /* DropTargetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropTargetView.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A102 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000A103 /* StaticAnalysisView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticAnalysisView.swift; sourceTree = "<group>"; };
@@ -394,6 +397,7 @@
 		0FFFFFFF000000000000C902 /* UpdateChannel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChannel.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C903 /* HomebrewDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomebrewDetector.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000C904 /* UpdatePreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdatePreferences.swift; sourceTree = "<group>"; };
+		0FFFFFFF000000000000C905 /* CommandLineTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandLineTool.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000D001 /* PathClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathClassifierTests.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000D002 /* BinaryStringScannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BinaryStringScannerTests.swift; sourceTree = "<group>"; };
 		0FFFFFFF000000000000D003 /* StaticAnalyzerSmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticAnalyzerSmokeTests.swift; sourceTree = "<group>"; };
@@ -491,6 +495,7 @@
 				0FFFFFFF000000000000A007 /* WatchModeManager.swift */,
 				0FFFFFFF000000000000A008 /* UpdateController.swift */,
 				0FFFFFFF000000000000A009 /* BatchScanModel.swift */,
+				0FFFFFFF000000000000A00B /* CommandLineToolInstaller.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -755,6 +760,7 @@
 				0FFFFFFF000000000000C902 /* UpdateChannel.swift */,
 				0FFFFFFF000000000000C903 /* HomebrewDetector.swift */,
 				0FFFFFFF000000000000C904 /* UpdatePreferences.swift */,
+				0FFFFFFF000000000000C905 /* CommandLineTool.swift */,
 			);
 			path = Updates;
 			sourceTree = "<group>";
@@ -831,6 +837,7 @@
 				0202020200000000000000A1 /* Frameworks */,
 				0202020200000000000000A2 /* Resources */,
 				0EEEEEEE000000000000F301 /* Build & stage privacycommand-guest */,
+				0EEEEEEE000000000000F302 /* Embed command-line tool */,
 				0EEEEEEE000000000000F201 /* Embed Privileged Helper */,
 				0EEEEEEE000000000000F202 /* Embed LaunchDaemon plist */,
 			);
@@ -968,6 +975,27 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
 			shellScript = "# Build the privacycommand-guest executable via SwiftPM, copy it\n# into the app's Resources folder, and codesign it with hardened\n# runtime. Apple's notarization service rejects any embedded Mach-O\n# that wasn't built with --options runtime, and SwiftPM (unlike\n# xcodebuild) doesn't apply that flag automatically — so we re-sign\n# here, using the same identity Xcode is using for the app target.\n\nset -euo pipefail\n\nTARGET=privacycommand-guest\necho \"Building ${TARGET} via SwiftPM…\"\ncd \"${SRCROOT}\"\nswift build -c release --product \"${TARGET}\"\n\nGUEST_BIN=\"${SRCROOT}/.build/release/${TARGET}\"\nif [[ ! -f \"${GUEST_BIN}\" ]]; then\n    echo \"error: SwiftPM didn't produce ${GUEST_BIN}\" >&2\n    exit 1\nfi\n\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\nmkdir -p \"${DEST}\"\ncp -f \"${GUEST_BIN}\" \"${DEST}/${TARGET}\"\nchmod +x \"${DEST}/${TARGET}\"\n\n# Follow Xcode's signing choice for unsigned archive validation.\nif [[ \"${CODE_SIGNING_ALLOWED:-YES}\" == \"NO\" ]]; then\n    echo \"Staged ${TARGET} without signing (CODE_SIGNING_ALLOWED=NO).\"\n    exit 0\nfi\n\n# Re-sign with hardened runtime. EXPANDED_CODE_SIGN_IDENTITY is the\n# resolved cert ID Xcode will use for the rest of the app. For\n# Sign-to-Run-Locally builds it's '-' (ad-hoc); for Developer ID\n# Release builds it's the actual cert. We always pass --options\n# runtime so notarization accepts the binary; we add --timestamp\n# only when signing with a real identity (ad-hoc + --timestamp\n# fails because Apple's TSA needs the cert to validate against).\nIDENTITY=\"${EXPANDED_CODE_SIGN_IDENTITY:-${CODE_SIGN_IDENTITY:--}}\"\nif [[ -z \"${IDENTITY}\" ]]; then\n    IDENTITY=\"-\"\nfi\nSIGN_FLAGS=( --force --options runtime --sign \"${IDENTITY}\" )\nif [[ \"${IDENTITY}\" != \"-\" ]]; then\n    SIGN_FLAGS+=( --timestamp )\nfi\necho \"Signing ${TARGET} with identity '${IDENTITY}'…\"\n/usr/bin/codesign \"${SIGN_FLAGS[@]}\" \"${DEST}/${TARGET}\"\n\necho \"Staged + signed ${TARGET} into ${DEST}/\"\n";
+		};
+		0EEEEEEE000000000000F302 /* Embed command-line tool */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/Scripts/embed-cli.sh",
+				"$(DERIVED_FILE_DIR)/BuildIdentity-Info.plist",
+			);
+			name = "Embed command-line tool";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "# Builds the privacycommand CLI via SwiftPM and embeds it, signed,\n# at Contents/Helpers/privacycommand. See the script for details.\n\"${SRCROOT}/Scripts/embed-cli.sh\"\n";
 		};
 		6817230F7A024CABA7EF1475 /* Prepare version and build identity */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1126,6 +1154,7 @@
 				0BBBBBBB000000000000C902 /* UpdateChannel.swift in Sources */,
 				0BBBBBBB000000000000C903 /* HomebrewDetector.swift in Sources */,
 				0BBBBBBB000000000000C904 /* UpdatePreferences.swift in Sources */,
+				0BBBBBBB000000000000C905 /* CommandLineTool.swift in Sources */,
 				0BBBBBBB000000000000C008 /* AppStoreInfo.swift in Sources */,
 				0BBBBBBB000000000000C11B /* MASReceiptDetector.swift in Sources */,
 				0BBBBBBB000000000000C11C /* AppStoreLookup.swift in Sources */,
@@ -1171,6 +1200,7 @@
 				0BBBBBBB000000000000C142 /* BatchAppResult.swift in Sources */,
 				0BBBBBBB000000000000C143 /* BatchAnalyzer.swift in Sources */,
 				0BBBBBBB000000000000A009 /* BatchScanModel.swift in Sources */,
+				0BBBBBBB000000000000A00B /* CommandLineToolInstaller.swift in Sources */,
 				0BBBBBBB000000000000A131 /* BatchScanView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

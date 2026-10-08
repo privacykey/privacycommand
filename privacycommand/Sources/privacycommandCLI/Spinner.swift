@@ -12,7 +12,7 @@ final class Spinner {
     private static let frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
 
     private let enabled: Bool
-    private let queue = DispatchQueue(label: "com.privacykey.auditctl.spinner")
+    private let queue = DispatchQueue(label: "com.privacykey.privacycommand.spinner")
     private let done = DispatchSemaphore(value: 0)
     private let lock = NSLock()
     private var message: String

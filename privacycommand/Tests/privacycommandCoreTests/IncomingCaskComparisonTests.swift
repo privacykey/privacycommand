@@ -1,7 +1,7 @@
 import XCTest
 @testable import privacycommandCore
 
-/// Covers the pure installed→incoming comparison that backs `auditctl preview
+/// Covers the pure installed→incoming comparison that backs `privacycommand preview
 /// --fetch`. No brew/network/mount — both sides are hand-built `StaticReport`s.
 final class IncomingCaskComparisonTests: XCTestCase {
 

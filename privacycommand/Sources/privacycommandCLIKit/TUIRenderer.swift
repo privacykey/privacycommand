@@ -51,7 +51,7 @@ public enum TUIRenderer {
     // MARK: - Header / footer
 
     private static func titleRow(_ m: AppBrowserModel, width: Int, ansi: Ansi) -> String {
-        let title = fitPlain(" auditctl — static app browser", width)
+        let title = fitPlain(" privacycommand — static app browser", width)
         return ansi.paint(title, .reverse, .bold)
     }
 

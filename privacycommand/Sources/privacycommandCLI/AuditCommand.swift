@@ -1,8 +1,8 @@
 import Foundation
 import privacycommandCore
-import auditctlKit
+import privacycommandCLIKit
 
-/// `auditctl audit <target>` — static audit of a single app, with a witr-style
+/// `privacycommand audit <target>` — static audit of a single app, with a witr-style
 /// query interface: resolve a name substring or a path to an app, analyze it,
 /// then render its privacy/security posture. Supports `--short` / `--tree` /
 /// `--json` / `--warnings` / `--verbose`, coloured TTY output, and structured
@@ -14,13 +14,13 @@ import auditctlKit
 enum AuditCommand {
 
     static let help = """
-    usage: auditctl audit <target> [options]
-           auditctl <target> [options]
+    usage: privacycommand audit <target> [options]
+           privacycommand <target> [options]
 
     Statically audit one app. <target> is either a path to a .app bundle or an
     app-name substring matched against installed apps in /Applications,
     ~/Applications and /System/Applications (like `witr`). Use -x for an exact
-    name; on multiple matches auditctl lists them and exits 4.
+    name; on multiple matches privacycommand lists them and exits 4.
 
     output modes (default is a sectioned, coloured summary):
       -s, --short       one-line verdict only
@@ -73,7 +73,7 @@ enum AuditCommand {
             case "-h", "--help":   print(help); exit(0)
             default:
                 if arg.hasPrefix("-") {
-                    die("unknown option: \(arg)  (see `auditctl audit --help`)", code: 2)
+                    die("unknown option: \(arg)  (see `privacycommand audit --help`)", code: 2)
                 }
                 if opts.target != nil {
                     die("audit takes one target at a time (extra argument: \(arg))", code: 2)
@@ -127,7 +127,7 @@ enum AuditCommand {
             renderFull(report, url: url, summary: summary, ansi: ansi, verbose: opts.verbose)
         }
 
-        // 4. Exit. Default: 0 on any successful analysis (a bare `auditctl <app>`
+        // 4. Exit. Default: 0 on any successful analysis (a bare `privacycommand <app>`
         //    is a CI smoke test and must stay 0). `--warn-exit` opts into
         //    witr-style "1 when there's something to worry about".
         if opts.warnExit && !summary.findings.isEmpty { exit(1) }
@@ -144,7 +144,7 @@ enum AuditCommand {
     }
 
     /// A path (anything with a `/`, or an existing file) is audited directly —
-    /// this preserves the original `auditctl /path/to/App.app` behaviour.
+    /// this preserves the original `privacycommand /path/to/App.app` behaviour.
     /// Otherwise the argument is a name query against installed apps.
     static func resolve(_ target: String, exact: Bool) -> Resolution {
         let expanded = (target as NSString).expandingTildeInPath
@@ -166,7 +166,7 @@ enum AuditCommand {
         case 1:  return .resolved(matches[0])
         default:
             // Prefer a lone exact name hit over substring noise, e.g.
-            // `auditctl safari` → Safari, not "Safari Technology Preview".
+            // `privacycommand safari` → Safari, not "Safari Technology Preview".
             let exacts = matches.filter { $0.displayName.lowercased() == needle }
             return exacts.count == 1 ? .resolved(exacts[0]) : .ambiguous(matches)
         }

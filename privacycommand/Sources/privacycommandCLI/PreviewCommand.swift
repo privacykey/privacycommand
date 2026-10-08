@@ -1,7 +1,7 @@
 import Foundation
 import privacycommandCore
 
-/// `auditctl preview` — analyze the apps you're about to update and surface
+/// `privacycommand preview` — analyze the apps you're about to update and surface
 /// anything noteworthy, *before* you run `brew upgrade`.
 ///
 /// Default source is the set of outdated Homebrew casks (what `brew upgrade`
@@ -10,7 +10,7 @@ import privacycommandCore
 enum PreviewCommand {
 
     static let help = """
-    usage: auditctl preview [options] [cask ...]
+    usage: privacycommand preview [options] [cask ...]
 
     Analyze the apps you're about to update and flag anything noteworthy.
     By default it checks the apps an outdated `brew upgrade` would touch.
@@ -72,7 +72,7 @@ enum PreviewCommand {
                 exit(0)
             default:
                 if argv[i].hasPrefix("-") {
-                    die("unknown option: \(argv[i])  (see `auditctl preview --help`)")
+                    die("unknown option: \(argv[i])  (see `privacycommand preview --help`)")
                 }
                 caskFilter.append(argv[i])   // positional = cask token to restrict to
             }

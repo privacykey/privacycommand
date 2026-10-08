@@ -1,7 +1,7 @@
 import XCTest
 import Foundation
 import privacycommandCore
-@testable import auditctlKit
+@testable import privacycommandCLIKit
 
 final class AppBrowserModelTests: XCTestCase {
 

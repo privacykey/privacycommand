@@ -1,7 +1,7 @@
 import XCTest
 import Foundation
 import privacycommandCore
-@testable import auditctlKit
+@testable import privacycommandCLIKit
 
 final class TUIRendererTests: XCTestCase {
 
@@ -25,7 +25,7 @@ final class TUIRendererTests: XCTestCase {
     func testFrameContainsChromeElements() {
         let m = model(["Alpha", "Bravo"])
         let f = TUIRenderer.frame(model: m, width: 80, height: 24, ansi: ansi)
-        XCTAssertTrue(f.contains("auditctl — static app browser"))
+        XCTAssertTrue(f.contains("privacycommand — static app browser"))
         XCTAssertTrue(f.contains("Alpha"))
         XCTAssertTrue(f.contains("Bravo"))
         XCTAssertTrue(f.contains("type to filter"))

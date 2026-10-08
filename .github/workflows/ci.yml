@@ -40,21 +40,22 @@ jobs:
         run: swift --version
 
       - name: Build all targets
-        # Compiles Core, auditctlKit, auditctl, the guest agent and the shared
-        # protocol — catches breakage the test targets don't cover.
+        # Compiles Core, the privacycommand CLI and its kit, the guest agent
+        # and the shared protocol — catches breakage the test targets don't
+        # cover.
         run: swift build
 
       - name: Run tests
         run: swift test
 
-      - name: CLI smoke test (auditctl exit-code contract)
+      - name: CLI smoke test (privacycommand exit-code contract)
         # Exercises the built executable end-to-end: a parseable system app must
         # analyze cleanly and exit 0. Skipped if the runner image lacks it.
         run: |
-          BIN=.build/debug/auditctl
+          BIN=.build/debug/privacycommand
           if [ -d /System/Applications/Calculator.app ]; then
             "$BIN" /System/Applications/Calculator.app > /dev/null
-            echo "auditctl analyzed Calculator and exited 0 ✓"
+            echo "privacycommand analyzed Calculator and exited 0 ✓"
           else
             echo "Calculator.app not present on runner — skipping CLI smoke test"
           fi

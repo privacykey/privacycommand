@@ -9,8 +9,8 @@ The repository builds the same sources two ways. `Package.swift` and the Xcode
 project both live under `privacycommand/`, not at the repository root.
 
 **Swift Package Manager** builds the headless pieces — the `privacycommandCore`
-analyser, the `auditctl` CLI and its `auditctlKit` half, the guest agent, and the
-shared guest protocol. This is the fast iteration loop and it is what CI runs:
+analyser, the `privacycommand` CLI and its `privacycommandCLIKit` half, the
+guest agent, and the shared guest protocol. This is the fast iteration loop and it is what CI runs:
 
 ```sh
 cd privacycommand
@@ -53,15 +53,18 @@ Deeper references live next to the sources:
 - [`.github/ARCHITECTURE.md`](.github/ARCHITECTURE.md) — how the pieces fit
   together and how data moves between them.
 
-## The auditctl CLI
+## The privacycommand CLI
 
-`auditctl` is a command-line front end over the same analyser, useful for
-scripting and CI. Build it once, then call the binary directly:
+`privacycommand` is a command-line front end over the same analyser, useful for
+scripting and CI. The app ships it at `Contents/Helpers/privacycommand` (the
+**Embed command-line tool** build phase), and users put it on `PATH` through the
+Homebrew cask or the app menu — see [Get it](README.md#get-it). To work on
+it, build it once, then call the binary directly:
 
 ```sh
 cd privacycommand
 swift build -c release
-BIN=.build/release/auditctl
+BIN=.build/release/privacycommand
 ```
 
 A one-shot static audit takes a path or an installed-app name:
@@ -95,15 +98,16 @@ skipped. With `--fetch`, an incoming build is analysed *before* Gatekeeper has
 cleared it, so a one-off notarization difference can simply be a fresh-download
 artifact — the output flags this when it happens.
 
-Running `auditctl` with no arguments opens an interactive browser when stdin and
-stdout are a terminal, and prints usage otherwise so CI callers do not hang.
+Running `privacycommand` with no arguments opens an interactive browser when
+stdin and stdout are a terminal, and prints usage otherwise so CI callers do
+not hang.
 
 ## What CI runs
 
 Two workflows run on every pull request against `main`:
 
 - [`ci.yml`](.github/workflows/ci.yml) — builds every SPM target, runs the full
-  test suite, then runs the built `auditctl` against `Calculator.app` as an
+  test suite, then runs the built `privacycommand` against `Calculator.app` as an
   end-to-end smoke test of the analyser's exit-code contract.
 - [`app-ci.yml`](.github/workflows/app-ci.yml) — an unsigned Xcode build and test
   of the app target, through a reusable workflow in `privacykey/gh-workflows`.
