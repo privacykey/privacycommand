@@ -87,17 +87,25 @@ arguments it checks your outdated Homebrew casks:
 
 ```sh
 $BIN preview
+$BIN preview --greedy          # include casks that normally update themselves
 $BIN preview --all-apps --only-noteworthy --min-tier high
 $BIN preview --json
 $BIN preview --fetch firefox   # download the incoming build and diff it
+$BIN upgrade                   # = preview --fetch: what `brew upgrade` would change
 ```
 
 `preview` is inform-only: it runs read-only `brew` queries but never
 `brew upgrade`, never blocks an update, and exits 0 whenever it completes (2
-on a usage error or when Homebrew is missing). It understands `.dmg` and `.zip` cask artifacts; `.pkg` is
-skipped. With `--fetch`, an incoming build is analysed *before* Gatekeeper has
-cleared it, so a one-off notarization difference can simply be a fresh-download
-artifact — the output flags this when it happens.
+on a usage error or when Homebrew is missing). It covers everything
+`brew upgrade` would touch: casks that install no app (command-line tools,
+fonts) are listed at the end with the reason, and so are the outdated formulae
+and any casks only `--greedy` would update. It understands `.dmg`, `.zip` and
+`.pkg` cask artifacts, including a `.pkg` inside a disk image; a package is
+unpacked with `pkgutil --expand-full`, never installed. With `--fetch`, an
+incoming build is analysed *before* Gatekeeper has cleared it, so a one-off
+notarization difference can simply be a fresh-download artifact — the output
+flags this when it happens. Downloads land in Homebrew's cache, so a later
+`brew upgrade` reuses them.
 
 Running `privacycommand` with no arguments opens an interactive browser when
 stdin and stdout are a terminal, and prints usage otherwise so CI callers do

@@ -31,8 +31,9 @@ They are explicit and bounded:
   Settings → Updates. Homebrew Cask installs suppress the in-app updater
   entirely.
 - **Incoming-build downloads**, only when you explicitly ask for them: the
-  `privacycommand preview --fetch` path retrieves a cask artifact from its own
-  publisher so it can be diffed against the version you have installed.
+  `privacycommand preview --fetch` (or `privacycommand upgrade`) path retrieves
+  a cask artifact from its own publisher so it can be diffed against the version
+  you have installed.
 
 `com.apple.security.network.client` is the only entitlement covering outbound
 network access. The app also holds `com.apple.security.automation.apple-events`,

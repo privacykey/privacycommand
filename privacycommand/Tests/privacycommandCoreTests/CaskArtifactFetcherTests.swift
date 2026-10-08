@@ -27,10 +27,10 @@ final class CaskArtifactFetcherTests: XCTestCase {
     }
 
     func testSupportedFormats() {
-        // .dmg / .zip can be previewed; everything else is skipped (no download).
+        // .dmg / .zip / .pkg can be previewed; anything else is skipped (no download).
         XCTAssertTrue(CaskArtifactFetcher.Format.dmg.isSupported)
         XCTAssertTrue(CaskArtifactFetcher.Format.zip.isSupported)
-        XCTAssertFalse(CaskArtifactFetcher.Format.pkg.isSupported)
+        XCTAssertTrue(CaskArtifactFetcher.Format.pkg.isSupported)
         XCTAssertFalse(CaskArtifactFetcher.Format.unknown("tar").isSupported)
     }
 
@@ -53,5 +53,45 @@ final class CaskArtifactFetcherTests: XCTestCase {
     func testParseCachePathEmptyIsNil() {
         XCTAssertNil(CaskArtifactFetcher.parseCachePath(Data()))
         XCTAssertNil(CaskArtifactFetcher.parseCachePath("   \n  ".data(using: .utf8)!))
+    }
+
+    // MARK: - Choosing the app
+
+    func testPickAppPrefersInstalledNameThenNonUninstaller() {
+        let app = URL(fileURLWithPath: "/m/Foo.app")
+        let uninstaller = URL(fileURLWithPath: "/m/Uninstall Foo.app")
+        let other = URL(fileURLWithPath: "/m/Bar.app")
+        XCTAssertEqual(CaskArtifactFetcher.pickApp([uninstaller, other, app], preferredName: "foo.app"), app)
+        XCTAssertEqual(CaskArtifactFetcher.pickApp([uninstaller, other], preferredName: "Foo.app"), other)
+        XCTAssertEqual(CaskArtifactFetcher.pickApp([uninstaller], preferredName: nil), uninstaller)
+        XCTAssertNil(CaskArtifactFetcher.pickApp([], preferredName: "Foo.app"))
+    }
+
+    func testAppBundlesSkipsSymlinksAndBundleInternals() throws {
+        let fm = FileManager.default
+        let root = fm.temporaryDirectory.appendingPathComponent("appbundles-\(UUID().uuidString)")
+        defer { try? fm.removeItem(at: root) }
+        // An expanded .pkg: <component>.pkg/Payload/Applications/Foo.app
+        let payload = root.appendingPathComponent("foo.pkg/Payload/Applications")
+        try fm.createDirectory(at: payload.appendingPathComponent("Foo.app/Contents/Helpers/Inner.app"),
+                               withIntermediateDirectories: true)
+        try fm.createDirectory(at: root.appendingPathComponent("Top.app"), withIntermediateDirectories: true)
+        // A DMG-style alias to the host's /Applications must not be followed.
+        try fm.createSymbolicLink(at: root.appendingPathComponent("Applications"),
+                                  withDestinationURL: URL(fileURLWithPath: "/Applications"))
+
+        let found = CaskArtifactFetcher.appBundles(in: root).map(\.lastPathComponent)
+        XCTAssertEqual(found, ["Top.app", "Foo.app"])   // shallowest first, no Inner.app
+    }
+
+    /// Live end-to-end `.pkg`-in-`.dmg` check (downloads GPG Suite, ~30 MB).
+    /// Opt in with `AUDITCTL_LIVE_FETCH=1`.
+    func testLiveFetchExpandsPkgInsideDmg() async throws {
+        try XCTSkipUnless(ProcessInfo.processInfo.environment["AUDITCTL_LIVE_FETCH"] == "1",
+                          "set AUDITCTL_LIVE_FETCH=1 to run")
+        let name = try await CaskArtifactFetcher.withDownloadedApp(
+            token: "gpg-suite", preferredAppName: "GPG Keychain.app", pkgPath: "Install.pkg"
+        ) { app in app.lastPathComponent }
+        XCTAssertEqual(name, "GPG Keychain.app")
     }
 }

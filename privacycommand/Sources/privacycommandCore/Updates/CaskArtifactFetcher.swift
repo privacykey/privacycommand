@@ -4,9 +4,11 @@ import Foundation
 /// inside it to a caller, and guarantees teardown (DMG detach / temp-dir
 /// removal) on every exit path.
 ///
-/// Supported formats in v1: `.dmg` (mounted read-only via `DMGMounter`) and
-/// `.zip` (extracted with `ditto -x -k`). `.pkg` and anything else are rejected
-/// **before** downloading, so we never pull hundreds of MB we can't open.
+/// Supported formats: `.dmg` (mounted read-only via `DMGMounter`), `.zip`
+/// (extracted with `ditto -x -k`) and flat `.pkg` installers (expanded with
+/// `pkgutil --expand-full` — never installed). A `.pkg` inside a `.dmg`/`.zip`
+/// is expanded too. Anything else is rejected **before** downloading, so we
+/// never pull hundreds of MB we can't open.
 ///
 /// The format is read from `brew --cache --cask <token>` — which resolves the
 /// would-be cache path *without* downloading — so the cheap skip happens first;
@@ -30,8 +32,8 @@ public enum CaskArtifactFetcher {
 
         public var isSupported: Bool {
             switch self {
-            case .dmg, .zip:      return true
-            case .pkg, .unknown:  return false
+            case .dmg, .zip, .pkg: return true
+            case .unknown:         return false
             }
         }
     }
@@ -45,17 +47,19 @@ public enum CaskArtifactFetcher {
         case dittoUnavailable
         case noAppInside
         case attachFailed(String)
+        case pkgExpandFailed(String)
 
         public var errorDescription: String? {
             switch self {
             case .brewNotFound:            return "Homebrew (`brew`) not found."
             case .cacheLookupFailed:       return "Couldn't resolve the cask's download path from `brew --cache`."
-            case .unsupportedFormat(let f):return "Incoming build is a .\(f.label) artifact — only .dmg and .zip casks can be previewed."
+            case .unsupportedFormat(let f):return "Incoming build is a .\(f.label) artifact — only .dmg, .zip and .pkg casks can be previewed."
             case .fetchFailed(let m):      return "brew fetch failed: \(m)"
             case .extractionFailed(let m): return "Couldn't extract the archive: \(m)"
             case .dittoUnavailable:        return "/usr/bin/ditto isn't available to extract the .zip."
             case .noAppInside:             return "No .app bundle was found inside the download."
             case .attachFailed(let m):     return "Couldn't mount the disk image: \(m)"
+            case .pkgExpandFailed(let m):  return "Couldn't expand the installer package: \(m)"
             }
         }
 
@@ -97,8 +101,16 @@ public enum CaskArtifactFetcher {
     /// Resolve the cask's incoming artifact, expose the `.app` inside it to
     /// `body`, and tear everything down afterwards — on success or throw.
     /// Unsupported formats throw `.unsupportedFormat` *before* any download.
+    ///
+    /// - Parameters:
+    ///   - preferredAppName: the installed bundle's file name (`Foo.app`), so
+    ///     a download holding several apps yields the matching one.
+    ///   - pkgPath: the cask's `pkg` stanza — the installer's path inside a
+    ///     `.dmg`/`.zip` — for casks that install with a `.pkg`.
     public static func withDownloadedApp<T>(
         token: String,
+        preferredAppName: String? = nil,
+        pkgPath: String? = nil,
         _ body: (URL) throws -> T
     ) async throws -> T {
         guard let brew = HomebrewCaskInventory.brewExecutable() else { throw FetchError.brewNotFound }
@@ -136,8 +148,8 @@ public enum CaskArtifactFetcher {
         case .dmg:
             let mount = try await mount(cacheURL)
             return try await withCleanup({ try? await DMGMounter.detach(mount) }) {
-                guard let app = firstApp(in: mount.allMountPoints) else { throw FetchError.noAppInside }
-                return try body(app)
+                try withApp(in: mount.allMountPoints, preferredAppName: preferredAppName,
+                            pkgPath: pkgPath, body)
             }
         case .zip:
             guard FileManager.default.isExecutableFile(atPath: "/usr/bin/ditto") else {
@@ -147,12 +159,96 @@ public enum CaskArtifactFetcher {
                 .appendingPathComponent("privacycommand-fetch-\(UUID().uuidString)", isDirectory: true)
             try extractZip(cacheURL, into: dir)
             return try await withCleanup({ try? FileManager.default.removeItem(at: dir) }) {
-                guard let app = DMGMounter.firstAppBundle(in: dir) else { throw FetchError.noAppInside }
-                return try body(app)
+                try withApp(in: [dir], preferredAppName: preferredAppName, pkgPath: pkgPath, body)
             }
-        case .pkg, .unknown:
+        case .pkg:
+            return try withExpandedPkg(cacheURL, preferredAppName: preferredAppName, body)
+        case .unknown:
             throw FetchError.unsupportedFormat(format)   // unreachable — guarded above
         }
+    }
+
+    // MARK: - Choosing the app
+
+    /// Every `.app` under `root`, shallowest first, without descending into
+    /// bundles or following symlinks (a DMG's `Applications` alias would
+    /// otherwise lead into the host's own apps).
+    static func appBundles(in root: URL, maxDepth: Int = 6) -> [URL] {
+        let fm = FileManager.default
+        let keys: [URLResourceKey] = [.isDirectoryKey, .isSymbolicLinkKey]
+        var found: [URL] = []
+        var level = [root]
+        for _ in 0..<maxDepth where !level.isEmpty {
+            var next: [URL] = []
+            for dir in level {
+                let entries = ((try? fm.contentsOfDirectory(
+                    at: dir, includingPropertiesForKeys: keys, options: [.skipsHiddenFiles])) ?? [])
+                    .sorted { $0.lastPathComponent < $1.lastPathComponent }
+                for entry in entries {
+                    let values = try? entry.resourceValues(forKeys: Set(keys))
+                    guard values?.isSymbolicLink != true, values?.isDirectory == true else { continue }
+                    if entry.pathExtension == "app" { found.append(entry) } else { next.append(entry) }
+                }
+            }
+            level = next
+        }
+        return found
+    }
+
+    /// The app to analyze among those found: the one named like the installed
+    /// app, else the first that isn't an uninstaller, else the first.
+    public static func pickApp(_ apps: [URL], preferredName: String?) -> URL? {
+        if let preferredName,
+           let match = apps.first(where: { $0.lastPathComponent.caseInsensitiveCompare(preferredName) == .orderedSame }) {
+            return match
+        }
+        return apps.first { !$0.lastPathComponent.lowercased().contains("uninstall") } ?? apps.first
+    }
+
+    /// Find the app inside an opened `.dmg`/`.zip` and run `body` on it. A
+    /// `.pkg` cask's installer (its `pkgPath`, or failing an app, any `.pkg` at
+    /// the top of the download) is expanded and searched instead.
+    private static func withApp<T>(in roots: [URL], preferredAppName: String?, pkgPath: String?,
+                                   _ body: (URL) throws -> T) throws -> T {
+        let fm = FileManager.default
+        if let pkgPath,
+           let pkg = roots.map({ $0.appendingPathComponent(pkgPath) }).first(where: { fm.fileExists(atPath: $0.path) }) {
+            return try withExpandedPkg(pkg, preferredAppName: preferredAppName, body)
+        }
+        if let app = pickApp(roots.flatMap { appBundles(in: $0) }, preferredName: preferredAppName) {
+            return try body(app)
+        }
+        let pkgs = roots.flatMap { root in
+            ((try? fm.contentsOfDirectory(at: root, includingPropertiesForKeys: nil,
+                                          options: [.skipsHiddenFiles])) ?? [])
+                .filter { ["pkg", "mpkg"].contains($0.pathExtension.lowercased()) }
+        }
+        guard let pkg = pkgs.first else { throw FetchError.noAppInside }
+        return try withExpandedPkg(pkg, preferredAppName: preferredAppName, body)
+    }
+
+    /// Expand a flat installer package into a temp dir (nothing is installed
+    /// and no install scripts run), run `body` on the app in its payload, then
+    /// remove the temp dir.
+    private static func withExpandedPkg<T>(_ pkg: URL, preferredAppName: String?,
+                                           _ body: (URL) throws -> T) throws -> T {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory
+            .appendingPathComponent("auditctl-pkg-\(UUID().uuidString)", isDirectory: true)
+        defer { try? fm.removeItem(at: dir) }
+        do {
+            try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        } catch {
+            throw FetchError.pkgExpandFailed(error.localizedDescription)
+        }
+        // pkgutil requires the destination not to exist yet.
+        let expanded = dir.appendingPathComponent("expanded", isDirectory: true)
+        try runTool("/usr/sbin/pkgutil", ["--expand-full", pkg.path, expanded.path],
+                    failure: FetchError.pkgExpandFailed)
+        guard let app = pickApp(appBundles(in: expanded), preferredName: preferredAppName) else {
+            throw FetchError.noAppInside
+        }
+        return try body(app)
     }
 
     // MARK: - internals
@@ -170,13 +266,6 @@ public enum CaskArtifactFetcher {
         }
     }
 
-    private static func firstApp(in points: [URL]) -> URL? {
-        for p in points {
-            if let app = DMGMounter.firstAppBundle(in: p) { return app }
-        }
-        return nil
-    }
-
     private static func mount(_ url: URL) async throws -> DMGMounter.Mount {
         do {
             return try await DMGMounter.mount(dmg: url)
@@ -192,27 +281,37 @@ public enum CaskArtifactFetcher {
         } catch {
             throw FetchError.extractionFailed(error.localizedDescription)
         }
+        do {
+            // -x -k: extract a PKZip archive. ditto (unlike unzip) drops the
+            // __MACOSX/AppleDouble noise and preserves bundle symlinks + perms.
+            try runTool("/usr/bin/ditto", ["-x", "-k", zip.path, dir.path], failure: FetchError.extractionFailed)
+        } catch {
+            try? FileManager.default.removeItem(at: dir)
+            throw error
+        }
+    }
+
+    /// Run a system tool to completion, throwing `failure(<stderr>)` if it
+    /// can't launch or exits non-zero. stdout is discarded.
+    private static func runTool(_ path: String, _ args: [String],
+                                failure: (String) -> FetchError) throws {
         let proc = Process()
-        proc.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
-        // -x -k: extract a PKZip archive. ditto (unlike unzip) drops the
-        // __MACOSX/AppleDouble noise and preserves bundle symlinks + perms.
-        proc.arguments = ["-x", "-k", zip.path, dir.path]
+        proc.executableURL = URL(fileURLWithPath: path)
+        proc.arguments = args
         let err = Pipe()
-        proc.standardOutput = FileHandle.nullDevice   // ditto is silent on stdout; nothing to drain
+        proc.standardOutput = FileHandle.nullDevice
         proc.standardError = err
         do {
             try proc.run()
         } catch {
-            try? FileManager.default.removeItem(at: dir)
-            throw FetchError.extractionFailed(error.localizedDescription)
+            throw failure(error.localizedDescription)
         }
         let errData = err.fileHandleForReading.readDataToEndOfFile()
         proc.waitUntilExit()
         guard proc.terminationStatus == 0 else {
-            try? FileManager.default.removeItem(at: dir)
             let msg = String(data: errData, encoding: .utf8)?
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-            throw FetchError.extractionFailed(msg?.isEmpty == false ? msg! : "ditto exited \(proc.terminationStatus)")
+                .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            throw failure(msg.isEmpty ? "\((path as NSString).lastPathComponent) exited \(proc.terminationStatus)" : msg)
         }
     }
 }

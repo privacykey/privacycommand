@@ -6,7 +6,8 @@ import privacycommandCore
 ///
 /// Default source is the set of outdated Homebrew casks (what `brew upgrade`
 /// would replace); `--all-apps` previews everything installed instead. The
-/// command is inform-only: it never runs `brew` and always exits 0 on success.
+/// command is inform-only: it never runs `brew upgrade` and always exits 0 on
+/// success. `privacycommand upgrade` is this command with `--fetch` on.
 enum PreviewCommand {
 
     static let help = """
@@ -22,6 +23,8 @@ enum PreviewCommand {
       --apps-dir <dir>      preview every .app in <dir> (implies --all-apps)
       --fetch               download each incoming cask, analyze it, and show
                             what the upgrade would change (brew-cask mode only)
+      --greedy              also include casks only `brew upgrade --greedy`
+                            updates (apps that normally update themselves)
       --min-tier <tier>     only show apps at risk tier >= low|medium|high|critical
       --only-noteworthy     hide apps with nothing noteworthy
       --json                emit machine-readable JSON
@@ -32,16 +35,44 @@ enum PreviewCommand {
     downloads each incoming cask, analyzes it, and diffs it against the installed
     build to show what the upgrade would change. Either way it never runs
     `brew upgrade` and exits 0 on success.
+
+    Casks that install no app (command-line tools, fonts, …) are listed at the
+    end with the reason, along with outdated formulae, so you can see everything
+    `brew upgrade` will touch. `privacycommand upgrade` is `preview --fetch`.
+    """
+
+    static let upgradeHelp = """
+    usage: privacycommand upgrade [options] [cask ...]
+
+    Show what `brew upgrade` would change in each app before you run it.
+    Downloads each outdated cask's incoming build, analyzes it, and diffs it
+    against the installed app. Same as `privacycommand preview --fetch`.
+    Pass one or more cask tokens to restrict to just those casks.
+
+    options:
+      --greedy              also include casks only `brew upgrade --greedy`
+                            updates (apps that normally update themselves)
+      --min-tier <tier>     only show apps at risk tier >= low|medium|high|critical
+      --only-noteworthy     hide apps with nothing noteworthy
+      --json                emit machine-readable JSON
+      -h, --help            show this help
+
+    Downloads land in Homebrew's cache, so a later `brew upgrade` reuses them.
+    It never runs `brew upgrade` itself and exits 0 on success.
     """
 
     // MARK: - Entry point
 
-    static func run(_ argv: [String]) -> Never {
+    /// `upgrade` is true for `privacycommand upgrade` — `preview --fetch` under the
+    /// name people reach for, with its own help and errors.
+    static func run(_ argv: [String], upgrade: Bool = false) -> Never {
+        let command = upgrade ? "upgrade" : "preview"
         var allApps = false
         var appsDir: String?
         var json = false
         var onlyNoteworthy = false
-        var fetch = false
+        var fetch = upgrade
+        var greedy = false
         var minTier: RiskTier?
         var caskFilter: [String] = []   // positional cask tokens to restrict to
 
@@ -54,6 +85,8 @@ enum PreviewCommand {
                 json = true
             case "--fetch":
                 fetch = true
+            case "--greedy":
+                greedy = true
             case "--only-noteworthy":
                 onlyNoteworthy = true
             case "--apps-dir":
@@ -68,19 +101,25 @@ enum PreviewCommand {
                 }
                 minTier = t
             case "-h", "--help":
-                print(help)
+                print(upgrade ? upgradeHelp : help)
                 exit(0)
             default:
                 if argv[i].hasPrefix("-") {
-                    die("unknown option: \(argv[i])  (see `privacycommand preview --help`)")
+                    die("unknown option: \(argv[i])  (see `privacycommand \(command) --help`)")
                 }
                 caskFilter.append(argv[i])   // positional = cask token to restrict to
             }
             i += 1
         }
 
+        if allApps && upgrade {
+            die("`privacycommand upgrade` covers outdated Homebrew casks; use `privacycommand preview --all-apps` to scan installed apps.")
+        }
         if fetch && allApps {
             die("--fetch only applies to outdated Homebrew casks; drop --all-apps/--apps-dir.")
+        }
+        if greedy && allApps {
+            die("--greedy only applies to outdated Homebrew casks; drop --all-apps/--apps-dir.")
         }
         if !caskFilter.isEmpty && allApps {
             die("cask names only apply to brew-cask mode; drop --all-apps/--apps-dir.")
@@ -88,6 +127,7 @@ enum PreviewCommand {
 
         // 1. Discover the apps to preview.
         let targets: [HomebrewCaskInventory.PreviewTarget]
+        var scan: HomebrewCaskInventory.OutdatedScan?
         let header: String
         do {
             if allApps {
@@ -96,30 +136,21 @@ enum PreviewCommand {
                 targets = HomebrewCaskInventory.installedApps(in: dirs)
                 header = "Scanning \(targets.count) installed app\(plural(targets.count))…"
             } else {
-                var casks = try HomebrewCaskInventory().outdatedCaskTargets()
-                if !caskFilter.isEmpty {
-                    let wanted = Set(caskFilter.map { $0.lowercased() })
-                    let found = Set(casks.compactMap { t -> String? in
-                        if case .brewCask(let token, _, _) = t.source { return token.lowercased() }
-                        return nil
-                    })
-                    for missing in wanted.subtracting(found).sorted() {
-                        FileHandle.standardError.write(Data(
-                            "note: ‘\(missing)’ is not an outdated cask — skipping.\n".utf8))
-                    }
-                    casks = casks.filter {
-                        if case .brewCask(let token, _, _) = $0.source { return wanted.contains(token.lowercased()) }
-                        return false
-                    }
-                }
-                targets = casks
-                header = "Checking \(targets.count) outdated Homebrew cask\(plural(targets.count))…"
+                var found = try HomebrewCaskInventory().outdatedScan(greedy: greedy)
+                if !caskFilter.isEmpty { found = restrict(found, to: caskFilter) }
+                scan = found
+                targets = found.targets
+                let total = targets.count + found.skipped.count
+                header = found.skipped.isEmpty
+                    ? "Checking \(total) outdated Homebrew cask\(plural(total))…"
+                    : "Checking \(targets.count) of \(total) outdated Homebrew casks " +
+                      "(\(found.skipped.count) can't be previewed — listed at the end)…"
             }
         } catch {
             die((error as? LocalizedError)?.errorDescription ?? error.localizedDescription)
         }
 
-        if targets.isEmpty {
+        if targets.isEmpty && (scan?.skipped.isEmpty ?? true) {
             if json {
                 print("[]")
             } else if allApps {
@@ -128,6 +159,7 @@ enum PreviewCommand {
                 print("No matching outdated casks.")
             } else {
                 print("Nothing to upgrade — all casks are up to date. ✓")
+                if let scan { printBrewNotes(scan) }
             }
             exit(0)
         }
@@ -153,11 +185,34 @@ enum PreviewCommand {
         let shown = results.filter(shouldShow)
 
         if json {
-            emitJSON(shown, fetched: fetch)
+            emitJSON(shown, skipped: scan?.skipped ?? [], fetched: fetch)
         } else {
-            render(header: header, all: results, shown: shown, brewMode: !allApps, fetched: fetch)
+            render(header: header, all: results, shown: shown, scan: scan, fetched: fetch)
         }
         exit(0)
+    }
+
+    /// Restrict a scan to the named casks, noting any that aren't outdated.
+    /// Formula / greedy notes are dropped — they're about the whole upgrade.
+    static func restrict(_ scan: HomebrewCaskInventory.OutdatedScan,
+                         to tokens: [String]) -> HomebrewCaskInventory.OutdatedScan {
+        let wanted = Set(tokens.map { $0.lowercased() })
+        let targets = scan.targets.filter { token(of: $0).map { wanted.contains($0.lowercased()) } ?? false }
+        let skipped = scan.skipped.filter { wanted.contains($0.token.lowercased()) }
+        let found = Set(targets.compactMap { token(of: $0)?.lowercased() } + skipped.map { $0.token.lowercased() })
+        for missing in wanted.subtracting(found).sorted() {
+            let greedyOnly = scan.greedyOnlyCasks.contains { $0.lowercased() == missing }
+            let hint = greedyOnly ? " (it only updates with --greedy)" : ""
+            FileHandle.standardError.write(Data(
+                "note: ‘\(missing)’ is not an outdated cask\(hint) — skipping.\n".utf8))
+        }
+        return HomebrewCaskInventory.OutdatedScan(targets: targets, skipped: skipped,
+                                                  outdatedFormulae: [], greedyOnlyCasks: [])
+    }
+
+    private static func token(of target: HomebrewCaskInventory.PreviewTarget) -> String? {
+        if case .brewCask(let token, _, _) = target.source { return token }
+        return nil
     }
 
     // MARK: - Analysis
@@ -208,12 +263,20 @@ enum PreviewCommand {
     /// and network-bound). Bridges the synchronous CLI to the async fetch API
     /// with a Task + semaphore so the process never exits before teardown.
     static func runFetchPass(_ results: inout [Result], shouldShow: (Result) -> Bool) {
-        struct Job: Sendable { let index: Int; let token: String; let installed: StaticReport? }
+        struct Job: Sendable {
+            let index: Int
+            let token: String
+            let installed: StaticReport?
+            let appName: String
+            let pkgPath: String?
+        }
 
         var jobs: [Job] = []
         for i in results.indices where shouldShow(results[i]) {
-            guard case .brewCask(let token, _, _) = results[i].target.source else { continue }
-            jobs.append(Job(index: i, token: token, installed: results[i].installedReport))
+            let target = results[i].target
+            guard let token = token(of: target) else { continue }
+            jobs.append(Job(index: i, token: token, installed: results[i].installedReport,
+                            appName: target.bundleURL.lastPathComponent, pkgPath: target.incomingPkgPath))
         }
         guard !jobs.isEmpty else { return }
 
@@ -227,7 +290,8 @@ enum PreviewCommand {
         Task {
             for job in jobsCopy {
                 FileHandle.standardError.write(Data("  fetching \(job.token)…\n".utf8))
-                box.map[job.index] = await fetchOne(token: job.token, installed: job.installed)
+                box.map[job.index] = await fetchOne(token: job.token, installed: job.installed,
+                                                    appName: job.appName, pkgPath: job.pkgPath)
             }
             semaphore.signal()
         }
@@ -236,10 +300,13 @@ enum PreviewCommand {
         for (i, outcome) in box.map { results[i].fetched = outcome }
     }
 
-    static func fetchOne(token: String, installed: StaticReport?) async -> FetchOutcome {
+    static func fetchOne(token: String, installed: StaticReport?,
+                         appName: String, pkgPath: String?) async -> FetchOutcome {
         guard let installed else { return .skipped("installed build couldn't be analyzed") }
         do {
-            let incoming = try await CaskArtifactFetcher.withDownloadedApp(token: token) { app in
+            let incoming = try await CaskArtifactFetcher.withDownloadedApp(
+                token: token, preferredAppName: appName, pkgPath: pkgPath
+            ) { app in
                 try StaticAnalyzer().analyze(bundleAt: app)
             }
             return .analyzed(IncomingCaskComparison.compare(installed: installed, incoming: incoming))
@@ -253,7 +320,8 @@ enum PreviewCommand {
 
     // MARK: - Human rendering
 
-    static func render(header: String, all: [Result], shown: [Result], brewMode: Bool, fetched: Bool) {
+    static func render(header: String, all: [Result], shown: [Result],
+                       scan: HomebrewCaskInventory.OutdatedScan?, fetched: Bool) {
         print(header)
         print("")
 
@@ -284,6 +352,16 @@ enum PreviewCommand {
             print("")
         }
 
+        if let skipped = scan?.skipped, !skipped.isEmpty {
+            print("Not previewed — `brew upgrade` will still update \(skipped.count == 1 ? "this" : "these"):")
+            for s in skipped {
+                var head = "  – \(s.token)"
+                if let i = s.installedVersion, let a = s.availableVersion { head += "  \(i) → \(a)" }
+                print(head + "  —  " + s.reason)
+            }
+            print("")
+        }
+
         // Summary footer.
         let analyzed = all.filter { $0.summary != nil }
         let noteworthy = analyzed.filter { $0.summary?.isNoteworthy == true }.count
@@ -301,10 +379,30 @@ enum PreviewCommand {
                   "\(analyzedIncoming.count == 1 ? "has" : "have") privacy-relevant changes.")
             print("Incoming builds are analyzed before Gatekeeper clearance, so a 'notarization' " +
                   "difference can be an artifact of the fresh download rather than a real change.")
-        } else if brewMode {
+        } else if scan != nil {
             print("Analysis is of the installed version — it previews what each app already " +
                   "does, not the incoming build. Re-run with --fetch to analyze the incoming build.")
         }
+        if let scan { printBrewNotes(scan) }
+    }
+
+    /// Footer lines about what `brew upgrade` touches beyond the apps above.
+    private static func printBrewNotes(_ scan: HomebrewCaskInventory.OutdatedScan) {
+        let formulae = scan.outdatedFormulae
+        if !formulae.isEmpty {
+            print("`brew upgrade` will also update \(formulae.count) formula\(formulae.count == 1 ? "" : "e") " +
+                  "(command-line packages, not analyzed): \(list(formulae)).")
+        }
+        let greedy = scan.greedyOnlyCasks
+        if !greedy.isEmpty {
+            print("\(greedy.count) more cask\(plural(greedy.count)) only update with `brew upgrade --greedy` " +
+                  "(\(list(greedy))); add --greedy to include \(greedy.count == 1 ? "it" : "them").")
+        }
+    }
+
+    private static func list(_ names: [String], limit: Int = 6) -> String {
+        guard names.count > limit else { return names.joined(separator: ", ") }
+        return names.prefix(limit).joined(separator: ", ") + ", +\(names.count - limit) more"
     }
 
     /// The per-cask "incoming build" block shown under each result when --fetch
@@ -356,13 +454,16 @@ enum PreviewCommand {
 
     struct JSONEntry: Codable {
         let name: String
-        let path: String
+        /// nil for a skipped cask (no app to point at).
+        let path: String?
         let source: String
         let token: String?
         let installedVersion: String?
         let availableVersion: String?
         let summary: NoteworthySummary?
         let error: String?
+        /// Why a cask `brew upgrade` will update wasn't previewed (no app, …).
+        let skippedReason: String?
         /// Present only with --fetch (nil omits the key — back-compatible superset).
         let fetched: FetchJSON?
     }
@@ -384,8 +485,8 @@ enum PreviewCommand {
         let modified: [String]
     }
 
-    static func emitJSON(_ results: [Result], fetched: Bool) {
-        let entries: [JSONEntry] = results.map { r in
+    static func emitJSON(_ results: [Result], skipped: [HomebrewCaskInventory.SkippedCask], fetched: Bool) {
+        var entries: [JSONEntry] = results.map { r in
             var token: String?, installed: String?, available: String?, source = "installed-app"
             if case let .brewCask(t, i, a) = r.target.source {
                 source = "brew-cask"; token = t; installed = i; available = a
@@ -399,7 +500,13 @@ enum PreviewCommand {
                 availableVersion: available,
                 summary: r.summary,
                 error: r.error,
+                skippedReason: nil,
                 fetched: fetched ? fetchJSON(r.fetched) : nil)
+        }
+        entries += skipped.map { s in
+            JSONEntry(name: s.token, path: nil, source: "brew-cask", token: s.token,
+                      installedVersion: s.installedVersion, availableVersion: s.availableVersion,
+                      summary: nil, error: nil, skippedReason: s.reason, fetched: nil)
         }
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]

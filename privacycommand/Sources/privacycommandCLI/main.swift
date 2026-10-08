@@ -10,6 +10,7 @@ import privacycommandCLIKit
 //   privacycommand audit <target>        same, explicit
 //   privacycommand -i | interactive      force the interactive browser
 //   privacycommand preview [options]     preview the apps you're about to update
+//   privacycommand upgrade [options]     what `brew upgrade` would change (preview --fetch)
 //   privacycommand completion <shell>    print a zsh, bash or fish completion script
 //
 // `<target>` is a path to a .app or an app-name substring matched against
@@ -35,11 +36,12 @@ usage:
   privacycommand audit <target>        same, explicit
   privacycommand -i, interactive       force the interactive browser
   privacycommand preview [options]     preview apps before you update them
+  privacycommand upgrade [options]     show what `brew upgrade` would change in each app
   privacycommand completion <shell>    print a tab-completion script (zsh, bash, fish)
 
 <target> is a path to a .app or an app-name substring (like `witr`).
-Run `privacycommand audit --help`, `privacycommand preview --help` or
-`privacycommand completion --help` for details.
+Run `privacycommand audit --help`, `privacycommand preview --help`,
+`privacycommand upgrade --help` or `privacycommand completion --help` for details.
 """
 
 private func stdioIsTTY() -> Bool {
@@ -56,6 +58,8 @@ guard let command = arguments.first else {
 switch command {
 case "preview":
     PreviewCommand.run(Array(arguments.dropFirst()))
+case "upgrade":
+    PreviewCommand.run(Array(arguments.dropFirst()), upgrade: true)
 case "audit":
     AuditCommand.run(Array(arguments.dropFirst()))
 case "completion":
