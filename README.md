@@ -59,7 +59,18 @@ brew install --cask privacykey/tap/privacycommand
 
 **Direct download** — take the signed and notarized `.dmg` from the [latest release](https://github.com/privacykey/privacycommand/releases/latest) and drag the app to `/Applications`. In-app updates use [Sparkle 2](https://sparkle-project.org) against an EdDSA-signed [appcast feed](https://privacykey.github.io/privacycommand/appcast.xml); automatic checks are **off by default** and you opt in under Settings → Updates.
 
-**Command line** — the repo also builds `auditctl`, a CLI over the same analyser. Its `preview` command inspects Homebrew casks *before* you update them; it never runs `brew`, never blocks an update, and always exits 0. Building and using it is covered in [CONTRIBUTING.md](CONTRIBUTING.md#the-auditctl-cli).
+**Command line** — the app carries `auditctl`, a CLI over the same analyser, and there are two ways to put it on your `PATH`:
+
+- **Homebrew** — the cask links `auditctl` for you on install and removes it on uninstall. Nothing else to do.
+- **Direct download** — choose **privacycommand ▸ Install Command Line Tool…**. It links the copy inside the app into `/usr/local/bin`, so the tool updates with the app. When that folder needs administrator rights, as it does on most Macs, it shows the `sudo ln -s` command to paste into Terminal instead, with a button that copies it. The same menu item then reads **Uninstall Command Line Tool…** and removes the link.
+
+```sh
+auditctl slack --short   # one-line verdict for an installed app
+auditctl preview         # check outdated Homebrew casks before you upgrade
+auditctl --help          # every command and flag
+```
+
+`preview` inspects Homebrew casks *before* you update them; it never runs `brew`, never blocks an update, and always exits 0. To build `auditctl` from source instead, see [CONTRIBUTING.md](CONTRIBUTING.md#the-auditctl-cli).
 
 ## Docs
 

@@ -56,7 +56,10 @@ Deeper references live next to the sources:
 ## The auditctl CLI
 
 `auditctl` is a command-line front end over the same analyser, useful for
-scripting and CI. Build it once, then call the binary directly:
+scripting and CI. The app ships it at `Contents/Helpers/auditctl` (the
+**Embed auditctl** build phase), and users put it on `PATH` through the
+Homebrew cask or the app menu — see [Get it](README.md#get-it). To work on
+it, build it once, then call the binary directly:
 
 ```sh
 cd privacycommand

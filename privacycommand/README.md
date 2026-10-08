@@ -37,6 +37,13 @@ fiddling that earlier versions of this README walked through. The
   Files** phases that drop the helper executable into
   `Contents/MacOS/` and the LaunchDaemon plist into
   `Contents/Library/LaunchDaemons/`.
+- An **Embed auditctl** run-script phase
+  ([`Scripts/embed-auditctl.sh`](Scripts/embed-auditctl.sh)) that
+  builds the `auditctl` CLI with SwiftPM for the app's architectures,
+  stamps the app's version into it, copies it to
+  `Contents/Helpers/auditctl` and signs it with the app's identity and
+  hardened runtime. The Homebrew cask's `binary` stanza and the app
+  menu's Install Command Line Tool… item both link to that path.
 - Sparkle 2 wired in for in-app updates (you have to add it once via
   **File → Add Package Dependencies…** — see the top-level README).
 
@@ -153,6 +160,12 @@ Helper (`Resources/privacycommandHelper.entitlements`):
 - Hardened Runtime: **ON**.
 - `com.apple.developer.service-management.managed-by-main-app`:
   **ON** — required for `SMAppService.daemon` lifecycle.
+
+`auditctl` (`Contents/Helpers/auditctl`) and the guest agent
+(`Contents/Resources/privacycommand-guest`):
+
+- Signed by their run-script phases with the app's identity.
+- Hardened Runtime: **ON**. No entitlements.
 
 ## Building from the command line
 

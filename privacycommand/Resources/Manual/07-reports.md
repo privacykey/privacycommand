@@ -10,4 +10,9 @@ Each item opens a save panel with a file name suggested from the app's name and 
 
 ## The command line
 
-The repository also builds `auditctl`, a command-line front end over the same analyser, for scripting and CI. `auditctl <path or app name>` audits one app (`--short`, `--tree`, `--json`, `--warnings`), and `auditctl preview` inspects outdated Homebrew casks before you update them. Building and using it is covered in the repository's CONTRIBUTING.md.
+privacycommand carries `auditctl`, a command-line front end over the same analyser, for scripting and CI. `auditctl <path or app name>` audits one app (`--short`, `--tree`, `--json`, `--warnings`), and `auditctl preview` inspects outdated Homebrew casks before you update them. `auditctl --help` lists every command.
+
+- **Installed with Homebrew:** the cask has already put `auditctl` on your `PATH`.
+- **Installed from the disk image:** choose **privacycommand ▸ Install Command Line Tool…**. It links the copy inside the app into `/usr/local/bin`, so the tool updates with the app. If that folder needs administrator rights, the alert shows the `sudo` command to run in Terminal instead, with a button that copies it. Choose **Uninstall Command Line Tool…** from the same place to remove the link.
+
+Run privacycommand from the Applications folder before installing the tool: a link into a copy that is still on the disk image stops working when the image is ejected, so the item asks you to move the app first.
