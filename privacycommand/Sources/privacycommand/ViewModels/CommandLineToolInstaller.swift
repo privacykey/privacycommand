@@ -6,7 +6,7 @@ import privacycommandCore
 #endif
 
 /// Drives the app menu's Install / Uninstall Command Line Tool… item, which
-/// links the `auditctl` embedded at `Contents/Helpers/auditctl` into
+/// links the `privacycommand` CLI embedded at `Contents/Helpers/privacycommand` into
 /// /usr/local/bin for DMG installs. (Homebrew's cask links it on its own.)
 ///
 /// The filesystem work and its safety rules live in `CommandLineTool`; this
@@ -55,8 +55,8 @@ final class CommandLineToolInstaller: ObservableObject {
         case .installed(let link) where link == tool.link:
             confirmUninstall()
         case .installed(let link):
-            inform("auditctl is already installed",
-                   "\(link.path) links to this copy of privacycommand, so auditctl is already on your PATH. "
+            inform("The command-line tool is already installed",
+                   "\(link.path) links to this copy of privacycommand, so the “privacycommand” command is already on your PATH. "
                    + "Homebrew manages that link and removes it when you uninstall the cask.")
         default:
             install()
@@ -76,9 +76,9 @@ final class CommandLineToolInstaller: ObservableObject {
         do {
             try tool.install()
             refresh()
-            inform("auditctl is installed",
+            inform("The command-line tool is installed",
                    "\(tool.link.path) now links to the copy inside privacycommand, so it updates with the app. "
-                   + "Open a new Terminal window and run “auditctl --help” to get started.")
+                   + "Open a new Terminal window and run “privacycommand --help” to get started.")
         } catch {
             refresh()
             report(error, verb: "install")
@@ -89,9 +89,9 @@ final class CommandLineToolInstaller: ObservableObject {
 
     private func confirmUninstall() {
         let alert = NSAlert()
-        alert.messageText = "Uninstall the auditctl command?"
-        alert.informativeText = "This removes the link at \(tool.link.path). auditctl stays inside "
-            + "privacycommand, and you can install it again from this menu."
+        alert.messageText = "Uninstall the command-line tool?"
+        alert.informativeText = "This removes the link at \(tool.link.path). The tool stays inside "
+            + "the app, and you can install it again from this menu."
         alert.addButton(withTitle: "Uninstall")
         alert.addButton(withTitle: "Cancel")
         guard alert.runModal() == .alertFirstButtonReturn else { return }
@@ -113,13 +113,13 @@ final class CommandLineToolInstaller: ObservableObject {
         }
         switch failure {
         case .permissionDenied(let command):
-            showCommand(title: "\(verb.capitalized) auditctl from Terminal",
+            showCommand(title: "\(verb.capitalized) the command-line tool from Terminal",
                         message: "privacycommand needs administrator rights to change \(tool.installDirectory.path). "
                             + "Run this command in Terminal, which asks for your password:",
                         command: command)
         case .occupied(let link, let destination):
             let what = destination.map { "is a link to \($0)" } ?? "is a file"
-            inform("Another auditctl is in the way",
+            inform("Another “privacycommand” command is in the way",
                    "\(link.path) \(what), which privacycommand didn't install, so it has left it alone. "
                    + "Remove or rename it, then try again.")
         case .managedElsewhere(let link):
@@ -127,11 +127,11 @@ final class CommandLineToolInstaller: ObservableObject {
                    "\(link.path) was installed with the privacycommand cask and goes away when you run "
                    + "“brew uninstall --cask privacycommand”.")
         case .notInstalled:
-            inform("auditctl isn't installed", "There is no link at \(tool.link.path) to remove.")
+            inform("The command-line tool isn't installed", "There is no link at \(tool.link.path) to remove.")
         case .unavailable:
-            inform("This build doesn't include auditctl",
+            inform("This build doesn't include the command-line tool",
                    "Release builds of privacycommand carry the command-line tool. To build it from source, "
-                   + "see “The auditctl CLI” in the repository's CONTRIBUTING.md.")
+                   + "see “The privacycommand CLI” in the repository's CONTRIBUTING.md.")
         }
     }
 

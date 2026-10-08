@@ -23,7 +23,7 @@ Available recipes:
     info                     # Show the UTC build preview, commit, dirty files, tag-at-HEAD and channel.
 
     [dev]
-    build                    # Build every SPM target (Core, auditctlKit, auditctl, guest agent, protocol)
+    build                    # Build every SPM target (Core, the privacycommand CLI and its kit, guest agent, protocol)
     test                     # Run the full SPM test suite (same as CI)
     clean                    # Remove SPM build output
 

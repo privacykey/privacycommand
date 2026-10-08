@@ -1,7 +1,7 @@
 import Foundation
 import Darwin
 import privacycommandCore
-import auditctlKit
+import privacycommandCLIKit
 
 // MARK: - Signal-safe terminal restore
 
@@ -26,7 +26,7 @@ private func onWinch(_ sig: Int32) { gResized = 1 }
 
 /// Drives the interactive browser: raw-mode terminal setup, a non-blocking
 /// poll loop, background analysis dispatch, and safe teardown. All the *logic*
-/// (state, rendering, input decoding, key handling) lives in `auditctlKit`;
+/// (state, rendering, input decoding, key handling) lives in `privacycommandCLIKit`;
 /// this type is just the imperative shell that talks to the OS.
 final class TerminalDriver {
 
@@ -48,7 +48,7 @@ final class TerminalDriver {
         }
     }
     private let inbox = Inbox()
-    private let analysisQueue = DispatchQueue(label: "com.privacykey.auditctl.tui.analysis")
+    private let analysisQueue = DispatchQueue(label: "com.privacykey.privacycommand.tui.analysis")
 
     init(model: AppBrowserModel) { self.model = model }
 

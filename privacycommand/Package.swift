@@ -10,7 +10,9 @@ let package = Package(
         .library(name: "privacycommandCore", targets: ["privacycommandCore"]),
         .library(name: "privacycommandGuestProtocol",
                  targets: ["privacycommandGuestProtocol"]),
-        .executable(name: "auditctl", targets: ["auditctl"]),
+        // The CLI. Named after the app: the release build embeds it at
+        // privacycommand.app/Contents/Helpers/privacycommand.
+        .executable(name: "privacycommand", targets: ["privacycommandCLI"]),
         .executable(name: "privacycommand-guest",
                     targets: ["privacycommandGuestAgent"])
     ],
@@ -54,17 +56,17 @@ let package = Package(
         ),
         // Pure, testable CLI/TUI logic (input decoding, browser state, frame
         // rendering, ANSI styling). Split out of the executable so
-        // `auditctlKitTests` can cover it — the executable stays a thin
+        // `privacycommandCLIKitTests` can cover it — the executable stays a thin
         // termios / poll-loop / IO shell around this.
         .target(
-            name: "auditctlKit",
+            name: "privacycommandCLIKit",
             dependencies: ["privacycommandCore"],
-            path: "Sources/auditctlKit"
+            path: "Sources/privacycommandCLIKit"
         ),
         .executableTarget(
-            name: "auditctl",
-            dependencies: ["auditctlKit", "privacycommandCore"],
-            path: "Sources/auditctl"
+            name: "privacycommandCLI",
+            dependencies: ["privacycommandCLIKit", "privacycommandCore"],
+            path: "Sources/privacycommandCLI"
         ),
         // Runs inside the macOS guest VM — listens for commands from
         // the host, runs the inspected app, ships observations back.
@@ -80,9 +82,9 @@ let package = Package(
             path: "Tests/privacycommandCoreTests"
         ),
         .testTarget(
-            name: "auditctlKitTests",
-            dependencies: ["auditctlKit", "privacycommandCore"],
-            path: "Tests/auditctlKitTests"
+            name: "privacycommandCLIKitTests",
+            dependencies: ["privacycommandCLIKit", "privacycommandCore"],
+            path: "Tests/privacycommandCLIKitTests"
         )
     ]
 )

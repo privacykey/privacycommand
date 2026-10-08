@@ -1,6 +1,6 @@
 import XCTest
 import Foundation
-@testable import auditctlKit
+@testable import privacycommandCLIKit
 
 final class BrowserReducerTests: XCTestCase {
 

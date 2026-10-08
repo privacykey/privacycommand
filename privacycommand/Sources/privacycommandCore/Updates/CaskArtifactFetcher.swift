@@ -144,7 +144,7 @@ public enum CaskArtifactFetcher {
                 throw FetchError.dittoUnavailable
             }
             let dir = FileManager.default.temporaryDirectory
-                .appendingPathComponent("auditctl-fetch-\(UUID().uuidString)", isDirectory: true)
+                .appendingPathComponent("privacycommand-fetch-\(UUID().uuidString)", isDirectory: true)
             try extractZip(cacheURL, into: dir)
             return try await withCleanup({ try? FileManager.default.removeItem(at: dir) }) {
                 guard let app = DMGMounter.firstAppBundle(in: dir) else { throw FetchError.noAppInside }

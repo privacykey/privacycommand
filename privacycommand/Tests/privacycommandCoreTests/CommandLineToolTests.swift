@@ -31,7 +31,7 @@ final class CommandLineToolTests: XCTestCase {
         let bundle = root.appendingPathComponent(name)
         let helpers = bundle.appendingPathComponent("Contents/Helpers")
         try fm.createDirectory(at: helpers, withIntermediateDirectories: true)
-        let tool = helpers.appendingPathComponent("auditctl")
+        let tool = helpers.appendingPathComponent("privacycommand")
         XCTAssertTrue(fm.createFile(atPath: tool.path, contents: Data("#!/bin/sh\n".utf8),
                                     attributes: [.posixPermissions: 0o755]))
         return bundle
@@ -91,7 +91,7 @@ final class CommandLineToolTests: XCTestCase {
     func testForeignSymlinkIsReportedAndNeverTouched() throws {
         try fm.createDirectory(at: bin, withIntermediateDirectories: true)
         let tool = subject()
-        let elsewhere = "/Users/someone/src/privacycommand/.build/release/auditctl"
+        let elsewhere = "/Users/someone/src/privacycommand/.build/release/privacycommand"
         try fm.createSymbolicLink(atPath: tool.link.path, withDestinationPath: elsewhere)
 
         XCTAssertEqual(tool.status(), .occupied(link: tool.link, destination: elsewhere))
@@ -116,7 +116,7 @@ final class CommandLineToolTests: XCTestCase {
     func testDanglingLinkFromAMovedAppIsStaleAndRemovable() throws {
         try fm.createDirectory(at: bin, withIntermediateDirectories: true)
         let tool = subject()
-        let gone = "/Volumes/privacycommand/privacycommand.app/Contents/Helpers/auditctl"
+        let gone = "/Volumes/privacycommand/privacycommand.app/Contents/Helpers/privacycommand"
         try fm.createSymbolicLink(atPath: tool.link.path, withDestinationPath: gone)
 
         XCTAssertEqual(tool.status(), .stale(link: tool.link, destination: gone))
@@ -128,7 +128,7 @@ final class CommandLineToolTests: XCTestCase {
 
     func testHomebrewLinkCountsAsInstalledButIsNotOursToRemove() throws {
         let tool = subject()
-        let brewLink = brewBin.appendingPathComponent("auditctl")
+        let brewLink = brewBin.appendingPathComponent("privacycommand")
         try fm.createSymbolicLink(at: brewLink, withDestinationURL: tool.tool)
 
         XCTAssertEqual(tool.status(), .installed(link: brewLink))
@@ -165,8 +165,8 @@ final class CommandLineToolTests: XCTestCase {
         let tool = CommandLineTool(appBundle: URL(fileURLWithPath: "/Applications/privacycommand.app"))
         XCTAssertEqual(tool.installCommand,
                        "sudo mkdir -p /usr/local/bin && sudo ln -sf "
-                       + "/Applications/privacycommand.app/Contents/Helpers/auditctl /usr/local/bin/auditctl")
-        XCTAssertEqual(tool.uninstallCommand, "sudo rm /usr/local/bin/auditctl")
+                       + "/Applications/privacycommand.app/Contents/Helpers/privacycommand /usr/local/bin/privacycommand")
+        XCTAssertEqual(tool.uninstallCommand, "sudo rm /usr/local/bin/privacycommand")
     }
 
     func testShellQuoting() {

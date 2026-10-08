@@ -21,10 +21,10 @@ cask "privacycommand" do
   end
 
   app "privacycommand.app"
-  # The auditctl CLI ships inside the app; this links it onto PATH and
-  # removes the link on uninstall. DMG installs use the app menu's
+  # The privacycommand CLI ships inside the app; this links it onto PATH
+  # and removes the link on uninstall. DMG installs use the app menu's
   # Install Command Line Tool… item instead.
-  binary "#{appdir}/privacycommand.app/Contents/Helpers/auditctl"
+  binary "#{appdir}/privacycommand.app/Contents/Helpers/privacycommand"
 
   # We're not sandboxed, so quitting the app is enough — no need for
   # a tighter `quit:` predicate. The in-app Sparkle updater is

@@ -1,31 +1,32 @@
 #!/bin/bash
-# Build the auditctl CLI via SwiftPM, embed it at
-# privacycommand.app/Contents/Helpers/auditctl, and sign it with the app's
-# identity and hardened runtime so the notarized bundle stays valid.
+# Build the privacycommand CLI via SwiftPM, embed it at
+# privacycommand.app/Contents/Helpers/privacycommand, and sign it with the
+# app's identity and hardened runtime so the notarized bundle stays valid.
 #
-# Runs as the app target's "Embed auditctl" build phase. Homebrew's cask
-# links the embedded binary onto PATH (the `binary` stanza in
+# Runs as the app target's "Embed command-line tool" build phase. Homebrew's
+# cask links the embedded binary onto PATH (the `binary` stanza in
 # packaging/homebrew/privacycommand.rb); DMG installs link it from the app
 # menu's Install Command Line Tool… item.
 
 set -euo pipefail
 
-PRODUCT=auditctl
+PRODUCT=privacycommand
 
 # A scratch path of its own. The guest agent's phase builds host-only into
 # ${SRCROOT}/.build; sharing that with this build, which follows the app's
 # architectures, would make each one rebuild the package from scratch.
-SCRATCH="${PROJECT_TEMP_DIR}/auditctl-swiftpm"
+SCRATCH="${PROJECT_TEMP_DIR}/cli-swiftpm"
 
 # Stamp the app's version into the binary's __TEXT,__info_plist section, so
-# `auditctl --version` reports it and codesign takes the identifier from it.
+# `privacycommand --version` reports it and codesign takes the identifier
+# from it.
 IDENTITY_PLIST="${DERIVED_FILE_DIR}/BuildIdentity-Info.plist"
 VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "${IDENTITY_PLIST}")
 BUILD=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "${IDENTITY_PLIST}")
-INFO_PLIST="${DERIVED_FILE_DIR}/auditctl-Info.plist"
+INFO_PLIST="${DERIVED_FILE_DIR}/cli-Info.plist"
 rm -f "${INFO_PLIST}"
 /usr/libexec/PlistBuddy \
-    -c "Add :CFBundleIdentifier string ${PRODUCT_BUNDLE_IDENTIFIER}.${PRODUCT}" \
+    -c "Add :CFBundleIdentifier string ${PRODUCT_BUNDLE_IDENTIFIER}.cli" \
     -c "Add :CFBundleName string ${PRODUCT}" \
     -c "Add :CFBundleShortVersionString string ${VERSION}" \
     -c "Add :CFBundleVersion string ${BUILD}" \

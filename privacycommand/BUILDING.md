@@ -45,11 +45,11 @@ App Sandbox is disabled. Hardened Runtime is on. macOS deployment target is 13.0
 ```bash
 cd privacycommand
 swift build
-.build/debug/auditctl /System/Applications/Calculator.app
+.build/debug/privacycommand /System/Applications/Calculator.app
 swift test
 ```
 
-Builds the `privacycommandCore` library and the `auditctl` CLI. The SwiftUI app is **not** built via SwiftPM (it lives in the Xcode project only).
+Builds the `privacycommandCore` library and the `privacycommand` CLI. The SwiftUI app is **not** built via SwiftPM (it lives in the Xcode project only).
 
 Why both? `swift build` is a fast iteration loop on the analyzer logic without launching Xcode. The Xcode project is the only path for building/distributing the GUI app.
 

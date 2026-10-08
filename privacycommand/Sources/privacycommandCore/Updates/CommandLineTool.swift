@@ -1,24 +1,24 @@
 import Foundation
 
-/// The `auditctl` command-line tool that ships inside privacycommand.app,
+/// The `privacycommand` command-line tool that ships inside privacycommand.app,
 /// and the symlink that puts it on the user's `PATH`.
 ///
-/// Release builds embed the CLI at `Contents/Helpers/auditctl` (the app
-/// target's "Embed auditctl" build phase). A Homebrew cask install links it
-/// automatically through the cask's `binary` stanza; a DMG install links it
-/// from the app menu's Install Command Line Tool… item, which drives this
-/// type.
+/// Release builds embed the CLI at `Contents/Helpers/privacycommand` (the app
+/// target's "Embed command-line tool" build phase). A Homebrew cask install
+/// links it automatically through the cask's `binary` stanza; a DMG install
+/// links it from the app menu's Install Command Line Tool… item, which drives
+/// this type.
 ///
 /// The link points into the app bundle rather than at a copy, so the tool
 /// updates whenever the app does. Install and uninstall only ever touch a
-/// symlink to an embedded `auditctl`: a file or link that something else put
-/// at the install location is reported and left alone.
+/// symlink to an embedded tool: a file or link that something else put at the
+/// install location is reported and left alone.
 public struct CommandLineTool: Sendable {
 
-    public static let name = "auditctl"
+    public static let name = "privacycommand"
 
     /// Where the binary sits inside the app bundle.
-    public static let bundlePath = "Contents/Helpers/auditctl"
+    public static let bundlePath = "Contents/Helpers/privacycommand"
 
     /// Where Install Command Line Tool… puts the link: on the default
     /// `PATH` for every shell.
@@ -37,9 +37,9 @@ public struct CommandLineTool: Sendable {
         /// A symlink at `link` resolves to this app's binary. It is either
         /// at the install location or in a search directory (Homebrew's).
         case installed(link: URL)
-        /// The install location holds a link to an embedded `auditctl` that
-        /// is not this app's: an older copy of the app, or one that has
-        /// since moved. Installing replaces it; uninstalling removes it.
+        /// The install location holds a link to an embedded tool that is not
+        /// this app's: an older copy of the app, or one that has since
+        /// moved. Installing replaces it; uninstalling removes it.
         case stale(link: URL, destination: String)
         /// The install location holds something privacycommand did not put
         /// there. `destination` is the link target, or nil for a plain file.
@@ -130,7 +130,7 @@ public struct CommandLineTool: Sendable {
     }
 
     /// Removes the install directory's link, if it points at an embedded
-    /// `auditctl`. Anything else is reported, never deleted.
+    /// `privacycommand`. Anything else is reported, never deleted.
     public func uninstall() throws {
         switch status() {
         case .installed(let found) where found == link, .stale(let found, _):

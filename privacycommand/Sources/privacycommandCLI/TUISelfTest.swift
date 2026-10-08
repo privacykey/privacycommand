@@ -1,8 +1,8 @@
 import Foundation
 import privacycommandCore
-import auditctlKit
+import privacycommandCLIKit
 
-/// `auditctl --tui-selftest` — a hidden, headless driver of the TUI pipeline
+/// `privacycommand --tui-selftest` — a hidden, headless driver of the TUI pipeline
 /// (decode → reduce → model → render). It feeds scripted keystrokes to a
 /// synthetic model and prints the resulting frames with escape sequences
 /// stripped, so the interactive layout can be eyeballed / grepped in CI

@@ -68,7 +68,7 @@ body:
         - Settings / preferences
         - Knowledge base / in-app explanations
         - Accessibility
-        - CLI (`auditctl`)
+        - CLI (`privacycommand`)
         - Other
     validations:
       required: true

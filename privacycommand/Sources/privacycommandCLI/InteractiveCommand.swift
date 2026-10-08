@@ -1,8 +1,8 @@
 import Foundation
 import privacycommandCore
-import auditctlKit
+import privacycommandCLIKit
 
-/// `auditctl -i` / `auditctl interactive` (and a bare `auditctl` on a terminal)
+/// `privacycommand -i` / `privacycommand interactive` (and a bare `privacycommand` on a terminal)
 /// — the witr-style interactive browser: pick an installed app from a filterable
 /// list and its static audit renders live in the detail pane.
 enum InteractiveCommand {
@@ -11,7 +11,7 @@ enum InteractiveCommand {
         guard isatty(FileHandle.standardInput.fileDescriptor) != 0,
               isatty(FileHandle.standardOutput.fileDescriptor) != 0 else {
             die("interactive mode needs a terminal (stdin and stdout must both be a TTY).\n"
-                + "For scripts, use `auditctl <app> --json` instead.", code: 2)
+                + "For scripts, use `privacycommand <app> --json` instead.", code: 2)
         }
 
         let apps = HomebrewCaskInventory

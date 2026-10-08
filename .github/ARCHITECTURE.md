@@ -35,7 +35,7 @@ The deeper design docs referenced from the project `README.md` sit alongside thi
 └──────────────────────────────────────────────────────────────────────┘
 
          ┌──────────────────────────┐  ┌────────────────────────┐
-         │ auditctl (CLI)           │  │ privacycommandGuestAgent│
+         │ privacycommand (CLI)     │  │ privacycommandGuestAgent│
          │ smallest end-to-end smoke│  │ runs in a macOS VM,    │
          │ test for the analyzer    │  │ ships observations back│
          │                          │  │ via shared protocol    │
@@ -54,8 +54,8 @@ Each target is intentional:
 | `privacycommandHelper` | `privacycommand/privacycommandHelper/` | Privileged XPC service installed via `SMAppService.daemon`. Minimal API surface — 5 Swift files (`main`, `HelperToolService`, `CodeSignValidator`, `FsUsageRunner`, `PfctlKillSwitch`). Validates clients by Team ID on connect. **Note the path**: this sits beside `Sources/`, not inside it — it is an Xcode-only target and `Package.swift` does not declare it. |
 | `privacycommandGuestProtocol` | `privacycommand/Sources/privacycommandGuestProtocol/` | Wire format shared between host and guest agent. Lives in its own zero-dependency target so the agent can build without compiling Core. |
 | `privacycommandGuestAgent` | `privacycommand/Sources/privacycommandGuestAgent/` | The binary that runs inside a macOS VM and ships observations back to the host. |
-| `auditctl` | `privacycommand/Sources/auditctl/` | CLI front-end for the analyzer, with a witr-style interface. `auditctl <name-or-path>` audits one app (`--short` / `--tree` / `--json` / `--warnings`); a bare `auditctl` (or `-i`) opens an interactive TUI browser of installed apps. Still the fastest end-to-end smoke test. The executable is a thin termios / poll-loop / IO shell — its logic lives in `auditctlKit`. |
-| `auditctlKit` | `privacycommand/Sources/auditctlKit/` | Pure, testable CLI/TUI logic: ANSI styling, terminal input decoding, the browser state model + reducer, and frame rendering. Split out of the executable so `auditctlKitTests` can cover it without a real terminal. |
+| `privacycommandCLI` | `privacycommand/Sources/privacycommandCLI/` | CLI front-end for the analyzer, built as the `privacycommand` executable and embedded in the app at `Contents/Helpers/privacycommand`. Witr-style interface: `privacycommand <name-or-path>` audits one app (`--short` / `--tree` / `--json` / `--warnings`); a bare `privacycommand` (or `-i`) opens an interactive TUI browser of installed apps. Still the fastest end-to-end smoke test. The executable is a thin termios / poll-loop / IO shell — its logic lives in `privacycommandCLIKit`. |
+| `privacycommandCLIKit` | `privacycommand/Sources/privacycommandCLIKit/` | Pure, testable CLI/TUI logic: ANSI styling, terminal input decoding, the browser state model + reducer, and frame rendering. Split out of the executable so `privacycommandCLIKitTests` can cover it without a real terminal. |
 
 The split is enforced by Swift Package Manager — `Package.swift` declares each as a separate target with an explicit dependency graph. You can't accidentally pull AppKit into Core because Core's manifest doesn't depend on it.
 
@@ -159,7 +159,7 @@ The appcast feed lives on `gh-pages` at `https://privacykey.github.io/privacycom
 
 `Tests/privacycommandCoreTests/` holds the analyzer test suite. Run with `swift test` from `privacycommand/`. Static analysis is straightforward to test against a corpus of `.app` bundles; dynamic monitoring needs more thought (the helper-required tests can't run in CI without `SMAppService` permissions).
 
-The smallest end-to-end smoke test is `auditctl /System/Applications/Calculator.app` — exits non-zero if `StaticAnalyzer` fails to parse anything.
+The smallest end-to-end smoke test is `privacycommand /System/Applications/Calculator.app` — exits non-zero if `StaticAnalyzer` fails to parse anything.
 
 ## Where to look next
 

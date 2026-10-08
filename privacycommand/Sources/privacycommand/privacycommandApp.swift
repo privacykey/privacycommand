@@ -20,7 +20,7 @@ struct privacycommandApp: App {
         defaultIcon: WatchModeIconStyle.shield.rawValue,
         iconKey: "watchModeIconStyle"
     )
-    /// Links the embedded `auditctl` onto PATH from the app menu.
+    /// Links the embedded `privacycommand` CLI onto PATH from the app menu.
     @StateObject private var commandLineTool = CommandLineToolInstaller()
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
@@ -76,7 +76,7 @@ struct privacycommandApp: App {
         }
         .commands {
             // The app's own app-menu block, below Check for Updates… and
-            // above Services. Homebrew installs get auditctl from the cask;
+            // above Services. Homebrew installs get the CLI from the cask;
             // this item links it for DMG installs. Declared ahead of
             // SurfaceCommands on purpose: of two groups placed before
             // Services, SwiftUI puts the later-declared one higher.
