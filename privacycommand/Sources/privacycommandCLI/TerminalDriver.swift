@@ -35,19 +35,21 @@ final class TerminalDriver {
     private var running = true
     private var lastBodyHeight = 10
 
-    /// Thread-safe hand-off from the analysis worker back to the main loop.
-    private final class Inbox: @unchecked Sendable {
+    /// Thread-safe hand-off from the analysis worker back to the main loop:
+    /// finished states, and the analyzer's steps while it works.
+    private final class Inbox<Item>: @unchecked Sendable {
         private let lock = NSLock()
-        private var items: [(String, AuditState)] = []
-        func push(_ path: String, _ state: AuditState) {
-            lock.lock(); items.append((path, state)); lock.unlock()
+        private var items: [(String, Item)] = []
+        func push(_ path: String, _ item: Item) {
+            lock.lock(); items.append((path, item)); lock.unlock()
         }
-        func drain() -> [(String, AuditState)] {
+        func drain() -> [(String, Item)] {
             lock.lock(); defer { items.removeAll(); lock.unlock() }
             return items
         }
     }
-    private let inbox = Inbox()
+    private let inbox = Inbox<AuditState>()
+    private let phases = Inbox<String>()
     private let analysisQueue = DispatchQueue(label: "com.privacykey.privacycommand.tui.analysis")
 
     init(model: AppBrowserModel) { self.model = model }
@@ -62,11 +64,11 @@ final class TerminalDriver {
         var dirty = true
 
         while running {
+            let steps = phases.drain()
+            for (path, phase) in steps { model.setPhase(phase, forPath: path) }
             let completed = inbox.drain()
-            if !completed.isEmpty {
-                for (path, state) in completed { model.setState(state, forPath: path) }
-                dirty = true
-            }
+            for (path, state) in completed { model.setState(state, forPath: path) }
+            if !steps.isEmpty || !completed.isEmpty { dirty = true }
             if gResized != 0 { gResized = 0; dirty = true }
 
             let (w, h) = terminalSize()
@@ -100,10 +102,11 @@ final class TerminalDriver {
         model.markAnalyzing(path: app.path)
         let (path, url, name) = (app.path, app.url, app.name)
         let inbox = self.inbox
+        let phases = self.phases
         analysisQueue.async {
             let state: AuditState
             do {
-                let report = try StaticAnalyzer().analyze(bundleAt: url)
+                let report = try StaticAnalyzer().analyze(bundleAt: url) { phases.push(path, $0) }
                 let summary = NoteworthySummary.summarize(report)
                 state = .done(AuditSnapshot(report: report, summary: summary, fallbackName: name))
             } catch {

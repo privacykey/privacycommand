@@ -284,18 +284,25 @@ public struct HomebrewCaskInventory: Sendable {
     /// can't be (with a reason), and the outdated formulae. When not `greedy`,
     /// also lists the casks only a greedy upgrade would add. Throws
     /// `.brewNotFound` if `brew` isn't installed.
+    ///
+    /// `progress` receives a plain-language label as each step starts — the
+    /// first can take a while, because `brew outdated` refreshes Homebrew's
+    /// package index when it's stale.
     public func outdatedScan(
         greedy: Bool = false,
-        appDir: URL = URL(fileURLWithPath: "/Applications")
+        appDir: URL = URL(fileURLWithPath: "/Applications"),
+        progress: ((String) -> Void)? = nil
     ) throws -> OutdatedScan {
         guard let brew = Self.brewExecutable() else { throw InventoryError.brewNotFound }
 
         // One call covers casks and formulae, matching what `brew upgrade` sees.
+        progress?("Asking Homebrew what's outdated (it may refresh its package index first)")
         let outdatedJSON = try Self.run(brew, ["outdated", "--json=v2"] + (greedy ? ["--greedy"] : []))
         let outdated = try Self.parseOutdated(outdatedJSON)
         let formulae = Self.parseOutdatedFormulae(outdatedJSON)
 
         var greedyOnly: [String] = []
+        if !greedy { progress?("Checking for casks that only update with --greedy") }
         if !greedy, let greedyJSON = try? Self.run(brew, ["outdated", "--cask", "--greedy", "--json=v2"]),
            let all = try? Self.parseOutdated(greedyJSON) {
             let regular = Set(outdated.map(\.token))
@@ -307,6 +314,7 @@ public struct HomebrewCaskInventory: Sendable {
         }
 
         // One batched `info` call resolves every install path at once.
+        progress?("Finding the installed apps for \(outdated.count) outdated cask\(outdated.count == 1 ? "" : "s")")
         let infoJSON = (try? Self.run(brew, ["info", "--cask", "--json=v2"] + outdated.map(\.token))) ?? Data()
         let installs = Self.parseInstallKinds(infoJSON, appDir: appDir)
 

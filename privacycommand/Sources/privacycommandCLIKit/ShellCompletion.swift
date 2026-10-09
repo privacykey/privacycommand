@@ -96,6 +96,7 @@ public enum ShellCompletion {
         Option(nil, "--max-risk", "gate: hold casks above this risk for review", value: .choices(riskTiers)),
         Option(nil, "--min-tier", "only show apps at or above a risk tier", value: .choices(riskTiers)),
         Option(nil, "--only-noteworthy", "hide apps with nothing noteworthy"),
+        Option(nil, "--no-color", "disable coloured output"),
         Option(nil, "--json", "machine-readable JSON"),
         Option("-h", "--help", "show help"),
     ]
@@ -107,6 +108,7 @@ public enum ShellCompletion {
         Option(nil, "--greedy", "include casks that normally update themselves"),
         Option(nil, "--min-tier", "only show apps at or above a risk tier", value: .choices(riskTiers)),
         Option(nil, "--only-noteworthy", "hide apps with nothing noteworthy"),
+        Option(nil, "--no-color", "disable coloured output"),
         Option(nil, "--json", "machine-readable JSON"),
         Option("-h", "--help", "show help"),
     ]

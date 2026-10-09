@@ -38,6 +38,19 @@ final class TUIRendererTests: XCTestCase {
         XCTAssertTrue(f.contains("Analyzing Alpha"))
     }
 
+    func testAnalyzingPhaseShownUnderTheHeading() {
+        var m = model(["Alpha"])
+        m.setState(.analyzing, forPath: "/Applications/Alpha.app")
+        m.setPhase("Checking code signature & notarization", forPath: "/Applications/Alpha.app")
+        let f = TUIRenderer.frame(model: m, width: 80, height: 24, ansi: ansi)
+        XCTAssertTrue(f.contains("Analyzing Alpha"))
+        XCTAssertTrue(f.contains("Checking code signature & notarization"))
+
+        // The step belongs to the analysis in flight; a result replaces it.
+        m.setState(.failed("boom"), forPath: "/Applications/Alpha.app")
+        XCTAssertNil(m.phases["/Applications/Alpha.app"])
+    }
+
     func testDoneDetailShowsSections() {
         var m = model(["Alpha"])
         m.setState(.done(snap("Alpha", tier: .high, score: 70, noteworthy: true,
