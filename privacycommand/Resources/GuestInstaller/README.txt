@@ -35,7 +35,7 @@ Uninstalling
 
 Compatibility
 -------------
-- Works inside any macOS 13+ guest (Apple Silicon or Intel).
+- Works inside any macOS 14+ guest (Apple Silicon or Intel).
 - Tested with VirtualBuddy and UTM. Parallels and VMware Fusion
   guests should work too — the agent is just a TCP daemon.
 - The installer is signed by the same Team ID as the host app; if
