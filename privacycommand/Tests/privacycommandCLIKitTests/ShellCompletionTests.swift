@@ -9,6 +9,7 @@ final class ShellCompletionTests: XCTestCase {
 
     private let allOptions = ShellCompletion.topLevelOptions
         + ShellCompletion.auditOptions + ShellCompletion.previewOptions
+        + ShellCompletion.upgradeOptions
 
     func testEveryCommandAndOptionReachesEveryShell() {
         for shell in ShellCompletion.Shell.allCases {
@@ -60,6 +61,8 @@ final class ShellCompletionTests: XCTestCase {
         t privacycommand pre
         t privacycommand preview --
         t privacycommand preview --min-tier ""
+        t privacycommand upgrade --
+        t privacycommand upgrade --max-risk ""
         t privacycommand completion ""
         t privacycommand audit --w
         t privacycommand SomeApp --s
@@ -67,14 +70,16 @@ final class ShellCompletionTests: XCTestCase {
         """
         let lines = try run("/bin/bash", ["--norc", "--noprofile", "-s"], scriptFor: .bash, driver: driver)
             .split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
-        XCTAssertEqual(lines.count, 8, "\(lines)")
+        XCTAssertEqual(lines.count, 10, "\(lines)")
         XCTAssertTrue(lines[0].split(separator: " ").contains("preview"))
-        XCTAssertEqual(lines[1], "--all-apps --apps-dir --fetch --min-tier --only-noteworthy --json --help")
+        XCTAssertEqual(lines[1], "--all-apps --apps-dir --fetch --greedy --max-risk --min-tier --only-noteworthy --json --help")
         XCTAssertEqual(lines[2], "low medium high critical")
-        XCTAssertEqual(lines[3], "zsh bash fish")
-        XCTAssertEqual(lines[4], "--warnings --warn-exit")
-        XCTAssertEqual(lines[5], "--short")
-        XCTAssertEqual(lines[6], "")
+        XCTAssertEqual(lines[3], "--max-risk --dry-run --no-input --greedy --min-tier --only-noteworthy --json --help")
+        XCTAssertEqual(lines[4], "low medium high critical")
+        XCTAssertEqual(lines[5], "zsh bash fish")
+        XCTAssertEqual(lines[6], "--warnings --warn-exit")
+        XCTAssertEqual(lines[7], "--short")
+        XCTAssertEqual(lines[8], "")
     }
 
     // MARK: - Helpers

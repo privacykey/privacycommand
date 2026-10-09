@@ -13,8 +13,9 @@ import Foundation
 /// - installed app names (the `*.app` names `privacycommand <name>` matches
 ///   against) and directories, wherever an app target is expected;
 /// - audit options after `audit <target>` or a bare `<target>`;
-/// - preview options, `--min-tier` levels, `--apps-dir` directories, and the
-///   outdated cask tokens `brew outdated --cask` lists;
+/// - preview and upgrade options, the `--min-tier` / `--max-risk` levels,
+///   `--apps-dir` directories, and the outdated cask tokens
+///   `brew outdated --cask` lists;
 /// - the shell names after `completion`.
 public enum ShellCompletion {
 
@@ -62,6 +63,7 @@ public enum ShellCompletion {
     public static let subcommands: [Subcommand] = [
         Subcommand(name: "audit", help: "static audit of one app"),
         Subcommand(name: "preview", help: "preview apps before you update them"),
+        Subcommand(name: "upgrade", help: "apply brew upgrades under a risk limit, review the rest"),
         Subcommand(name: "interactive", help: "open the interactive browser"),
         Subcommand(name: "completion", help: "print a tab-completion script"),
     ]
@@ -90,6 +92,19 @@ public enum ShellCompletion {
         Option(nil, "--all-apps", "preview every installed app instead of brew casks"),
         Option(nil, "--apps-dir", "preview every app in a folder", value: .directory),
         Option(nil, "--fetch", "download each incoming cask and diff it"),
+        Option(nil, "--greedy", "include casks that normally update themselves"),
+        Option(nil, "--max-risk", "gate: hold casks above this risk for review", value: .choices(riskTiers)),
+        Option(nil, "--min-tier", "only show apps at or above a risk tier", value: .choices(riskTiers)),
+        Option(nil, "--only-noteworthy", "hide apps with nothing noteworthy"),
+        Option(nil, "--json", "machine-readable JSON"),
+        Option("-h", "--help", "show help"),
+    ]
+
+    public static let upgradeOptions: [Option] = [
+        Option(nil, "--max-risk", "upgrade casks at or below this risk, hold the rest", value: .choices(riskTiers)),
+        Option(nil, "--dry-run", "show what would be upgraded without running brew"),
+        Option(nil, "--no-input", "never ask about held casks"),
+        Option(nil, "--greedy", "include casks that normally update themselves"),
         Option(nil, "--min-tier", "only show apps at or above a risk tier", value: .choices(riskTiers)),
         Option(nil, "--only-noteworthy", "hide apps with nothing noteworthy"),
         Option(nil, "--json", "machine-readable JSON"),
@@ -123,6 +138,7 @@ public enum ShellCompletion {
         }
         let audit = auditOptions.map { "    \(spec($0))" }.joined(separator: "\n")
         let preview = previewOptions.map { "    \(spec($0))" }.joined(separator: "\n")
+        let upgrade = upgradeOptions.map { "    \(spec($0))" }.joined(separator: "\n")
         // Top-level options end the command line: nothing completes after them.
         let top = topLevelOptions.map { o -> String in
             let names = o.names.count > 1 ? "{\(o.names.joined(separator: ","))}" : o.long
@@ -159,12 +175,15 @@ public enum ShellCompletion {
 
         _\(command)() {
           local curcontext=$curcontext state line ret=1
-          local -a audit_opts preview_opts subcmds
+          local -a audit_opts preview_opts upgrade_opts subcmds
           audit_opts=(
         \(audit)
           )
           preview_opts=(
         \(preview)
+          )
+          upgrade_opts=(
+        \(upgrade)
           )
           subcmds=(
         \(commands)
@@ -187,6 +206,8 @@ public enum ShellCompletion {
                   _arguments -s $audit_opts '1:app to audit:__\(command)_targets' && ret=0 ;;
                 preview)
                   _arguments -s $preview_opts '*:outdated cask:__\(command)_casks' && ret=0 ;;
+                upgrade)
+                  _arguments -s $upgrade_opts '*:outdated cask:__\(command)_casks' && ret=0 ;;
                 completion)
                   _arguments '1:shell:(\(Shell.allCases.map(\.rawValue).joined(separator: " ")))' && ret=0 ;;
                 interactive) ;;
@@ -250,10 +271,11 @@ public enum ShellCompletion {
           local prev=${COMP_WORDS[COMP_CWORD-1]}
           local audit_opts="\(words(auditOptions))"
           local preview_opts="\(words(previewOptions))"
+          local upgrade_opts="\(words(upgradeOptions))"
           COMPREPLY=()
 
           case $prev in
-            --min-tier) COMPREPLY=( $(compgen -W "\(tierWords)" -- "$cur") ); return 0 ;;
+            --min-tier|--max-risk) COMPREPLY=( $(compgen -W "\(tierWords)" -- "$cur") ); return 0 ;;
             --apps-dir) COMPREPLY=( $(compgen -d -- "$cur") ); return 0 ;;
           esac
 
@@ -277,6 +299,12 @@ public enum ShellCompletion {
             preview)
               if [[ $cur == -* ]]; then
                 COMPREPLY=( $(compgen -W "$preview_opts" -- "$cur") )
+              elif command -v brew >/dev/null 2>&1; then
+                COMPREPLY=( $(compgen -W "$(brew outdated --cask --quiet 2>/dev/null)" -- "$cur") )
+              fi ;;
+            upgrade)
+              if [[ $cur == -* ]]; then
+                COMPREPLY=( $(compgen -W "$upgrade_opts" -- "$cur") )
               elif command -v brew >/dev/null 2>&1; then
                 COMPREPLY=( $(compgen -W "$(brew outdated --cask --quiet 2>/dev/null)" -- "$cur") )
               fi ;;
@@ -315,8 +343,9 @@ public enum ShellCompletion {
         }
 
         let first = "__fish_use_subcommand"
-        let audit = "not __fish_use_subcommand; and not __fish_seen_subcommand_from preview completion interactive"
+        let audit = "not __fish_use_subcommand; and not __fish_seen_subcommand_from preview upgrade completion interactive"
         let preview = "__fish_seen_subcommand_from preview"
+        let upgrade = "__fish_seen_subcommand_from upgrade"
 
         let subcommandLines = subcommands.map {
             "complete -c \(c) -n '\(first)' -a \($0.name) -d '\(fishEscaped($0.help))'"
@@ -324,6 +353,7 @@ public enum ShellCompletion {
         let topLines = topLevelOptions.map { line($0, condition: first) }
         let auditLines = auditOptions.map { line($0, condition: audit) }
         let previewLines = previewOptions.map { line($0, condition: preview) }
+        let upgradeLines = upgradeOptions.map { line($0, condition: upgrade) }
 
         return """
         # fish completion for \(c). Generated by `\(c) completion fish`.
@@ -355,6 +385,9 @@ public enum ShellCompletion {
 
         complete -c \(c) -n '\(preview)' -a '(__\(c)_casks)' -d 'outdated cask'
         \(previewLines.joined(separator: "\n"))
+
+        complete -c \(c) -n '\(upgrade)' -a '(__\(c)_casks)' -d 'outdated cask'
+        \(upgradeLines.joined(separator: "\n"))
 
         complete -c \(c) -n '__fish_seen_subcommand_from completion' -x -a '\(Shell.allCases.map(\.rawValue).joined(separator: " "))'
 

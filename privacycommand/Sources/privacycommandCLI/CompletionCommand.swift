@@ -19,7 +19,7 @@ enum CompletionCommand {
                privacycommand completion fish > ~/.config/fish/completions/privacycommand.fish
 
     Completes subcommands, options, installed app names, risk tiers, and the
-    outdated casks `preview` would look at.
+    outdated casks `preview` and `upgrade` would look at.
     """
 
     static func run(_ argv: [String]) -> Never {
