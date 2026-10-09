@@ -24,7 +24,7 @@ struct FileAccessView: View {
                                   detail: "Captured by the privileged helper running fs_usage(1). fs_usage may drop events under heavy I/O load.")
                 } else {
                     FidelityBadge(.requiresEntitlement,
-                                  detail: "Install the privileged helper from the Help menu to enable file monitoring.")
+                                  detail: "Install the privileged helper from Settings → Helper to enable file monitoring.")
                 }
                 Spacer()
                 Button {
@@ -132,7 +132,7 @@ struct FileAccessView: View {
                 Image(systemName: "lock").font(.largeTitle).foregroundStyle(.blue)
                 Text("File events not available in this build")
                     .font(.headline)
-                Text("Install the privileged helper from **Help → Show Onboarding…** to enable best-effort fs_usage-based file events. Production-quality file monitoring requires Endpoint Security, which needs an Apple-granted entitlement.")
+                Text("Install the privileged helper from **Settings → Helper** to enable best-effort fs_usage-based file events. Production-quality file monitoring requires Endpoint Security, which needs an Apple-granted entitlement.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)

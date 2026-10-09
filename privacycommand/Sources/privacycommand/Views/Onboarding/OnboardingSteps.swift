@@ -304,7 +304,7 @@ struct AllSetStep: View {
                           systemImage: "checkmark.shield.fill")
                         .foregroundStyle(.green)
                 } else {
-                    Label("File monitoring is off. Everything else still works — install the helper later from the Help menu if you change your mind.",
+                    Label("File monitoring is off. Everything else still works — install the helper later from **Settings → Helper** if you change your mind.",
                           systemImage: "info.circle")
                         .foregroundStyle(.secondary)
                 }

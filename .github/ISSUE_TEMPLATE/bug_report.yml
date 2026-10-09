@@ -105,7 +105,7 @@ body:
         Apple menu → About This Mac. Both the macOS version and the
         chip family matter — some bugs only surface on Apple Silicon
         or only on Intel.
-      placeholder: "macOS 14.5 · Apple M2 Pro · or · macOS 13.6 · Intel"
+      placeholder: "macOS 14.5 · Apple M2 Pro · or · macOS 15.7 · Intel"
     validations:
       required: false
 
