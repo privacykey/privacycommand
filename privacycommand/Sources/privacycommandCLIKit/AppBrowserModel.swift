@@ -146,10 +146,20 @@ public struct AppBrowserModel: Sendable {
 
     public mutating func setState(_ s: AuditState, forPath path: String) {
         states[path] = s
+        phases[path] = nil
     }
 
     public mutating func markAnalyzing(path: String) {
         states[path] = .analyzing
+        phases[path] = nil
+    }
+
+    /// The analyzer's current step for an app being analyzed, shown under
+    /// "Analyzing …" so a slow app doesn't look stuck. Cleared with the state.
+    public private(set) var phases: [String: String] = [:]
+
+    public mutating func setPhase(_ phase: String, forPath path: String) {
+        phases[path] = phase
     }
 
     /// Drop the selected app's cached result so the driver re-runs analysis.

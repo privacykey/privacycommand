@@ -55,6 +55,15 @@ final class CaskArtifactFetcherTests: XCTestCase {
         XCTAssertNil(CaskArtifactFetcher.parseCachePath("   \n  ".data(using: .utf8)!))
     }
 
+    // MARK: - partialFile
+
+    func testPartialFileMatchesBrewsIncompleteDownloadName() {
+        // brew's AbstractFileDownloadStrategy writes to "#{cached_location}.incomplete".
+        let cache = URL(fileURLWithPath: "/Users/me/Library/Caches/Homebrew/downloads/abc--iTerm2-3_7_4.zip")
+        XCTAssertEqual(CaskArtifactFetcher.partialFile(for: cache).path,
+                       "/Users/me/Library/Caches/Homebrew/downloads/abc--iTerm2-3_7_4.zip.incomplete")
+    }
+
     // MARK: - Choosing the app
 
     func testPickAppPrefersInstalledNameThenNonUninstaller() {

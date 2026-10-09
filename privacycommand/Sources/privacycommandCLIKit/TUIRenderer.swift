@@ -134,7 +134,9 @@ public enum TUIRenderer {
 
         switch m.state(of: app) {
         case .notStarted, .analyzing:
-            return ["", colored("Analyzing \(app.name)…", .yellow)]
+            var lines = ["", colored("Analyzing \(app.name)…", .yellow)]
+            if let phase = m.phases[app.path] { lines.append(colored(phase, .dim)) }
+            return lines
         case .failed(let err):
             return [ansi.paint(clipPlain(" \(app.name)", width), .bold), "",
                     colored("analysis failed:", .red), plain("  \(err)")]

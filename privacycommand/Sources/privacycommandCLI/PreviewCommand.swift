@@ -1,5 +1,6 @@
 import Foundation
 import privacycommandCore
+import privacycommandCLIKit
 
 /// `privacycommand preview` — analyze the apps you're about to update and surface
 /// anything noteworthy, *before* you run `brew upgrade`.
@@ -38,6 +39,7 @@ enum PreviewCommand {
                             --fetch, else on the installed one. Never runs brew.
       --min-tier <tier>     only show apps at risk tier >= low|medium|high|critical
       --only-noteworthy     hide apps with nothing noteworthy
+      --no-color            disable coloured output (the NO_COLOR env var also works)
       --json                emit machine-readable JSON
       -h, --help            show this help
 
@@ -82,6 +84,7 @@ enum PreviewCommand {
       --min-tier <tier>     only show apps at risk tier >= low|medium|high|critical
                             (not with --max-risk, which judges every cask)
       --only-noteworthy     hide apps with nothing noteworthy (not with --max-risk)
+      --no-color            disable coloured output (the NO_COLOR env var also works)
       --json                emit machine-readable JSON (brew's output goes to stderr)
       -h, --help            show this help
 
@@ -118,6 +121,7 @@ enum PreviewCommand {
         var threshold: UpgradeGate.Threshold?
         var dryRun = false
         var noInput = false
+        var noColor = false
         var caskFilter: [String] = []   // positional cask tokens to restrict to
 
         var i = 0
@@ -137,6 +141,8 @@ enum PreviewCommand {
                 dryRun = true
             case "--no-input":
                 noInput = true
+            case "--no-color":
+                noColor = true
             case "--apps-dir":
                 i += 1
                 guard i < argv.count else { die("--apps-dir needs a directory") }
@@ -191,6 +197,15 @@ enum PreviewCommand {
             die("--dry-run/--no-input need --max-risk (without it, `upgrade` never runs brew).")
         }
 
+        let ansi = Ansi(noColor: noColor)
+
+        // Live progress on stderr (a terminal only) from here until the
+        // report: one row per app once they're known, so the wait for brew,
+        // the analysis and any downloads isn't silent.
+        let board = StatusBoard()
+        board.setFooter("Starting")
+        board.start()
+
         // 1. Discover the apps to preview.
         let targets: [HomebrewCaskInventory.PreviewTarget]
         var scan: HomebrewCaskInventory.OutdatedScan?
@@ -199,11 +214,16 @@ enum PreviewCommand {
             if allApps {
                 let dirs = appsDir.map { [URL(fileURLWithPath: ($0 as NSString).expandingTildeInPath)] }
                     ?? HomebrewCaskInventory.defaultAppDirectories()
+                board.setFooter("Listing installed apps")
                 targets = HomebrewCaskInventory.installedApps(in: dirs)
                 header = "Scanning \(targets.count) installed app\(plural(targets.count))…"
             } else {
-                var found = try HomebrewCaskInventory().outdatedScan(greedy: greedy)
-                if !caskFilter.isEmpty { found = restrict(found, to: caskFilter) }
+                var found = try HomebrewCaskInventory().outdatedScan(greedy: greedy) { board.setFooter($0) }
+                if !caskFilter.isEmpty {
+                    let (restricted, notes) = restrict(found, to: caskFilter)
+                    found = restricted
+                    notes.forEach { board.log($0) }
+                }
                 scan = found
                 targets = found.targets
                 let total = targets.count + found.skipped.count
@@ -213,10 +233,12 @@ enum PreviewCommand {
                       "(\(found.skipped.count) can't be previewed — listed at the end)…"
             }
         } catch {
+            board.stop()
             die((error as? LocalizedError)?.errorDescription ?? error.localizedDescription)
         }
 
         if targets.isEmpty && (scan?.skipped.isEmpty ?? true) {
+            board.stop()
             if json {
                 print("[]")
             } else if allApps {
@@ -230,8 +252,16 @@ enum PreviewCommand {
             exit(0)
         }
 
+        // The header goes out now rather than with the report, so the run says
+        // what it's checking straight away.
+        if !json { board.log(header, toStdout: true) }
+        board.setRows(targets.map { t in
+            ProgressBoard.Row(id: rowID(t), state: .queued, name: t.displayName,
+                              version: versionColumn(t), status: "queued")
+        })
+
         // 2. Analyze the installed builds (parallel — I/O-bound on codesign/spctl).
-        var results = analyze(targets)
+        var results = analyze(targets, board: board)
 
         // Display filter, reused for both the fetch set and rendering.
         let shouldShow: (Result) -> Bool = { r in
@@ -246,8 +276,9 @@ enum PreviewCommand {
         //    --min-tier bound how much gets downloaded. (With --max-risk those
         //    filters are rejected above, so every cask is fetched and judged.)
         if fetch {
-            runFetchPass(&results, shouldShow: shouldShow)
+            runFetchPass(&results, shouldShow: shouldShow, board: board)
         }
+        board.stop()
 
         // 4. Gate: decide cleared / held per cask.
         if let threshold {
@@ -271,12 +302,12 @@ enum PreviewCommand {
             emitJSON(results.filter(shouldShow), skipped: scan?.skipped ?? [],
                      fetched: fetch, threshold: threshold)
         } else {
-            render(header: header, all: results, shown: results.filter(shouldShow), scan: scan,
-                   fetched: fetch, threshold: threshold, willUpgrade: upgrade, greedy: greedy)
+            render(all: results, shown: results.filter(shouldShow), scan: scan,
+                   fetched: fetch, threshold: threshold, willUpgrade: upgrade, greedy: greedy, ansi: ansi)
             if upgrade, threshold != nil {
                 let interactive = !noInput && isatty(STDIN_FILENO) != 0 && isatty(STDOUT_FILENO) != 0
                 brewFailed = applyUpgrades(&results, greedy: greedy, dryRun: dryRun,
-                                           askAboutHeld: interactive, json: false)
+                                           askAboutHeld: interactive, json: false, ansi: ansi)
                 renderUpgradeOutcome(results, greedy: greedy, dryRun: dryRun)
             }
         }
@@ -297,22 +328,21 @@ enum PreviewCommand {
         return stillHeld ? 3 : 0
     }
 
-    /// Restrict a scan to the named casks, noting any that aren't outdated.
-    /// Formula / greedy notes are dropped — they're about the whole upgrade.
+    /// Restrict a scan to the named casks, with a note for each that isn't
+    /// outdated. Formula / greedy notes are dropped — they're about the whole upgrade.
     static func restrict(_ scan: HomebrewCaskInventory.OutdatedScan,
-                         to tokens: [String]) -> HomebrewCaskInventory.OutdatedScan {
+                         to tokens: [String]) -> (HomebrewCaskInventory.OutdatedScan, notes: [String]) {
         let wanted = Set(tokens.map { $0.lowercased() })
         let targets = scan.targets.filter { token(of: $0).map { wanted.contains($0.lowercased()) } ?? false }
         let skipped = scan.skipped.filter { wanted.contains($0.token.lowercased()) }
         let found = Set(targets.compactMap { token(of: $0)?.lowercased() } + skipped.map { $0.token.lowercased() })
-        for missing in wanted.subtracting(found).sorted() {
+        let notes = wanted.subtracting(found).sorted().map { missing in
             let greedyOnly = scan.greedyOnlyCasks.contains { $0.lowercased() == missing }
             let hint = greedyOnly ? " (it only updates with --greedy)" : ""
-            FileHandle.standardError.write(Data(
-                "note: ‘\(missing)’ is not an outdated cask\(hint) — skipping.\n".utf8))
+            return "note: ‘\(missing)’ is not an outdated cask\(hint) — skipping."
         }
-        return HomebrewCaskInventory.OutdatedScan(targets: targets, skipped: skipped,
-                                                  outdatedFormulae: [], greedyOnlyCasks: [])
+        return (HomebrewCaskInventory.OutdatedScan(targets: targets, skipped: skipped,
+                                                   outdatedFormulae: [], greedyOnlyCasks: []), notes)
     }
 
     private static func token(of target: HomebrewCaskInventory.PreviewTarget) -> String? {
@@ -350,27 +380,61 @@ enum PreviewCommand {
         var upgradeStatus: UpgradeStatus?
     }
 
-    static func analyze(_ targets: [HomebrewCaskInventory.PreviewTarget]) -> [Result] {
-        var slots = [Result?](repeating: nil, count: targets.count)
+    static func analyze(_ targets: [HomebrewCaskInventory.PreviewTarget], board: StatusBoard) -> [Result] {
+        let total = targets.count
+        board.setFooter("Analyzing installed apps — 0 of \(total) done")
+        var slots = [Result?](repeating: nil, count: total)
+        var done = 0
         let lock = NSLock()
-        DispatchQueue.concurrentPerform(iterations: targets.count) { idx in
+        DispatchQueue.concurrentPerform(iterations: total) { idx in
             let target = targets[idx]
+            let id = rowID(target)
+            board.update(id) { $0.state = .working; $0.status = "reading the app" }
             let result: Result
             do {
-                let report = try StaticAnalyzer().analyze(bundleAt: target.bundleURL)
+                let report = try StaticAnalyzer().analyze(bundleAt: target.bundleURL) { phase in
+                    board.update(id) { $0.status = StatusBoard.phaseText(phase) }
+                }
+                let summary = NoteworthySummary.summarize(report)
                 result = Result(target: target,
                                 installedVersion: report.bundle.bundleVersion,
-                                summary: NoteworthySummary.summarize(report),
+                                summary: summary,
                                 installedReport: report,
                                 error: nil)
+                board.update(id) {
+                    $0.state = summary.isNoteworthy ? .noteworthy : .clean
+                    $0.status = boardStatus(summary)
+                }
             } catch {
                 result = Result(target: target, installedVersion: nil,
                                 summary: nil, installedReport: nil,
                                 error: error.localizedDescription)
+                board.update(id) { $0.state = .failed; $0.status = "couldn't analyze — " + error.localizedDescription }
             }
-            lock.lock(); slots[idx] = result; lock.unlock()
+            lock.lock(); slots[idx] = result; done += 1; let n = done; lock.unlock()
+            board.setFooter("Analyzing installed apps — \(n) of \(total) done")
         }
         return slots.compactMap { $0 }
+    }
+
+    /// The board row's key: the cask token, or the bundle path for --all-apps.
+    static func rowID(_ target: HomebrewCaskInventory.PreviewTarget) -> String {
+        token(of: target) ?? target.bundleURL.path
+    }
+
+    /// `3.7.0 → 3.7.4` for a cask row; nothing for a plain installed app.
+    static func versionColumn(_ target: HomebrewCaskInventory.PreviewTarget) -> String? {
+        guard case let .brewCask(_, installed, available) = target.source,
+              let installed, let available else { return nil }
+        return "\(displayVersion(installed)) → \(displayVersion(available))"
+    }
+
+    /// A row's one-line outcome: `low risk 14 · 4 findings · 2 signals`.
+    static func boardStatus(_ s: NoteworthySummary) -> String {
+        var bits = ["\(s.tier.label.lowercased()) risk \(s.riskScore)"]
+        if !s.findings.isEmpty { bits.append("\(s.findings.count) finding\(plural(s.findings.count))") }
+        if !s.signals.isEmpty { bits.append("\(s.signals.count) signal\(plural(s.signals.count))") }
+        return s.isNoteworthy ? bits.joined(separator: " · ") : "nothing noteworthy · " + bits[0]
     }
 
     // MARK: - Fetch pass (download incoming cask → analyze → diff)
@@ -379,9 +443,10 @@ enum PreviewCommand {
     /// it, and diff against the installed build. Sequential (downloads are large
     /// and network-bound). Bridges the synchronous CLI to the async fetch API
     /// with a Task + semaphore so the process never exits before teardown.
-    static func runFetchPass(_ results: inout [Result], shouldShow: (Result) -> Bool) {
+    static func runFetchPass(_ results: inout [Result], shouldShow: (Result) -> Bool, board: StatusBoard) {
         struct Job: Sendable {
             let index: Int
+            let id: String
             let token: String
             let installed: StaticReport?
             let appName: String
@@ -392,23 +457,47 @@ enum PreviewCommand {
         for i in results.indices where shouldShow(results[i]) {
             let target = results[i].target
             guard let token = token(of: target) else { continue }
-            jobs.append(Job(index: i, token: token, installed: results[i].installedReport,
+            jobs.append(Job(index: i, id: rowID(target), token: token, installed: results[i].installedReport,
                             appName: target.bundleURL.lastPathComponent, pkgPath: target.incomingPkgPath))
         }
         guard !jobs.isEmpty else { return }
 
-        FileHandle.standardError.write(Data(
-            "Fetching \(jobs.count) incoming build\(plural(jobs.count))… (downloads may be large)\n".utf8))
+        // On a terminal the board shows each step; elsewhere (logs, CI) one
+        // plain line per cask is enough.
+        if !board.enabled {
+            board.log("Fetching \(jobs.count) incoming build\(plural(jobs.count))… (downloads may be large)")
+        }
+        for job in jobs { board.update(job.id) { $0.state = .queued; $0.status = "waiting to download" } }
 
         final class Box: @unchecked Sendable { var map: [Int: FetchOutcome] = [:] }
         let box = Box()
         let semaphore = DispatchSemaphore(value: 0)
         let jobsCopy = jobs
         Task {
-            for job in jobsCopy {
-                FileHandle.standardError.write(Data("  fetching \(job.token)…\n".utf8))
-                box.map[job.index] = await fetchOne(token: job.token, installed: job.installed,
-                                                    appName: job.appName, pkgPath: job.pkgPath)
+            for (n, job) in jobsCopy.enumerated() {
+                board.setFooter("Fetching incoming builds — \(n + 1) of \(jobsCopy.count)")
+                if !board.enabled { board.log("  fetching \(job.token)…") }
+                board.update(job.id) { $0.state = .working; $0.status = "looking up the download" }
+                let outcome = await fetchOne(
+                    token: job.token, installed: job.installed, appName: job.appName, pkgPath: job.pkgPath,
+                    progress: { phase in
+                        switch phase {
+                        case .downloading(let cacheFile):
+                            board.update(job.id, live: { downloadStatus(cacheFile) }) {
+                                $0.state = .downloading; $0.status = "downloading"
+                            }
+                        case .unpacking:
+                            board.update(job.id) { $0.state = .working; $0.status = "opening the download" }
+                        }
+                    },
+                    analyzing: { step in
+                        board.update(job.id) {
+                            $0.state = .working; $0.status = "analyzing the new build — " + StatusBoard.phaseText(step)
+                        }
+                    })
+                box.map[job.index] = outcome
+                let (state, status) = boardOutcome(outcome)
+                board.update(job.id) { $0.state = state; $0.status = status }
             }
             semaphore.signal()
         }
@@ -417,14 +506,29 @@ enum PreviewCommand {
         for (i, outcome) in box.map { results[i].fetched = outcome }
     }
 
+    /// How a cask's row ends after the fetch pass.
+    static func boardOutcome(_ outcome: FetchOutcome) -> (ProgressBoard.Row.State, String) {
+        switch outcome {
+        case .analyzed(let d):
+            let n = d.diff.changedSections.reduce(0) { $0 + $1.added.count + $1.removed.count + $1.modified.count }
+            guard n > 0 else { return (.clean, "no privacy-relevant changes") }
+            return (.noteworthy, "\(n) change\(plural(n)) · risk \(d.installedRiskScore) → \(d.incomingRiskScore)")
+        case .skipped(let why): return (.skipped, "skipped — " + why)
+        case .failed(let why):  return (.failed, "couldn't fetch — " + why)
+        }
+    }
+
     static func fetchOne(token: String, installed: StaticReport?,
-                         appName: String, pkgPath: String?) async -> FetchOutcome {
+                         appName: String, pkgPath: String?,
+                         progress: ((CaskArtifactFetcher.Phase) -> Void)? = nil,
+                         analyzing: ((String) -> Void)? = nil) async -> FetchOutcome {
         guard let installed else { return .skipped("installed build couldn't be analyzed") }
         do {
             let incoming = try await CaskArtifactFetcher.withDownloadedApp(
-                token: token, preferredAppName: appName, pkgPath: pkgPath
+                token: token, preferredAppName: appName, pkgPath: pkgPath, progress: progress
             ) { app in
-                try StaticAnalyzer().analyze(bundleAt: app)
+                analyzing?("Reading the app")
+                return try StaticAnalyzer().analyze(bundleAt: app) { analyzing?($0) }
             }
             return .analyzed(IncomingCaskComparison.compare(installed: installed, incoming: incoming))
         } catch let e as CaskArtifactFetcher.FetchError {
@@ -433,6 +537,25 @@ enum PreviewCommand {
         } catch {
             return .failed(error.localizedDescription)
         }
+    }
+
+    /// A downloading row's live status: how much `brew fetch` has written so
+    /// far (brew keeps it in `<cache file>.incomplete`), or that the download
+    /// is complete and brew is verifying it.
+    static func downloadStatus(_ cacheFile: URL) -> String {
+        let fm = FileManager.default
+        let partial = CaskArtifactFetcher.partialFile(for: cacheFile)
+        if let size = (try? fm.attributesOfItem(atPath: partial.path))?[.size] as? Int64 {
+            return "downloading — " + ByteCountFormatter.string(fromByteCount: size, countStyle: .file) + " so far"
+        }
+        // Finished (or already cached from an earlier run): brew checks it now.
+        if fm.fileExists(atPath: cacheFile.path) { return "downloaded — checking its checksum" }
+        return "starting the download"
+    }
+
+    /// A cask version without brew's build suffix: `3.23.23,2dac24…` → `3.23.23`.
+    static func displayVersion(_ version: String) -> String {
+        String(version.split(separator: ",", maxSplits: 1).first ?? Substring(version))
     }
 
     // MARK: - Gate (--max-risk)
@@ -459,7 +582,7 @@ enum PreviewCommand {
     /// a time so each cask gets an honest status. Records the status on each
     /// result; returns true if any brew run failed.
     static func applyUpgrades(_ results: inout [Result], greedy: Bool, dryRun: Bool,
-                              askAboutHeld: Bool, json: Bool) -> Bool {
+                              askAboutHeld: Bool, json: Bool, ansi: Ansi = Ansi(enabled: false)) -> Bool {
         var toUpgrade: [Int] = []
         for i in results.indices {
             guard let d = results[i].decision, token(of: results[i].target) != nil else { continue }
@@ -476,8 +599,8 @@ enum PreviewCommand {
             for i in held {
                 guard let token = token(of: results[i].target) else { continue }
                 print("")
-                print(line(for: results[i]))
-                if let reason = results[i].decision?.reason { print("    held: \(reason)") }
+                print(line(for: results[i], ansi: ansi))
+                if let reason = results[i].decision?.reason { print("    " + ansi.paint("held: \(reason)", .red)) }
                 print("Upgrade \(token) anyway? [y/N] ", terminator: "")
                 fflush(stdout)
                 guard let answer = readLine(strippingNewline: true) else { print(""); break }   // EOF: stop asking
@@ -522,11 +645,11 @@ enum PreviewCommand {
 
     // MARK: - Human rendering
 
-    static func render(header: String, all: [Result], shown: [Result],
+    /// The report under the header, which `run` prints before the analysis.
+    static func render(all: [Result], shown: [Result],
                        scan: HomebrewCaskInventory.OutdatedScan?, fetched: Bool,
                        threshold: UpgradeGate.Threshold? = nil, willUpgrade: Bool = false,
-                       greedy: Bool = false) {
-        print(header)
+                       greedy: Bool = false, ansi: Ansi = Ansi(enabled: false)) {
         print("")
 
         // With a gate: held first. Then noteworthy first, then by risk tier
@@ -541,23 +664,25 @@ enum PreviewCommand {
         }
 
         for r in ordered {
-            print(line(for: r))
+            print(line(for: r, ansi: ansi))
             if let d = r.decision, !d.cleared, let reason = d.reason {
-                print("    held: \(reason)")
+                print("    " + ansi.paint("held: \(reason)", .red))
             }
             if let summary = r.summary {
                 if !summary.findings.isEmpty {
                     print("    findings:")
-                    for f in summary.findings { print("      [\(f.severity.rawValue)] \(f.message)") }
+                    for f in summary.findings {
+                        print("      \(AuditCommand.severityTag(f.severity, ansi: ansi)) \(f.message)")
+                    }
                 }
                 if !summary.signals.isEmpty {
                     print("    signals:")
                     for s in summary.signals { print("      • \(s)") }
                 }
             } else if let err = r.error {
-                print("      couldn't analyze: \(err)")
+                print("      " + ansi.paint("couldn't analyze: \(err)", .red))
             }
-            if let outcome = r.fetched { renderIncoming(outcome) }
+            if let outcome = r.fetched { renderIncoming(outcome, ansi: ansi) }
             print("")
         }
 
@@ -568,8 +693,10 @@ enum PreviewCommand {
                   : "Not analyzed, so not upgraded here — update \(these) yourself:")
             for s in skipped {
                 var head = "  – \(s.token)"
-                if let i = s.installedVersion, let a = s.availableVersion { head += "  \(i) → \(a)" }
-                print(head + "  —  " + s.reason)
+                if let i = s.installedVersion, let a = s.availableVersion {
+                    head += "  \(displayVersion(i)) → \(displayVersion(a))"
+                }
+                print(ansi.paint(head + "  —  " + s.reason, .dim))
             }
             if threshold != nil {
                 print("  " + HomebrewUpgrader.commandLine(casks: skipped.map(\.token), greedy: greedy))
@@ -592,11 +719,11 @@ enum PreviewCommand {
             }.count
             print("\(changed) of \(analyzedIncoming.count) fetched incoming build\(plural(analyzedIncoming.count)) " +
                   "\(analyzedIncoming.count == 1 ? "has" : "have") privacy-relevant changes.")
-            print("Incoming builds are analyzed before Gatekeeper clearance, so a 'notarization' " +
-                  "difference can be an artifact of the fresh download rather than a real change.")
+            print(ansi.paint("Incoming builds are analyzed before Gatekeeper clearance, so a 'notarization' " +
+                             "difference can be an artifact of the fresh download rather than a real change.", .dim))
         } else if scan != nil {
-            print("Analysis is of the installed version — it previews what each app already " +
-                  "does, not the incoming build. Re-run with --fetch to analyze the incoming build.")
+            print(ansi.paint("Analysis is of the installed version — it previews what each app already " +
+                             "does, not the incoming build. Re-run with --fetch to analyze the incoming build.", .dim))
         }
         if let scan { printBrewNotes(scan) }
 
@@ -669,25 +796,27 @@ enum PreviewCommand {
 
     /// The per-cask "incoming build" block shown under each result when --fetch
     /// is on.
-    private static func renderIncoming(_ outcome: FetchOutcome) {
+    private static func renderIncoming(_ outcome: FetchOutcome, ansi: Ansi) {
         switch outcome {
         case .analyzed(let d):
             let version = d.incomingVersion.map { " \($0)" } ?? ""
-            print("    incoming\(version): risk \(d.installedRiskScore) → \(d.incomingRiskScore) (\(deltaLabel(d.riskScoreDelta)))")
+            let delta = d.riskScoreDelta
+            let deltaText = ansi.paint("(\(deltaLabel(delta)))", delta > 0 ? .yellow : delta < 0 ? .green : .dim)
+            print("    incoming\(version): risk \(d.installedRiskScore) → \(d.incomingRiskScore) \(deltaText)")
             let changed = d.diff.changedSections
             if changed.isEmpty {
-                print("      no privacy-relevant changes")
+                print("      " + ansi.paint("no privacy-relevant changes", .green))
             } else {
                 for sec in changed {
-                    for a in sec.added    { print("      + \(sec.title): \(a)") }
-                    for rm in sec.removed { print("      − \(sec.title): \(rm)") }
+                    for a in sec.added    { print("      " + ansi.paint("+ \(sec.title): \(a)", .yellow)) }
+                    for rm in sec.removed { print("      " + ansi.paint("− \(sec.title): \(rm)", .dim)) }
                     for m in sec.modified { print("      ~ \(sec.title): \(m.before) → \(m.after)") }
                 }
             }
         case .skipped(let why):
-            print("    incoming: skipped — \(why)")
+            print("    " + ansi.paint("incoming: skipped — \(why)", .dim))
         case .failed(let why):
-            print("    incoming: could not fetch — \(why)")
+            print("    " + ansi.paint("incoming: could not fetch — \(why)", .red))
         }
     }
 
@@ -695,25 +824,27 @@ enum PreviewCommand {
         delta > 0 ? "Δ+\(delta)" : "Δ\(delta)"   // negative already carries its sign
     }
 
-    private static func line(for r: Result) -> String {
+    private static func line(for r: Result, ansi: Ansi = Ansi(enabled: false)) -> String {
         // With a gate the marker is the verdict; otherwise it's "noteworthy?".
         let marker: String
         if let d = r.decision {
-            marker = d.cleared ? "✓ cleared  " : "⚠ review   "
+            marker = d.cleared ? ansi.paint("✓ cleared", .green) + "  " : ansi.paint("⚠ review", .yellow) + "   "
         } else {
-            marker = (r.summary?.isNoteworthy ?? true) ? "⚠ " : "✓ "
+            marker = (r.summary?.isNoteworthy ?? true) ? ansi.paint("⚠", .yellow) + " " : ansi.paint("✓", .green) + " "
         }
-        var head = marker + r.target.displayName
+        var head = marker + ansi.paint(r.target.displayName, .bold)
         if case let .brewCask(token, installed, available) = r.target.source {
-            head += "  (\(token))"
-            if let installed, let available { head += "  \(installed) → \(available)" }
+            head += "  " + ansi.paint("(\(token))", .dim)
+            if let installed, let available {
+                head += "  \(displayVersion(installed)) → \(displayVersion(available))"
+            }
         } else if let v = r.installedVersion {
             head += "  v\(v)"
         }
         if let summary = r.summary {
-            head += "  —  " + summary.headline
+            head += "  —  " + ansi.paint(summary.headline, AuditCommand.tierCode(summary.tier))
         } else {
-            head += "  —  analysis failed"
+            head += "  —  " + ansi.paint("analysis failed", .red)
         }
         return head
     }

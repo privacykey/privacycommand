@@ -98,6 +98,20 @@ public enum CaskArtifactFetcher {
 
     // MARK: - Scoped download + acquire + guaranteed cleanup
 
+    /// What `withDownloadedApp` is doing, for progress display.
+    public enum Phase: Sendable {
+        /// `brew fetch` is downloading to `cacheFile` (brew's cache path).
+        /// Until it finishes, the bytes so far are in `partialFile`.
+        case downloading(cacheFile: URL)
+        /// Mounting, extracting or expanding the download to reach the app.
+        case unpacking
+    }
+
+    /// Where `brew fetch` keeps an unfinished download of `cacheFile`.
+    public static func partialFile(for cacheFile: URL) -> URL {
+        URL(fileURLWithPath: cacheFile.path + ".incomplete")
+    }
+
     /// Resolve the cask's incoming artifact, expose the `.app` inside it to
     /// `body`, and tear everything down afterwards — on success or throw.
     /// Unsupported formats throw `.unsupportedFormat` *before* any download.
@@ -107,10 +121,13 @@ public enum CaskArtifactFetcher {
     ///     a download holding several apps yields the matching one.
     ///   - pkgPath: the cask's `pkg` stanza — the installer's path inside a
     ///     `.dmg`/`.zip` — for casks that install with a `.pkg`.
+    ///   - progress: told when the download and the unpacking start; `body`
+    ///     runs once the app is ready.
     public static func withDownloadedApp<T>(
         token: String,
         preferredAppName: String? = nil,
         pkgPath: String? = nil,
+        progress: ((Phase) -> Void)? = nil,
         _ body: (URL) throws -> T
     ) async throws -> T {
         guard let brew = HomebrewCaskInventory.brewExecutable() else { throw FetchError.brewNotFound }
@@ -132,6 +149,7 @@ public enum CaskArtifactFetcher {
         //    any non-zero exit carrying brew's stderr, so a failed/corrupt
         //    download is reported as .fetchFailed and never analyzed. A
         //    generous wall-clock cap keeps a wedged download from hanging forever.
+        progress?(.downloading(cacheFile: cacheURL))
         do {
             _ = try HomebrewCaskInventory.runChecked(brew, ["fetch", "--cask", token], timeout: 600)
         } catch {
@@ -144,6 +162,7 @@ public enum CaskArtifactFetcher {
         // 3. Acquire the .app + a teardown thunk, then run body with guaranteed
         //    cleanup. `defer` can't `await` (DMGMounter.detach is async), so the
         //    do/catch invokes cleanup explicitly on both paths.
+        progress?(.unpacking)
         switch format {
         case .dmg:
             let mount = try await mount(cacheURL)
