@@ -87,13 +87,14 @@ arguments it checks your outdated Homebrew casks:
 
 ```sh
 $BIN preview
-$BIN preview --all-apps --only-noteworthy --min-tier warn
+$BIN preview --all-apps --only-noteworthy --min-tier high
 $BIN preview --json
 $BIN preview --fetch firefox   # download the incoming build and diff it
 ```
 
-`preview` is inform-only: it never runs `brew`, never blocks an update, and
-always exits 0. It understands `.dmg` and `.zip` cask artifacts; `.pkg` is
+`preview` is inform-only: it runs read-only `brew` queries but never
+`brew upgrade`, never blocks an update, and exits 0 whenever it completes (2
+on a usage error or when Homebrew is missing). It understands `.dmg` and `.zip` cask artifacts; `.pkg` is
 skipped. With `--fetch`, an incoming build is analysed *before* Gatekeeper has
 cleared it, so a one-off notarization difference can simply be a fresh-download
 artifact — the output flags this when it happens.
@@ -101,6 +102,13 @@ artifact — the output flags this when it happens.
 Running `privacycommand` with no arguments opens an interactive browser when
 stdin and stdout are a terminal, and prints usage otherwise so CI callers do
 not hang.
+
+`privacycommand completion <zsh|bash|fish>` prints a tab-completion script.
+The scripts are generated from the command tables in
+`Sources/privacycommandCLIKit/ShellCompletion.swift`, so a new subcommand or
+flag goes there as well as into the command's help text; `ShellCompletionTests`
+checks every table entry reaches every shell and that the scripts parse. The
+app build writes them into the bundle for the Homebrew cask to link.
 
 ## What CI runs
 

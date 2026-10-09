@@ -14,5 +14,6 @@ privacycommand also comes with a command-line tool of the same name, `privacycom
 
 - **Installed with Homebrew:** the cask has already put the `privacycommand` command on your `PATH`.
 - **Installed from the disk image:** choose **privacycommand ▸ Install Command Line Tool…**. It links the copy inside the app into `/usr/local/bin`, so the tool updates with the app. If that folder needs administrator rights, the alert shows the `sudo` command to run in Terminal instead, with a button that copies it. Choose **Uninstall Command Line Tool…** from the same place to remove the link.
+- **Tab completion:** Homebrew installs it for zsh, bash and fish. Otherwise run `privacycommand completion --help` for the line to add to your shell's startup file, for example `eval "$(privacycommand completion zsh)"` in `~/.zshrc`.
 
 Run privacycommand from the Applications folder before installing the tool: a link into a copy that is still on the disk image stops working when the image is ejected, so the item asks you to move the app first.

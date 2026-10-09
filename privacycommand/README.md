@@ -42,8 +42,11 @@ fiddling that earlier versions of this README walked through. The
   builds the `privacycommand` CLI with SwiftPM for the app's architectures,
   stamps the app's version into it, copies it to
   `Contents/Helpers/privacycommand` and signs it with the app's identity and
-  hardened runtime. The Homebrew cask's `binary` stanza and the app
-  menu's Install Command Line Tool… item both link to that path.
+  hardened runtime. It also runs `privacycommand completion <shell>` to
+  write zsh, bash and fish completion scripts to
+  `Contents/Resources/completions`. The Homebrew cask's `binary` and
+  `*_completion` stanzas link those, and the app menu's Install Command
+  Line Tool… item links the binary.
 - Sparkle 2 wired in for in-app updates (you have to add it once via
   **File → Add Package Dependencies…** — see the top-level README).
 

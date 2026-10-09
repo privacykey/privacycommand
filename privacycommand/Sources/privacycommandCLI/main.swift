@@ -10,6 +10,7 @@ import privacycommandCLIKit
 //   privacycommand audit <target>        same, explicit
 //   privacycommand -i | interactive      force the interactive browser
 //   privacycommand preview [options]     preview the apps you're about to update
+//   privacycommand completion <shell>    print a zsh, bash or fish completion script
 //
 // `<target>` is a path to a .app or an app-name substring matched against
 // installed apps. See `AuditCommand` / `privacycommand audit --help`.
@@ -34,9 +35,11 @@ usage:
   privacycommand audit <target>        same, explicit
   privacycommand -i, interactive       force the interactive browser
   privacycommand preview [options]     preview apps before you update them
+  privacycommand completion <shell>    print a tab-completion script (zsh, bash, fish)
 
 <target> is a path to a .app or an app-name substring (like `witr`).
-Run `privacycommand audit --help` or `privacycommand preview --help` for options.
+Run `privacycommand audit --help`, `privacycommand preview --help` or
+`privacycommand completion --help` for details.
 """
 
 private func stdioIsTTY() -> Bool {
@@ -55,6 +58,8 @@ case "preview":
     PreviewCommand.run(Array(arguments.dropFirst()))
 case "audit":
     AuditCommand.run(Array(arguments.dropFirst()))
+case "completion":
+    CompletionCommand.run(Array(arguments.dropFirst()))
 case "-i", "--interactive", "interactive":
     InteractiveCommand.run()
 case "--tui-selftest":
