@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.2
+
+The command-line tool now shows what it's doing while it works, and its upgrade reports are easier to read.
+
+### Command line
+
+- `privacycommand preview` and `privacycommand upgrade` show a live progress board while they run. Each app gets a row with the step it's on, how many MB have downloaded (with `--fetch` and `upgrade`), and then its result. The board clears before the report prints. It only appears on a terminal, so piped output and `--json` are unchanged.
+- The `preview` and `upgrade` report is now in colour, like a single-app audit. Each headline shows the app's risk tier, findings are tagged by severity, and held casks show in red. Versions leave out Homebrew's build hash. `--json` still has the full string.
+- `--no-color` turns colour off for `preview` and `upgrade`. Setting `NO_COLOR` does the same.
+- Auditing a single app now names the check it's running, such as "checking code signature". The interactive browser does the same while it analyses an app, so a slow app no longer looks stuck.
+
 ## 0.2.1
 
 The command-line tool now ships inside the app, and it can check Homebrew upgrades before you install them.
