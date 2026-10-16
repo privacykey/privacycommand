@@ -239,11 +239,25 @@ class Project:
             for status in page:
                 results.setdefault(status["context"], status["state"])
         required = list(self.config.get("release", {}).get("required_checks", []))
-        branch = json.loads(call(["gh", "api", f"repos/{repository}/branches/{self.config.get('default_branch', 'main')}"], self.root, capture=True))
+        default = self.config.get("default_branch", "main")
+        branch = json.loads(call(["gh", "api", f"repos/{repository}/branches/{default}"], self.root, capture=True))
+        # Rulesets also mark a branch protected. Plans without rulesets refuse the rules
+        # endpoint, so both queries stay behind the flag. gh prints error bodies on
+        # stdout, so only a successful call is parsed.
         if branch.get("protected"):
-            protection = json.loads(call(["gh", "api", f"repos/{repository}/branches/{self.config.get('default_branch', 'main')}/protection/required_status_checks"], self.root, capture=True))
+            try:
+                protection = json.loads(call(["gh", "api", f"repos/{repository}/branches/{default}/protection/required_status_checks"], self.root, capture=True))
+            except ContractError as error:
+                if not str(error).endswith("gh: Branch not protected (HTTP 404)"):
+                    raise
+                protection = {}
             required.extend(protection.get("contexts", []))
             required.extend(x['context'] for x in protection.get('checks', []))
+            rules = json.loads(call(["gh", "api", "--paginate", "--slurp",
+                f"repos/{repository}/rules/branches/{default}?per_page=100"], self.root, capture=True))
+            required.extend(x["context"] for page in rules for rule in page if rule["type"] == "required_status_checks"
+                            for x in rule["parameters"]["required_status_checks"])
+        required = list(dict.fromkeys(required))
         if not required:
             raise ContractError("Public releases require an explicit list of required CI checks")
         failed = [name + ": " + str(results.get(name, "missing")) for name in required if results.get(name) != "success"]

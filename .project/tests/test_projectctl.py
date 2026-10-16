@@ -18,6 +18,11 @@ module_path = Path(__file__).resolve().parents[1] / 'projectctl.py'
 spec = importlib.util.spec_from_file_location('projectctl', module_path)
 ctl = importlib.util.module_from_spec(spec); spec.loader.exec_module(ctl)
 
+def ok(value):
+    return 0, json.dumps(value), ''
+def error(status, message):
+    return 1, json.dumps({'message':message,'documentation_url':'https://docs.github.com/rest','status':str(status)}), f'gh: {message} (HTTP {status})\n'
+
 class ContractTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(); self.addCleanup(self.temp.cleanup)
@@ -233,6 +238,52 @@ class ContractTests(unittest.TestCase):
         values=[json.dumps([{'check_runs':[{'name':'native','status':'completed','conclusion':'skipped'}]}]),json.dumps([[]]),json.dumps({'protected':False})]
         with patch.object(ctl,'call',side_effect=values),patch.object(ctl,'git',return_value='https://github.com/example/project.git'):
             with self.assertRaisesRegex(ctl.ContractError,'skipped'):self.project.check_ci('a'*40)
+    def github(self, answers, passed=('native',)):
+        """Answer gh like GitHub: an error exits 1 and still prints its JSON body on stdout."""
+        sha='a'*40; real=subprocess.run; asked=[]
+        base={f'commits/{sha}/check-runs':ok([{'check_runs':[{'name':x,'status':'completed','conclusion':'success'} for x in passed]}]),
+              f'commits/{sha}/statuses':ok([[]]),'branches/main':ok({'protected':True}),
+              'branches/main/protection/required_status_checks':ok({'contexts':[],'checks':[]}),'rules/branches/main':ok([[]])}
+        base.update(answers)
+        def run(argv,**kwargs):
+            if argv[0]!='gh':return real(argv,**kwargs)
+            path=argv[-1].split('?')[0].removeprefix('repos/example/project/');asked.append(path)
+            return subprocess.CompletedProcess(argv,*base[path])
+        return patch.object(ctl.subprocess,'run',side_effect=run),asked
+    def test_ci_classic_protection_checks_are_required(self):
+        fake,asked=self.github({'branches/main/protection/required_status_checks':ok({'contexts':['classic'],'checks':[{'context':'classic-app'}]})})
+        with fake,self.assertRaisesRegex(ctl.ContractError,'classic: missing; classic-app: missing'):self.project.check_ci('a'*40)
+        fake,_=self.github({'branches/main/protection/required_status_checks':ok({'contexts':['classic'],'checks':[{'context':'classic-app'}]})},
+                           passed=('native','classic','classic-app'))
+        with fake:self.project.check_ci('a'*40)
+        self.assertIn('rules/branches/main',asked)
+    def test_ci_ruleset_only_protection_reads_ruleset_checks(self):
+        rule={'type':'required_status_checks','parameters':{'strict_required_status_checks_policy':False,
+              'required_status_checks':[{'context':'ruleset','integration_id':15368}]}}
+        answers={'branches/main/protection/required_status_checks':error(404,'Branch not protected'),
+                 'rules/branches/main':ok([[{'type':'deletion'},rule],[dict(rule,parameters={'required_status_checks':[{'context':'native'}]})]])}
+        fake,_=self.github(answers)
+        with fake,self.assertRaisesRegex(ctl.ContractError,r'Required CI at a+: ruleset: missing$'):self.project.check_ci('a'*40)
+        fake,_=self.github(answers,passed=('native','ruleset'))
+        with fake:self.project.check_ci('a'*40)
+    def test_ci_unprotected_branch_uses_declared_checks_only(self):
+        refused=error(403,'Upgrade to GitHub Pro or make this repository public to enable this feature.')
+        fake,asked=self.github({'branches/main':ok({'protected':False}),
+            'branches/main/protection/required_status_checks':refused,'rules/branches/main':refused})
+        with fake:self.project.check_ci('a'*40)
+        self.assertNotIn('rules/branches/main',asked)
+    def test_ci_unexpected_github_error_fails_closed(self):
+        for path in ('branches/main/protection/required_status_checks','rules/branches/main'):
+            with self.subTest(path=path):
+                fake,_=self.github({path:error(403,'Resource not accessible by integration')},passed=('native','classic','ruleset'))
+                with fake,self.assertRaisesRegex(ctl.ContractError,r'HTTP 403'):self.project.check_ci('a'*40)
+    def test_ci_never_reads_error_output_as_data(self):
+        # A failed call can print a body that parses as "no required checks".
+        for path,answer in (('branches/main/protection/required_status_checks',error(404,'Not Found')),
+                            ('rules/branches/main',(1,'[[]]','gh: Server Error (HTTP 502)\n'))):
+            with self.subTest(path=path):
+                fake,_=self.github({path:answer})
+                with fake,self.assertRaisesRegex(ctl.ContractError,r'gh failed'):self.project.check_ci('a'*40)
     def test_shell_metacharacters_are_arguments(self):
         self.project.config['targets']['app']['actions']['test']=[{'argv':['example','{value}']}]
         with patch.object(ctl,'call') as fake:self.project.adapter('test',self.opts('test',value='$(never-run); `never`'))
