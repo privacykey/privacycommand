@@ -49,12 +49,30 @@ def source(root):
             "event": os.environ.get("GITHUB_EVENT_NAME", "local"),
             "ref": os.environ.get("GITHUB_REF", "")}
 
+# Xcode records each distribution in an archive's top-level Info.plist, so
+# uploading changes that file. An archive's identity is every other file,
+# byte for byte, plus what that Info.plist says about the archive and the app
+# inside it.
+ARCHIVE_KEYS = ("ArchiveVersion", "CreationDate", "Name", "SchemeName")
+ARCHIVE_APPLICATION_KEYS = ("ApplicationPath", "Architectures", "CFBundleIdentifier", "CFBundleShortVersionString",
+                            "CFBundleVersion", "SigningIdentity", "Team")
+
+def archive_identity(path):
+    info = plistlib.loads((path / "Info.plist").read_bytes())
+    application = info.get("ApplicationProperties", {})
+    identity = {key: info[key] for key in ARCHIVE_KEYS if key in info}
+    identity["ApplicationProperties"] = {key: application[key] for key in ARCHIVE_APPLICATION_KEYS if key in application}
+    return json.dumps(identity, sort_keys=True, default=str).encode()
+
 def digest(path):
     path = Path(path)
     files = sorted(path.rglob("*")) if path.is_dir() else [path]
+    archive = path.is_dir() and path.suffix == ".xcarchive" and (path / "Info.plist").is_file()
     value = hashlib.sha256()
     for item in files:
-        if item.is_symlink():
+        if archive and item == path / "Info.plist":
+            value.update(b"Info.plist\0" + archive_identity(path))
+        elif item.is_symlink():
             value.update(str(item.relative_to(path)).encode() + b"\0" + os.readlink(item).encode())
         elif item.is_file():
             value.update((str(item.relative_to(path)) if path.is_dir() else path.name).encode() + b"\0")
