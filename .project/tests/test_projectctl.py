@@ -189,6 +189,35 @@ class ContractTests(unittest.TestCase):
     def test_dirty_artifact_rejected(self):
         artifact,_=self.artifact(dirty='YES')
         with self.assertRaisesRegex(ctl.ContractError,'Source changed'):self.project.record(artifact,ctl.source(self.root))
+    def test_xcode_upload_bookkeeping_is_not_an_archive_change(self):
+        artifact,_=self.artifact(channel='testflight',tagged='NO')
+        self.project.record(artifact,ctl.source(self.root))
+        info=plistlib.loads((artifact/'Info.plist').read_bytes())
+        def upload(archive, environment):
+            # What Xcode does when it distributes an archive: it records the upload.
+            recorded=dict(info, Distributions=[{'destination':'upload','date':datetime(2026,10,9)}])
+            (archive/'Info.plist').write_bytes(plistlib.dumps(recorded))
+        stub=SimpleNamespace(upload_archive=upload, load_environment=lambda: {})
+        with patch.object(self.project,'apple_module',return_value=stub):
+            self.project.run(self.opts('upload',value=str(artifact),channel='testflight'))
+        # A retry of the same archive still verifies.
+        self.project.verify(artifact,'testflight')
+    def test_upload_that_changes_the_app_or_its_identity_fails(self):
+        for change in ('product','identity'):
+            artifact,_=self.artifact(channel='testflight',tagged='NO')
+            self.project.record(artifact,ctl.source(self.root))
+            def upload(archive, environment, change=change):
+                if change=='product':
+                    (archive/'Products/Applications/Example.app/Contents/Extra').write_text('tampered')
+                else:
+                    info=plistlib.loads((archive/'Info.plist').read_bytes())
+                    info['ApplicationProperties']['CFBundleIdentifier']='com.example.other'
+                    (archive/'Info.plist').write_bytes(plistlib.dumps(info))
+            stub=SimpleNamespace(upload_archive=upload, load_environment=lambda: {})
+            with patch.object(self.project,'apple_module',return_value=stub):
+                with self.assertRaisesRegex(ctl.ContractError,'Upload modified the archive'):
+                    self.project.run(self.opts('upload',value=str(artifact),channel='testflight'))
+            shutil.rmtree(artifact); (self.root/'build/Example.xcarchive.project.json').unlink()
     def test_valid_beta_archive_identity_preserved(self):
         artifact,_=self.artifact();manifest=self.project.record(artifact,ctl.source(self.root)); before=ctl.digest(artifact)
         self.project.verify(artifact,'testflight');self.assertEqual(before,ctl.digest(artifact));self.assertEqual(manifest['build'],'2026.1001.0900')
